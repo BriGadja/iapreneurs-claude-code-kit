@@ -2,13 +2,15 @@
 
 > Le kit de démarrage **Claude Code** des membres IAPreneurs. Forke-le, configure ton `CLAUDE.md`, et tu codes en quelques minutes avec une méthode propre — même si tu n'as jamais codé avant.
 
-## D'où ça vient — la story Cup App
+## Ce que tu récupères
 
-Pendant les ateliers IAPreneurs, on utilise une petite app web : la **Cup App**. Trois boutons : 🟢 je suis, 🟠 je décroche un peu, 🔴 je suis perdu. Tout le monde clique en direct, l'animateur voit le taux de rouge en temps réel et adapte le rythme.
+Un dossier `.claude/` prêt à l'emploi avec :
 
-Cette app a été **buildée from scratch en live** pendant la Partie 5.1 du module Claude Code. Aucune ligne écrite à la main. Juste la méthode `brainstorm → create-prd → plan → execute → validate` qui est dans ce kit.
+- **5 skills core** qui couvrent le cycle complet d'un projet : clarifier une idée → produire un PRD → planifier une phase → exécuter → vérifier.
+- **7 skills n8n officiels** (MIT, czlonkowski) pour t'aider à construire et debugger des workflows n8n sans halluciner les nodes.
+- **Un `CLAUDE.md` template** à adapter à ton projet (5 couches + 4 règles de comportement inspirées de Karpathy).
 
-L'idée du kit : tu repars avec **exactement les outils utilisés dans le tournage**. Tu peux refaire la Cup App, ou n'importe quel autre projet, avec la même méthode.
+Tu forks, tu adaptes, tu codes. C'est la méthode utilisée dans le module Claude Code IAPreneurs.
 
 > ℹ️ **Note gouvernance** : ce repo est sous le compte perso `BriGadja`, pas sous l'organisation IAPreneurs. C'est un projet pédagogique perso, pas un asset officiel co-géré par la communauté. Yassine est au courant, on garde la flexibilité de migrer vers une orga `iapreneurs-cc` plus tard si besoin.
 
@@ -66,11 +68,9 @@ Tu copies, tu adaptes les 5 couches à ton projet, tu gardes les 4 règles (elle
 
 ## ⚠️ Sécurité — important
 
-Si tu refais la Cup App ou un projet similaire avec données éphémères, tu n'auras peut-être **pas besoin de RLS** (Row Level Security Supabase). C'est volontaire dans le tournage : pas de données sensibles, sessions atelier qui durent 1h.
+Le kit est **pédago**, pas prod-ready clé en main. Si tu pars en prod avec de vrais utilisateurs, **tu dois** activer la sécurité côté base de données (RLS Supabase ou équivalent), valider les inputs côté serveur, et gérer les secrets proprement. Le module IAPreneurs en parle dans la Partie 4.
 
-**Mais si tu pars en prod avec de vrais utilisateurs** : tu **dois** activer RLS sur toutes tes tables Supabase. C'est non-négociable. Le module en parle dans la Partie 4.
-
-Le kit est pédago. Pas un template prod-ready clé en main. Adapte avant de mettre en prod.
+Adapte avant de mettre en prod.
 
 ## Inspirations & crédits
 
