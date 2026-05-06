@@ -68,9 +68,35 @@ Tu copies, tu adaptes les 5 couches à ton projet, tu gardes les 4 règles (elle
 
 ## ⚠️ Sécurité — important
 
-Le kit est **pédago**, pas prod-ready clé en main. Si tu pars en prod avec de vrais utilisateurs, **tu dois** activer la sécurité côté base de données (RLS Supabase ou équivalent), valider les inputs côté serveur, et gérer les secrets proprement. Le module IAPreneurs en parle dans la Partie 4.
+Le kit est **pédago**, pas prod-ready clé en main. Adapte avant de mettre en prod.
 
-Adapte avant de mettre en prod.
+### Le cas particulier : la Cup App (5.1)
+
+La cup app construite en démo (5.1) **n'active pas RLS Supabase**. C'est délibéré, et c'est documenté ici pour éviter le cargo-cult.
+
+**Pourquoi pas de RLS sur la cup app ?**
+- Les données sont **éphémères** : une session dure 30 à 90 minutes, puis plus rien.
+- **Pas de PII** (informations personnelles identifiables) : juste un pseudo et une couleur de verre.
+- Si quelqu'un voyait les données d'une autre session, le pire scénario serait "il voit que Marie est rouge". Aucun préjudice.
+
+Dans ce contexte précis, RLS ajoute du frottement sans valeur.
+
+### Quand RLS devient OBLIGATOIRE (la majorité des cas)
+
+Dès que ton app contient :
+- Données clients (nom, email, téléphone, adresse, SIRET…)
+- Devis, factures, RDV, leads
+- Auth utilisateur avec données privées
+- Multi-tenant (plusieurs comptes / clients sur la même base)
+
+→ **RLS dès le premier deploy. Sans exception.**
+
+### La règle générale
+
+> Si le pire scénario d'une fuite de données est "rien de grave", tu peux skipper RLS.
+> Sinon (99% des cas pro), RLS systématique avant prod.
+
+Et au-delà de RLS : valide les inputs côté serveur (jamais juste côté client), gère les secrets via variables d'environnement, et ne committe **jamais** de `.env` ni de credentials. Le module IAPreneurs en reparle dans la Partie 4.
 
 ## Inspirations & crédits
 
