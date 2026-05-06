@@ -52,9 +52,6 @@
 
 ## Règles de comportement
 
-> Ces 4 règles s'appliquent à CHAQUE tâche, sans exception.
-> Inspirées du repo public `forrestchang/andrej-karpathy-skills`.
-
 ### 1. Réfléchir avant de coder
 
 - Énonce tes hypothèses explicitement. Si tu n'es pas sûr, demande.
