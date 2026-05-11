@@ -4,7 +4,33 @@
 
 ---
 
+## Premier démarrage (instruction pour Claude Code)
+
+> Cette section est lue par Claude Code à chaque ouverture de session. Elle est **non négociable** et s'applique avant tout autre travail.
+
+À ton premier message de la session :
+
+1. **Vérifie qu'un fichier `PRD.md` existe à la racine du projet.**
+   - Si **OUI** : lis-le, résume-le à l'utilisateur en 2-3 phrases, puis demande "Qu'est-ce qu'on attaque aujourd'hui ?"
+   - Si **NON** : continue à l'étape 2 — il faut d'abord cadrer ce qu'on construit.
+
+2. **Demande à l'utilisateur ce qu'il veut construire** :
+   > "Pas de `PRD.md` dans ce projet. Avant de coder, on cadre. Décris-moi ce que tu veux construire en quelques phrases, à qui ça sert, et le résultat final attendu. Si l'idée n'est pas encore claire, dis-le, on fera un `/brainstorm` d'abord."
+
+3. **Selon la réponse**, propose la suite :
+   - Idée **floue** ou exploratoire → propose `/brainstorm` (3 questions max, produit `brainstorm-{sujet}.md`).
+   - Idée **claire** (vision + utilisateurs + résultat) → propose `/create-prd` (produit `PRD.md` structuré).
+   - Idée **complexe / multi-domaines** → suggère de découper et de commencer par UN sous-projet.
+
+4. **Ne commence aucun code avant qu'un `PRD.md` validé existe à la racine**. C'est la source de vérité pour `/plan`, `/execute`, `/validate`. Sans PRD, tu pars en cacahuète.
+
+5. **Pose des questions sur la nature du projet** pendant `/brainstorm` ou `/create-prd` pour déterminer l'architecture appropriée — c'est `/plan` qui, plus tard, prend les décisions techniques (frameworks, intégrations externes, etc.). Tu n'imposes jamais une stack en silence : tu proposes et tu fais valider.
+
+---
+
 # {Nom de ton projet}
+
+> Tout ce qui suit est à adapter à TON projet quand tu instancies ce template. Les exemples ci-dessous sont génériques.
 
 ## Identité
 
@@ -12,7 +38,7 @@
 
 ## Stack
 
-{Liste les technos du projet. Exemple :}
+{Liste les technos du projet. À remplir APRÈS que `/create-prd` ou `/plan` aient proposé une stack validée par l'utilisateur. Exemple :}
 
 - Frontend : Next.js (App Router) + Tailwind + shadcn/ui
 - Backend : n8n (moteur de génération) + Supabase (stockage + auth)
@@ -89,11 +115,11 @@
 
 ## Skills disponibles dans ce kit
 
-- `/brainstorm` — clarifier une idée vague (3 questions max)
-- `/create-prd` — produire un Product Requirements Document structuré
-- `/plan` — découper UNE phase en tâches numérotées avec critères "Fait quand"
-- `/execute` — exécuter le plan tâche par tâche, cocher les cases
-- `/validate` — vérifier que la phase marche pour de vrai (3 options proposées)
+- `/brainstorm` — clarifier une idée vague (3 questions max), produit `brainstorm-{sujet}.md`
+- `/create-prd` — produire un `PRD.md` structuré (7 sections, à valider avec l'utilisateur avant sauvegarde)
+- `/plan` — découper UNE phase du PRD en tâches numérotées avec critères "Fait quand" ; pose 3-5 questions pour cadrer la nature du projet et la stack
+- `/execute` — exécuter le plan tâche par tâche, cocher les cases au fur et à mesure
+- `/validate` — vérifier que la phase marche pour de vrai (3 options proposées : navigateur / n8n / autre)
 - 7 skills `n8n-*` — voir `.claude/skills/n8n/README.md` (czlonkowski, MIT)
 
-Workflow type : `/brainstorm` → `/create-prd` → `/plan` Phase 1 → `/execute` → `/validate` → `/plan` Phase 2 → ...
+Workflow type : `/brainstorm` (si flou) → `/create-prd` → `/plan` Phase 1 → `/execute` → `/validate` → `/plan` Phase 2 → ...

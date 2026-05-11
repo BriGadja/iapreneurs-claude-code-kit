@@ -70,33 +70,39 @@ Tu copies, tu adaptes les 5 couches à ton projet, tu gardes les 4 règles (elle
 
 Le kit est **pédago**, pas prod-ready clé en main. Adapte avant de mettre en prod.
 
-### Le cas particulier : la Cup App (5.1)
+### Le cas concret du module : le Hub Documents perso (5.1-5.4)
 
-La cup app construite en démo (5.1) **n'active pas RLS Supabase**. C'est délibéré, et c'est documenté ici pour éviter le cargo-cult.
+Le **Hub Documents** construit en démo (5.1-5.4) est un outil perso freelance qui transforme des transcripts RDV en livrables pros (propale PDF + email, résumé exécutif, cas client, post LinkedIn). Il traite des **données clients réelles** : transcripts de RDV, contacts, parfois chiffres confidentiels.
 
-**Pourquoi pas de RLS sur la cup app ?**
-- Les données sont **éphémères** : une session dure 30 à 90 minutes, puis plus rien.
-- **Pas de PII** (informations personnelles identifiables) : juste un pseudo et une couleur de verre.
-- Si quelqu'un voyait les données d'une autre session, le pire scénario serait "il voit que Marie est rouge". Aucun préjudice.
+**RLS Supabase est MANDATORY** sur le Hub Documents. Sans exception. Les policies activées dans la démo :
+- `documents` : `auth.uid() = owner` (chaque utilisateur ne voit que ses transcripts)
+- `generations` : via JOIN avec `documents.owner`
+- Bucket Storage `documents` : `(auth.uid()::text = (storage.foldername(name))[1])`
 
-Dans ce contexte précis, RLS ajoute du frottement sans valeur.
+C'est typiquement le cas pour 99% des apps pros que tu vas construire.
 
-### Quand RLS devient OBLIGATOIRE (la majorité des cas)
+### Le cas inverse (hors module) : un outil à données éphémères
+
+Si tu construis un outil **à données éphémères sans PII** — un sondage live d'atelier, un kanban temporaire, un timer partagé — RLS peut être skippé. Le pire scénario d'une fuite serait "quelqu'un voit qu'un participant anonyme est passé en rouge". Aucun préjudice.
+
+Dans ce contexte, RLS ajoute du frottement sans valeur. Mais ce cas est minoritaire.
+
+### Quand RLS est OBLIGATOIRE (la majorité des cas)
 
 Dès que ton app contient :
 - Données clients (nom, email, téléphone, adresse, SIRET…)
-- Devis, factures, RDV, leads
+- Transcripts RDV, devis, factures, leads
 - Auth utilisateur avec données privées
 - Multi-tenant (plusieurs comptes / clients sur la même base)
 
-→ **RLS dès le premier deploy. Sans exception.**
+→ **RLS dès le premier deploy. Sans exception. C'est le cas du Hub Documents.**
 
 ### La règle générale
 
 > Si le pire scénario d'une fuite de données est "rien de grave", tu peux skipper RLS.
-> Sinon (99% des cas pro), RLS systématique avant prod.
+> Sinon (99% des cas pro, le Hub Documents inclus), RLS systématique avant prod.
 
-Et au-delà de RLS : valide les inputs côté serveur (jamais juste côté client), gère les secrets via variables d'environnement, et ne committe **jamais** de `.env` ni de credentials. Le module IAPreneurs en reparle dans la Partie 4.
+Et au-delà de RLS : valide les inputs côté serveur (jamais juste côté client), gère les secrets via variables d'environnement, et ne committe **jamais** de `.env` ni de credentials. Le module IAPreneurs en reparle dans la Partie 4 et solidifie tout ça en 5.4 (audit RLS post-incident).
 
 ## Inspirations & crédits
 

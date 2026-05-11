@@ -19,21 +19,32 @@ Prendre **UNE phase** d'un PRD et la découper en tâches numérotées avec des 
 
 ### Étape 1 — lire le PRD + identifier la phase
 
-L'utilisateur passe en argument soit `prd-{projet}.md`, soit le numéro de phase ("phase 1"), soit les deux.
+L'utilisateur passe en argument soit `PRD.md`, soit le numéro de phase ("phase 1"), soit les deux.
 
 Lire le PRD. Identifier la phase à planifier. Reformuler à l'utilisateur :
 
 > "OK, je vais planifier **Phase {N} — {nom}** : {description PRD}. C'est ça ?"
 
-### Étape 2 — poser 3-5 questions ciblées
+### Étape 2 — poser 3-5 questions ciblées sur la nature du projet et la phase
 
-Selon la phase, poser **3 à 5 questions** précises qui te manquent pour découper :
+Selon la phase, poser **3 à 5 questions** précises qui te manquent pour découper. **Tu ne pré-supposes JAMAIS l'architecture** : tu déduis des réponses si SDK direct, n8n, ou autre est approprié.
 
-- "Tu veux que je commence par le frontend ou le backend ?"
-- "Tu as déjà un compte Supabase / Vercel / GitHub configuré ?"
-- "Pour cette phase, tu veux des tests automatisés ou on valide à la main ?"
-- "Quel format pour les noms de fichiers : kebab-case, camelCase ?"
-- "Y a-t-il un design ou une maquette à respecter ?"
+Axes de questions (priorise selon ce que le PRD laisse ouvert) :
+
+1. **Type d'output utilisateur** → "Le résultat de cette phase, l'utilisateur le voit où ? Page web qui se met à jour, mail reçu, fichier téléchargé, notification ?"
+2. **Latence acceptable** → "L'output doit-il s'afficher en temps réel pendant que l'utilisateur attend (streaming token par token), ou peut-il arriver quelques secondes plus tard ?"
+3. **Sensibilité des données** → "Tu manipules des données clients réelles (transcripts, contacts, paiements) ou des données éphémères (sondage live, kanban d'atelier) ? Cela détermine si RLS Supabase est obligatoire ou skippable."
+4. **Infrastructure existante** → "Tu as déjà un compte Supabase / Vercel / GitHub / n8n configuré ? Sinon il faudra une tâche provisioning."
+5. **Frontend ou backend d'abord ?** → "Tu préfères qu'on attaque le squelette UI ou la logique métier en premier ?"
+6. **Test** → "Pour cette phase, tu veux des tests automatisés ou on valide à la main avec `/validate` ?"
+
+**Règle d'inférence architecturale** : à partir des réponses Q1+Q2+Q3, infère l'architecture **sans la cacher** :
+- Output live + streaming → Anthropic SDK (ou autre LLM SDK) dans une API route, `runtime='nodejs'`, ReadableStream cote front
+- Output async (PDF, email, BDD) → workflow n8n + webhook + callback Supabase Realtime
+- Données sensibles → RLS Supabase MANDATORY, audit `get_advisors` après chaque migration
+- Données éphémères → RLS skippable, mais à justifier explicitement
+
+Présente ton inférence à l'utilisateur AVANT de découper : "Vu tes réponses, je propose **{architecture}**. Ça te va, ou tu veux changer ?"
 
 **Ne pas dépasser 5 questions**. Si t'as plus, la phase est mal découpée dans le PRD — propose de revenir à `/create-prd`.
 
@@ -53,7 +64,7 @@ Affiche le brouillon dans le chat. Demande validation. Sauvegarder seulement apr
 ```markdown
 # Plan — Phase {N} : {nom}
 
-> PRD parent : `prd-{projet}.md`
+> PRD parent : `PRD.md`
 > Date : {YYYY-MM-DD}
 
 ## Tâches

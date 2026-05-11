@@ -7,7 +7,7 @@ description: Utiliser pour transformer un fichier brainstorm (ou une idée clair
 
 ## Pour quoi faire
 
-Transformer une idée (claire ou issue d'un `/brainstorm`) en **PRD** : un fichier `prd-{projet}.md` qui sert de référence pour toute la suite (`/plan`, `/execute`, `/validate`). Le PRD est lu en début de chaque skill suivant.
+Transformer une idée (claire ou issue d'un `/brainstorm`) en **PRD** : un fichier `PRD.md` qui sert de référence pour toute la suite (`/plan`, `/execute`, `/validate`). Le PRD est lu en début de chaque skill suivant.
 
 ## Sections obligatoires du PRD
 
@@ -28,16 +28,30 @@ Pas de PRD complet sans ces 7 sections, dans cet ordre :
 Si le user a passé un fichier `brainstorm-{sujet}.md` en argument, le lire.
 Si pas de fichier, lire ce que dit le user dans le chat et lui poser **2-3 questions de clarification** sur les sections manquantes (utilisateurs, MVP, stack).
 
-### Étape 2 — proposer la stack
+### Étape 2 — déterminer la nature du projet, puis proposer la stack
 
-Si la stack n'est pas dans le brainstorm, **propose une stack par défaut** alignée avec le projet :
+Avant de proposer une stack, **comprends la nature du projet** en posant 1-2 questions ciblées :
 
-- **App web** : Next.js (App Router) + Tailwind + shadcn/ui + Supabase (Auth + BDD + Realtime si besoin) + Vercel
-- **Automatisation** : n8n
-- **Voix** : Dipler ou Vapi
+- "Où l'utilisateur final voit-il le résultat — dans son navigateur, par mail, dans une notification, dans un fichier exporté ?"
+- "Y a-t-il un output qui doit s'afficher en temps réel pendant que l'utilisateur attend (streaming, progression visible) ? Ou alors l'output peut-il être livré quelques secondes plus tard (mail, PDF, notification) ?"
+
+Ces questions déterminent les choix techniques **avant** de figer la stack :
+- **Output live à l'écran (streaming)** → SDK direct (Anthropic, OpenAI) dans une API route ; n8n ne sait pas streamer vers un navigateur.
+- **Output asynchrone (PDF, email, BDD, intégration externe)** → workflow n8n + callback de notification cohabitable avec l'app.
+- **Mix des deux** → frontière explicite : SDK pour le live, n8n pour le reste.
+
+Puis **propose une stack par défaut** alignée avec la nature du projet :
+
+- **App web (CRUD classique + auth)** : Next.js (App Router) + Tailwind + shadcn/ui + Supabase (Auth + BDD + Realtime si besoin) + Vercel
+- **App web avec génération IA visible** : ci-dessus + Anthropic SDK (ou OpenAI / Mistral) dans une API route Next.js (runtime nodejs)
+- **App web avec génération IA async (PDF, email)** : ci-dessus + workflow n8n via webhook + callback Supabase Realtime
+- **Automatisation pure (pas d'UI front)** : n8n + Supabase (stockage / état) + intégrations externes
+- **Voix** : Dipler ou Vapi (selon contexte client)
 - **Scripts ponctuels** : Python ou TypeScript Node
 
 Toujours **demander confirmation** : "Je propose **{stack}**. Ça te va ou tu veux changer un truc ?"
+
+Si l'utilisateur ne sait pas trancher entre SDK direct et n8n, ré-explique brièvement la règle : "tokens qui doivent défiler à l'écran = SDK ; PDF ou email qui peut arriver dans 20 secondes = n8n".
 
 ### Étape 3 — découpe en phases
 
@@ -59,7 +73,7 @@ Itère jusqu'à ce que l'utilisateur dise oui.
 
 ### Étape 5 — sauvegarder
 
-Sauvegarder dans `prd-{projet}.md` à la racine du projet uniquement après validation explicite.
+Sauvegarder dans `PRD.md` à la racine du projet uniquement après validation explicite.
 
 ## Format du PRD
 
