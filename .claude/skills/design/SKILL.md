@@ -136,11 +136,29 @@ Le `DESIGN.md` produit suit la spec **Google DESIGN.md** (`version: alpha`, open
 
 Voir `.claude/skills/design/template.md` pour la version complète avec valeurs de référence.
 
-## Comment le plugin `frontend-design` consomme DESIGN.md
+## `/design` vs `/frontend-design` — division du travail
 
-Le plugin `frontend-design@claude-code-plugins` ne lit pas automatiquement `DESIGN.md` — c'est à toi de le référencer dans ton prompt. Mais Claude Code, lui, lit le `CLAUDE.md` qui contient (depuis le template `/start`) l'instruction *"Pour toute création UI, lire `DESIGN.md` d'abord"*. Donc en pratique, dès que tu demandes "construis-moi une page X" dans une session, Claude lit `DESIGN.md` avant d'invoquer le plugin.
+Les deux skills se **complètent**, ils ne se remplacent pas.
 
-Le format Google est **conçu pour être consommé par n'importe quel LLM** — pas seulement le plugin Anthropic. Si tu changes de tooling demain (Cursor, Cline, autre), ton `DESIGN.md` reste utilisable tel quel.
+| | `/design` (ce skill, dans le kit) | `/frontend-design` (plugin Anthropic) |
+|---|---|---|
+| **Quand** | 1 fois après `/architect`, avant `/plan` | À chaque création de composant/page |
+| **Rôle** | Architecte — définit le **système** (palette, typo, tokens, composants) | Constructeur — **build** des composants en code |
+| **Sortie** | 1 fichier `DESIGN.md` (spec Google) | Code TSX prêt à l'emploi |
+| **Auto-trigger** | Non (invoqué explicitement par toi) | Oui (Claude l'invoque auto sur tout frontend work) |
+| **Input** | Tes réponses + PRD | `DESIGN.md` + ton brief |
+
+**Analogie** : `/design` dessine les plans (palette, typo, échelle d'espacement). `/frontend-design` monte les murs en suivant les plans. Les deux sont nécessaires pour une app cohérente.
+
+### Comment `/frontend-design` consomme `DESIGN.md`
+
+Le plugin ne lit pas automatiquement `DESIGN.md` — c'est à toi de le référencer. Mais Claude Code lit le `CLAUDE.md` qui contient (depuis le template) l'instruction *"Pour toute création UI, lire `DESIGN.md` d'abord"*. Donc en pratique, dès que tu demandes "construis une page X" dans une session, Claude lit `DESIGN.md` puis le passe au plugin pour qu'il construise dans le style défini.
+
+Tu peux aussi le référencer explicitement : *"Construis une page de login en respectant `DESIGN.md`."*
+
+### Pourquoi le format Google et pas un format maison
+
+Le format Google **est conçu pour être consommé par n'importe quel LLM** — pas seulement le plugin Anthropic. Si tu changes de tooling demain (Cursor, Cline, v0, autre), ton `DESIGN.md` reste utilisable tel quel. C'est un investissement portable.
 
 ## Risque #1 — proposer une palette générique
 

@@ -43,13 +43,20 @@
 - Toujours valider les téléphones au format français (`+33` ou `06/07`)
 - TVA par défaut : 20% (configurable en base)
 
-## Création UI (si web app)
+## Création UI (si web app) — division du travail `/design` vs `/frontend-design`
 
-Avant de créer ou modifier un composant UI, un layout, ou une page : **lire `DESIGN.md` à la racine** pour récupérer les tokens (palette, typographie, composants définis). Si `DESIGN.md` n'existe pas et que la tâche touche à l'UI, **stop** et propose à l'utilisateur de lancer `/design` d'abord — sans design system, le rendu sera incohérent d'une page à l'autre.
+Deux skills travaillent en duo pour l'UI. Ils sont **complémentaires**, pas concurrents :
+
+- **`/design`** (skill du kit) — **définit le système** 1 fois après `/architect`. Sortie : `DESIGN.md` (palette, typo, composants, tokens). Invoqué explicitement par toi.
+- **`/frontend-design`** (plugin Anthropic) — **construit les composants** à chaque création UI. Sortie : code TSX prêt-à-l'emploi. Auto-déclenché par Claude sur tout frontend work.
+
+Métaphore : `/design` dessine les plans (architecte), `/frontend-design` monte les murs en suivant les plans (constructeur).
+
+**Règle non-négociable** : avant de créer ou modifier un composant UI, un layout, ou une page → **lire `DESIGN.md` à la racine** pour récupérer les tokens. Si `DESIGN.md` n'existe pas et que la tâche touche à l'UI, **stop** et propose à l'utilisateur de lancer `/design` d'abord — sans design system, le rendu sera incohérent d'une page à l'autre.
 
 `DESIGN.md` suit la **spec officielle Google open-source** (`version: alpha`, publiée par l'équipe Stitch — `https://stitch.withgoogle.com/docs/design-md/overview/`) : YAML front matter avec tokens (`colors`, `typography`, `rounded`, `spacing`, `components`) + 8 sections markdown canoniques (Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts). Références cross-sections via `{colors.primary}`, `{typography.body-md}`, etc.
 
-Cette règle s'applique aussi quand le plugin `frontend-design@claude-code-plugins` est invoqué : référence `DESIGN.md` dans le prompt envoyé au plugin. Lint optionnel : `npx @google/design.md lint DESIGN.md` (valide structure, refs de tokens, contrastes WCAG AA).
+Quand le plugin `frontend-design@claude-code-plugins` est invoqué (auto ou explicite), référence toujours `DESIGN.md` dans le prompt envoyé au plugin pour qu'il consomme les tokens. Lint optionnel : `npx @google/design.md lint DESIGN.md` (valide structure, refs de tokens, contrastes WCAG AA).
 
 ## Contexte métier
 

@@ -208,7 +208,7 @@ Lance : `claude plugin list`
   ```
   claude plugin install frontend-design@claude-code-plugins
   ```
-  *"Bon pour les composants UI propres si tu fais du Next.js + Tailwind + shadcn. Skippe si t'as pas d'UI dans ton projet."*
+  *"Le plugin officiel Anthropic qui **construit** des composants UI propres (Next.js + Tailwind + shadcn). Il travaillera en duo avec le skill `/design` du kit : `/design` définit le système (DESIGN.md), `frontend-design` build les composants en lisant DESIGN.md. Skippe si t'as pas d'UI dans ton projet."*
 
 ### Étape 6 — Routage
 

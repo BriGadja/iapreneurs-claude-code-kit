@@ -36,7 +36,7 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 | `/start` | Onboarding piloté (5 phases). À taper 1x à l'ouverture. |
 | `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. |
 | `/architect` | Produire un `PRD.md` structuré (7 sections). Écrit la section `## Stack` du `CLAUDE.md`. |
-| `/design` *(web app uniquement)* | Définir le design system au format **DESIGN.md officiel Google** (open-source, spec alpha — YAML tokens + 8 sections markdown). Template fourni dans `.claude/skills/design/template.md`. Lu par le plugin `frontend-design` à chaque création UI pour garder la cohérence visuelle entre pages. Lint optionnel : `npx @google/design.md lint DESIGN.md`. |
+| `/design` *(web app uniquement)* | **Définit** le design system (architecte) au format **DESIGN.md officiel Google** (open-source, spec alpha — YAML tokens + 8 sections markdown). Template fourni dans `.claude/skills/design/template.md`. Lint optionnel : `npx @google/design.md lint DESIGN.md`. **Complémentaire** au plugin Anthropic `frontend-design` (le constructeur) qui lit `DESIGN.md` pour build des composants cohérents — voir `.claude/skills/design/SKILL.md` section "division du travail" pour le détail. |
 | `/plan` | Découper UNE phase du PRD en tâches avec critères "Fait quand". Lit `DESIGN.md` si la phase touche à l'UI. Scout le codebase via `research-delegate` pour éviter les doublons. |
 | `/challenge` *(optionnel)* | Devil's advocate sur le plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. |
 | `/execute` | Exécuter le plan tâche par tâche, cocher au fur et à mesure. Délègue à `research-delegate` si bloqué par une doc API externe. |
