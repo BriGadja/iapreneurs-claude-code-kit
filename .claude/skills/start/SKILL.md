@@ -1,6 +1,6 @@
 ---
 name: start
-description: Utiliser à l'ouverture d'une nouvelle session sur un projet basé sur ce kit. Visite guidée du kit (skippable), 3 questions de cadrage qui remplissent la section Identité du CLAUDE.md, vérification de l'outillage (Playwright + n8n MCP + plugin frontend-design), puis routage vers /brainstorm (idée floue) ou /create-prd (idée claire). Ne PAS utiliser au milieu d'une session de travail — c'est un skill d'onboarding.
+description: Utiliser à l'ouverture d'une nouvelle session sur un projet basé sur ce kit. Visite guidée du kit (skippable), 3 questions de cadrage qui remplissent la section Identité du CLAUDE.md, vérification de l'outillage (Playwright + n8n MCP + plugin frontend-design), puis routage vers /brainstorm (idée floue) ou /architect (idée claire). Ne PAS utiliser au milieu d'une session de travail — c'est un skill d'onboarding.
 ---
 
 # Skill /start — démarrage piloté
@@ -10,13 +10,13 @@ description: Utiliser à l'ouverture d'une nouvelle session sur un projet basé 
 Premier skill à invoquer après avoir forké/cloné le kit. Trois objectifs :
 1. **Cadrer le projet** : 3 questions ciblées qui écrivent la section `## Identité` du `CLAUDE.md`.
 2. **Vérifier l'outillage** : Playwright, n8n MCP, plugin `frontend-design` installés et testés.
-3. **Router** : vers `/brainstorm` (idée floue) ou `/create-prd` (idée claire).
+3. **Router** : vers `/brainstorm` (idée floue) ou `/architect` (idée claire).
 
 Sortie : un `CLAUDE.md` avec l'Identité remplie + un MCP/plugin stack fonctionnel + le bon prochain skill suggéré.
 
 ## Règle d'or
 
-**Tu ne modifies que les zones marquées par des ancres HTML** dans le `CLAUDE.md` (`<!-- start:identité -->` ... `<!-- /start:identité -->`). Tout le reste du fichier reste intact, même s'il est encore en mode template — ce sont les autres skills (`/create-prd`, etc.) ou l'utilisateur qui rempliront le reste plus tard.
+**Tu ne modifies que les zones marquées par des ancres HTML** dans le `CLAUDE.md` (`<!-- start:identité -->` ... `<!-- /start:identité -->`). Tout le reste du fichier reste intact, même s'il est encore en mode template — ce sont les autres skills (`/architect`, etc.) ou l'utilisateur qui rempliront le reste plus tard.
 
 ## Comment procéder
 
@@ -36,12 +36,12 @@ Annonce :
 Si **non** (visite demandée), liste en 6 lignes :
 
 > "Dans ce kit, tu as :
-> - **7 skills** : `/start` (moi), `/brainstorm`, `/create-prd`, `/plan`, `/challenge` (optionnel), `/execute`, `/validate`.
+> - **7 skills** : `/start` (moi), `/brainstorm`, `/architect`, `/plan`, `/challenge` (optionnel), `/execute`, `/validate`.
 > - **1 sous-agent** `research-delegate` que les skills invoquent quand ils ont besoin de chercher sans polluer ton contexte.
 > - **7 skills n8n** officiels de Czlonkowski pour les workflows.
 > - **Un `.mcp.json` vide** prêt à recevoir Playwright + n8n MCP + plugin `frontend-design` (on les installe en phase 3).
 > - **Un dossier `.claude/rules/`** pour déporter les règles spécifiques à un domaine quand le `CLAUDE.md` devient trop long.
-> Le tout est conçu pour grandir avec toi : tu peux commencer avec 3 skills (`/brainstorm`, `/create-prd`, `/plan`) et activer le reste au fil du temps."
+> Le tout est conçu pour grandir avec toi : tu peux commencer avec 3 skills (`/brainstorm`, `/architect`, `/plan`) et activer le reste au fil du temps."
 
 Si **oui** (skip), passe direct à l'étape 3.
 
@@ -57,7 +57,7 @@ Pose **exactement 3 questions**, une par une (pas en bloc — attendre la répon
    - **C** : script ou CLI (pas d'UI)
    - **D** : automatisation pure (n8n, pas d'utilisateur direct)"
 
-Stocke les 3 réponses. **Ne propose pas la stack maintenant** — c'est `/create-prd` qui le fera.
+Stocke les 3 réponses. **Ne propose pas la stack maintenant** — c'est `/architect` qui le fera.
 
 ### Étape 4 — Écrire la section Identité du CLAUDE.md
 
@@ -215,8 +215,8 @@ Lance : `claude plugin list`
 Demande :
 
 > "Dernière question : ton idée est précise (tu peux décrire le résultat final en 3 phrases) ou encore floue (tu as un besoin mais pas la solution exacte) ?
-> - **Précise** → on attaque directement le PRD avec `/create-prd`
-> - **Floue** → on creuse d'abord avec `/brainstorm` (3 questions clarifiantes, puis on enchaîne sur `/create-prd`)"
+> - **Précise** → on attaque directement le PRD avec `/architect`
+> - **Floue** → on creuse d'abord avec `/brainstorm` (3 questions clarifiantes, puis on enchaîne sur `/architect`)"
 
 ### Étape 7 — Handoff
 
@@ -237,7 +237,7 @@ Format strict :
 - Plugin frontend-design : {✅ / ⏭ skippé}
 
 ### Prochaine étape
-- `/{brainstorm | create-prd}` selon ta réponse à la dernière question
+- `/{brainstorm | architect}` selon ta réponse à la dernière question
 
 Tu peux relancer `/start` à tout moment pour ré-cadrer ou re-vérifier l'outillage.
 ```
@@ -258,14 +258,14 @@ Si l'utilisateur paste sa clé dans la conversation, **ne la répète jamais** d
 
 ## Risque #3 — bombarder de questions
 
-3 questions au cadrage, pas plus. Si tu te dis "ah il me faudrait aussi savoir X", **non** — c'est `/create-prd` qui pose les questions de stack. Reste sur ton scope.
+3 questions au cadrage, pas plus. Si tu te dis "ah il me faudrait aussi savoir X", **non** — c'est `/architect` qui pose les questions de stack. Reste sur ton scope.
 
 ## Quand ne PAS utiliser ce skill
 
 - En cours de session de travail (édition de code, debug) → c'est un skill d'onboarding, pas de fonctionnement quotidien
-- Pour modifier le PRD ou la stack → `/create-prd` ou édition manuelle
+- Pour modifier le PRD ou la stack → `/architect` ou édition manuelle
 - Pour ajouter un MCP au milieu d'un projet → utilise `claude mcp add` direct, pas besoin de `/start`
 
 ## Handoff
 
-Fin du skill : bloc "✅ Setup terminé" + suggestion `/brainstorm` ou `/create-prd`.
+Fin du skill : bloc "✅ Setup terminé" + suggestion `/brainstorm` ou `/architect`.

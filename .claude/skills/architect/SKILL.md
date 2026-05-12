@@ -1,13 +1,13 @@
 ---
-name: create-prd
-description: Utiliser pour transformer un fichier brainstorm (ou une idée claire) en Product Requirements Document structuré. Ne PAS utiliser si l'idée est encore floue — passer par /brainstorm d'abord. Ne PAS utiliser pour ajouter une feature à un PRD existant — éditer directement le PRD.
+name: architect
+description: Utiliser pour transformer un fichier brainstorm (ou une idée claire) en Product Requirements Document structuré (PRD.md). Définit la stack et l'architecture du projet via 1-2 questions ciblées sur le type d'output. Ne PAS utiliser si l'idée est encore floue — passer par /brainstorm d'abord. Ne PAS utiliser pour ajouter une feature à un PRD existant — éditer directement le PRD.
 ---
 
-# Skill /create-prd — produire un PRD structuré
+# Skill /architect — définir l'architecture et produire le PRD
 
 ## Pour quoi faire
 
-Transformer une idée (claire ou issue d'un `/brainstorm`) en **PRD** : un fichier `PRD.md` qui sert de référence pour toute la suite (`/plan`, `/execute`, `/validate`). Le PRD est lu en début de chaque skill suivant.
+Transformer une idée (claire ou issue d'un `/brainstorm`) en **PRD** : un fichier `PRD.md` qui définit l'architecture du projet (stack, frontières techniques, phases) et sert de référence pour toute la suite (`/plan`, `/execute`, `/validate`). Le PRD est lu en début de chaque skill suivant.
 
 ## Sections obligatoires du PRD
 

@@ -2,7 +2,7 @@
 
 > Ce fichier est un **template**. Tu le copies dans ton projet, tu adaptes les 5 couches du début à ton cas, tu gardes les 4 règles de comportement à la fin (elles s'appliquent à n'importe quel projet).
 
-> **À l'ouverture d'une nouvelle session** : tape `/start` — le skill te guide pour cadrer le projet, sécuriser tes credentials, vérifier ton outillage (MCP + plugin), et te router vers la bonne suite (`/brainstorm` ou `/create-prd`).
+> **À l'ouverture d'une nouvelle session** : tape `/start` — le skill te guide pour cadrer le projet, sécuriser tes credentials, vérifier ton outillage (MCP + plugin), et te router vers la bonne suite (`/brainstorm` ou `/architect`).
 
 ---
 
@@ -18,13 +18,13 @@
 
 ## Stack
 
-<!-- create-prd:stack -->
-{Liste des technos. Remplie par `/create-prd` après que tu as validé la proposition. Exemple final :
+<!-- architect:stack -->
+{Liste des technos. Remplie par `/architect` après que tu as validé la proposition. Exemple final :
 - Frontend : Next.js (App Router) + Tailwind + shadcn/ui
 - Backend : n8n (moteur de génération) + Supabase (stockage + auth)
 - Hosting : Vercel pour le frontend, n8n self-hosted ou cloud
 - Langue : français uniquement (interface, contenus, mentions légales)}
-<!-- /create-prd:stack -->
+<!-- /architect:stack -->
 
 ## Conventions
 
@@ -99,7 +99,7 @@
    ↓
 /brainstorm             ← si idée floue (skippé sinon)
    ↓
-/create-prd             ← produit PRD.md (source de vérité pour tout ce qui suit)
+/architect             ← produit PRD.md (source de vérité pour tout ce qui suit)
    ↓
 /plan Phase 1           ← découpe une phase en tâches
    ↓
@@ -119,7 +119,7 @@
 | Section | Écrit par | Quand |
 |---------|-----------|-------|
 | `## Identité` | `/start` | Au démarrage, après les 3 questions de cadrage |
-| `## Stack` | `/create-prd` | Après ta validation de la stack proposée |
+| `## Stack` | `/architect` | Après ta validation de la stack proposée |
 | `## Conventions` | Toi (manuel) | Au fil de l'eau, quand tu vois Claude faire l'inverse de ce que tu veux |
 | `## Instructions` | Toi (manuel) | Au fil de l'eau |
 | `## Contexte métier` | Toi (manuel) | Au fil de l'eau, dès que tu utilises du vocabulaire métier que Claude doit comprendre |
@@ -153,7 +153,7 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 |-------|-----------|-------|
 | `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage | 1x à l'ouverture d'une nouvelle session |
 | `/brainstorm` | Clarifier une idée vague en 3 questions | Si l'idée n'est pas claire après `/start` |
-| `/create-prd` | Produire un `PRD.md` structuré (7 sections) | Une fois l'idée claire |
+| `/architect` | Produire un `PRD.md` structuré (7 sections) | Une fois l'idée claire |
 | `/plan` | Découper UNE phase du PRD en tâches numérotées | Avant d'exécuter une phase |
 | `/challenge` *(optionnel)* | Devil's advocate sur un plan : 3 risques + 3 hypothèses + GO/REWORK/STOP | Avant `/execute`, quand tu veux un dernier crible |
 | `/execute` | Exécuter le plan tâche par tâche | Après `/plan` (et éventuellement `/challenge`) |

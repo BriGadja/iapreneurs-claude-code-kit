@@ -66,14 +66,14 @@ Format strict :
 ### Verdict
 - **GO** : risques connus, acceptables, on lance `/execute`
 - **REWORK** : 1-2 risques nécessitent de retoucher le plan avant d'exécuter (préciser quelles tâches à modifier)
-- **STOP** : un risque tue le plan ou révèle un trou dans le PRD, retour à `/create-prd` ou `/brainstorm`
+- **STOP** : un risque tue le plan ou révèle un trou dans le PRD, retour à `/architect` ou `/brainstorm`
 ```
 
 ### Étape 5 — décision et handoff
 
 - **GO** → annonce "Plan validé, on attaque" + suggestion `/execute phase-{N}-plan.md`
 - **REWORK** → liste les modifications à apporter au plan, demande à l'utilisateur s'il veut que tu édites direct ou si lui le fait
-- **STOP** → annonce "Le plan a un trou structurel" + propose la prochaine étape (`/create-prd` ou `/brainstorm`)
+- **STOP** → annonce "Le plan a un trou structurel" + propose la prochaine étape (`/architect` ou `/brainstorm`)
 
 ## Risque #1 — challenger pour la forme
 

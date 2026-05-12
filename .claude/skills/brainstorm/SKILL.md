@@ -1,13 +1,13 @@
 ---
 name: brainstorm
-description: Utiliser quand l'utilisateur a une idée vague ou floue ("j'aimerais une app pour...", "je voudrais automatiser...", "j'ai envie de faire un truc qui..."). Ne PAS utiliser si l'utilisateur a déjà une idée précise — passer direct à /create-prd. Sortie : fichier `brainstorm-{sujet}.md` clarifié.
+description: Utiliser quand l'utilisateur a une idée vague ou floue ("j'aimerais une app pour...", "je voudrais automatiser...", "j'ai envie de faire un truc qui..."). Ne PAS utiliser si l'utilisateur a déjà une idée précise — passer direct à /architect. Sortie : fichier `brainstorm-{sujet}.md` clarifié.
 ---
 
 # Skill /brainstorm — clarifier une idée vague
 
 ## Pour quoi faire
 
-L'utilisateur a une idée mais elle n'est pas claire. Tu poses **3 questions max** pour clarifier, puis tu produis un fichier `brainstorm-{sujet}.md` qui résume l'idée en bullet points actionnables. C'est ce fichier qui alimentera `/create-prd` après.
+L'utilisateur a une idée mais elle n'est pas claire. Tu poses **3 questions max** pour clarifier, puis tu produis un fichier `brainstorm-{sujet}.md` qui résume l'idée en bullet points actionnables. C'est ce fichier qui alimentera `/architect` après.
 
 ## Comment procéder
 
@@ -36,7 +36,7 @@ Choisis **3 questions parmi** ces 5 axes (priorise selon le sujet) :
 Une fois les réponses obtenues, propose à l'utilisateur :
 
 > "OK, deux options :
-> 1. **Je te fais le PRD direct** avec ce qu'on a (`/create-prd`).
+> 1. **Je te fais le PRD direct** avec ce qu'on a (`/architect`).
 > 2. **On creuse encore** — je délègue à un sous-agent `research-delegate` qui va explorer le web, lire 5-10 sources (projets similaires, patterns établis, retours d'expérience), et me ramener une synthèse en 3-10 bullets. Ton contexte principal reste propre, je récupère juste l'essentiel. Bon si tu veux savoir "qui a déjà fait ça, comment, quels pièges éviter".
 > Tu préfères quoi ?"
 
@@ -78,7 +78,7 @@ Reprends la main avec la synthèse, ajoute-la à la section "Idée en 1 phrase" 
 - {réponse Q5 ou liste explicite}
 
 ## Prochaine étape
-- [ ] /create-prd brainstorm-{sujet}.md
+- [ ] /architect brainstorm-{sujet}.md
 ```
 
 ## Risque #1 — partir sans clarification
@@ -87,7 +87,7 @@ Si tu sautes les 3 questions et tu écris direct le fichier brainstorm avec tes 
 
 ## Quand ne PAS utiliser ce skill
 
-- L'utilisateur a déjà une idée claire → `/create-prd` direct
+- L'utilisateur a déjà une idée claire → `/architect` direct
 - L'utilisateur veut juste discuter/explorer sans rien produire → conversation libre, pas de skill
 - Le sujet est énorme (refonte complète d'un produit) → trop large, découper en sous-sujets
 

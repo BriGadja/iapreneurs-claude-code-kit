@@ -25,7 +25,7 @@ Une fois dans Claude, tape :
 2. **3 questions de cadrage** → remplit la section `## Identité` de ton `CLAUDE.md`
 3. **Sécurisation des credentials** → `.env` créé et gitignored, `.mcp.json` avec syntaxe `${VAR}`
 4. **Vérification de l'outillage** → Playwright + n8n MCP + plugin frontend-design
-5. **Routage** → `/brainstorm` (idée floue) ou `/create-prd` (idée claire)
+5. **Routage** → `/brainstorm` (idée floue) ou `/architect` (idée claire)
 
 Sortie : projet cadré, outillage testé, prochain skill suggéré.
 
@@ -35,13 +35,13 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 |-------|------|
 | `/start` | Onboarding piloté (5 phases). À taper 1x à l'ouverture. |
 | `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. |
-| `/create-prd` | Produire un `PRD.md` structuré (7 sections). Écrit la section `## Stack` du `CLAUDE.md`. |
+| `/architect` | Produire un `PRD.md` structuré (7 sections). Écrit la section `## Stack` du `CLAUDE.md`. |
 | `/plan` | Découper UNE phase du PRD en tâches avec critères "Fait quand". Scout le codebase via `research-delegate` pour éviter les doublons. |
 | `/challenge` *(optionnel)* | Devil's advocate sur le plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. |
 | `/execute` | Exécuter le plan tâche par tâche, cocher au fur et à mesure. Délègue à `research-delegate` si bloqué par une doc API externe. |
 | `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre). Jamais "ça devrait marcher". |
 
-Workflow type : `/start` → `/brainstorm`? → `/create-prd` → `/plan` Phase 1 → `/challenge`? → `/execute` → `/validate` → `/plan` Phase 2 → ...
+Workflow type : `/start` → `/brainstorm`? → `/architect` → `/plan` Phase 1 → `/challenge`? → `/execute` → `/validate` → `/plan` Phase 2 → ...
 
 ## Sous-agent
 
@@ -59,7 +59,7 @@ Exemple fourni : `frontend.md` (`paths: src/**/*.{ts,tsx}`, 8 règles React + Ta
 
 ## Template `CLAUDE.md`
 
-5 couches **Identité / Stack / Conventions / Instructions / Contexte métier** avec ancres HTML pour les zones écrites par les skills (`<!-- start:identité -->`, `<!-- create-prd:stack -->`) + 4 règles de comportement (réfléchir avant de coder, simplicité, modifs chirurgicales, exécution orientée but) + section "Comment ce CLAUDE.md est entretenu" (séquencement skills, qui écrit quoi, déportation vers `.claude/rules/`) + section "Sécurité des credentials".
+5 couches **Identité / Stack / Conventions / Instructions / Contexte métier** avec ancres HTML pour les zones écrites par les skills (`<!-- start:identité -->`, `<!-- architect:stack -->`) + 4 règles de comportement (réfléchir avant de coder, simplicité, modifs chirurgicales, exécution orientée but) + section "Comment ce CLAUDE.md est entretenu" (séquencement skills, qui écrit quoi, déportation vers `.claude/rules/`) + section "Sécurité des credentials".
 
 ## Scaffolding outillage
 

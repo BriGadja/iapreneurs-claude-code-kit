@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Utiliser pour découper UNE phase d'un PRD en tâches numérotées avec critères "Fait quand" vérifiables. Ne PAS utiliser si pas de PRD — créer le PRD d'abord avec /create-prd. Ne PAS planifier plusieurs phases d'un coup — une phase à la fois pour éviter le scope creep.
+description: Utiliser pour découper UNE phase d'un PRD en tâches numérotées avec critères "Fait quand" vérifiables. Ne PAS utiliser si pas de PRD — créer le PRD d'abord avec /architect. Ne PAS planifier plusieurs phases d'un coup — une phase à la fois pour éviter le scope creep.
 ---
 
 # Skill /plan — découper une phase en tâches
@@ -64,7 +64,7 @@ Axes de questions (priorise selon ce que le PRD laisse ouvert) :
 
 Présente ton inférence à l'utilisateur AVANT de découper : "Vu tes réponses, je propose **{architecture}**. Ça te va, ou tu veux changer ?"
 
-**Ne pas dépasser 5 questions**. Si t'as plus, la phase est mal découpée dans le PRD — propose de revenir à `/create-prd`.
+**Ne pas dépasser 5 questions**. Si t'as plus, la phase est mal découpée dans le PRD — propose de revenir à `/architect`.
 
 ### Étape 3 — découper en 3-8 tâches
 
@@ -113,7 +113,7 @@ Si tu écris "faire la BDD" ou "configurer le backend", c'est trop vague. À `/e
 
 ## Quand ne PAS utiliser ce skill
 
-- Pas de PRD → `/create-prd` d'abord
+- Pas de PRD → `/architect` d'abord
 - Tâche très petite (1 fichier, 5 minutes) → fais-le directement, pas la peine de planifier
 - Plusieurs phases d'un coup → une phase à la fois, c'est non-négociable
 
