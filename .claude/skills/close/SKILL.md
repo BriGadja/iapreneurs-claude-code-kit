@@ -1,6 +1,6 @@
 ---
 name: close
-description: Utiliser à la fin d'une phase (après /validate ✅) pour clôturer proprement — marque la phase ✅ Terminée dans le PRD (source unique depuis v2.0), propose un commit conventionnel à partir du diff, suggère /plan Phase N+1 ou /livrer si dernière phase. Ne PAS utiliser au milieu d'une phase, ni si /validate ❌ KO. Skill mandatory post /validate ✅ (plus optionnel depuis v2.0).
+description: Utiliser à la fin d'une phase (après /validate ✅) pour clôturer proprement — marque la phase ✅ Terminée dans le PRD (source unique depuis v2.0), propose un commit conventionnel à partir du diff, fait le harvest learnings (auto-récap dans memory/learnings/ + topics opt-in via 3 questions ciblées dans memory/topics/ et memory/decisions.md, update MEMORY.md index), suggère /plan Phase N+1 ou /livrer si dernière phase. L'utilisateur ne touche jamais à la mémoire manuellement — c'est ce skill qui la maintient. Skill mandatory post /validate ✅ (plus optionnel depuis v2.0).
 ---
 
 # Skill /close — clôturer proprement une phase
@@ -98,7 +98,65 @@ git commit -m "{message validé}"
 
 Annonce le SHA résultant. **Ne push pas automatiquement** — c'est à l'utilisateur de décider quand pousser (et où).
 
-### Étape 6 — suggestion suivante
+### Étape 6 — Harvest learnings (mémoire persistante)
+
+Post-commit, **l'utilisateur ne touche pas à la mémoire manuellement** — c'est ce skill qui la maintient. Deux blocs : auto-récap (toujours) + topics opt-in (questions ciblées).
+
+**6.1 — Auto-récap session (toujours écrit, low-friction)**
+
+Crée ou complète `memory/learnings/{YYYY-MM-DD}.md` avec un récap automatique de la phase clôturée :
+
+```markdown
+## Phase {N} — {nom} (clôturée à {HH:MM})
+
+### Commits
+- {SHA court} {message} *(le commit de cette /close)*
+- {SHAs précédents de la phase, depuis le /close de Phase N-1)}
+
+### Fichiers modifiés (top 10)
+- {liste git diff --stat depuis le dernier /close}
+
+### Durée approximative
+{calcul : entre le premier commit de la phase et celui-ci} → environ {X}h
+```
+
+Pas de question, écriture directe. Si le fichier `memory/learnings/{date}.md` existe déjà (plusieurs phases clôturées le même jour), append en bas.
+
+**6.2 — Topics opt-in (questions ciblées)**
+
+Demande à l'utilisateur **0 à 3 questions** parmi celles-ci, **dans l'ordre, et s'arrête dès qu'il dit "rien à signaler"** :
+
+> *"Une décision d'arch notable pendant cette phase ? (ex : choix entre 2 BDD, frontière SDK/n8n, abandon d'une feature)*"
+
+Si réponse → écris dans `memory/decisions.md` ancre `<!-- close:decisions -->` :
+```
+- **{YYYY-MM-DD}** — {décision} (Phase {N}). Rationale : {réponse utilisateur}
+```
+
+> *"Un gotcha ou un piège technique qu'on a rencontré ? (ex : webhook qui ne marche que si rawBody, CORS qui demande OPTIONS, RLS qui bloque une query)"*
+
+Si réponse → demande le **domaine** ("c'est plutôt n8n, auth, deploy, autre ?") et écris dans `memory/topics/{domaine}.md` (crée si absent) :
+```markdown
+## {YYYY-MM-DD} — {résumé 1-ligne}
+{réponse utilisateur, 2-5 lignes}
+```
+
+> *"Un pattern réutilisable que tu veux mémoriser pour les prochaines features ?"*
+
+Même process : domaine + écriture dans `memory/topics/{domaine}.md`.
+
+**6.3 — Update MEMORY.md index**
+
+Après écriture(s) en 6.2, met à jour `MEMORY.md` à la racine :
+
+- Ancre `<!-- close:topics-index -->` : ajoute un lien `- [domaine](memory/topics/{domaine}.md) — {résumé 1-ligne}` si nouveau topic, sinon laisse (le détail est dans le fichier topic).
+- Ancre `<!-- close:learnings-index -->` : ajoute `- [{date}](memory/learnings/{date}.md) — Phase {N} clôturée ({X}h, {N commits})`.
+
+**Règle d'or** : si l'utilisateur répond "rien" à toutes les questions, tu ne demandes pas de troisième confirmation. Tu skipes 6.2/6.3 et passes à 6.4. Pas de friction.
+
+**6.4 — Annonce courte** : *"Mémoire mise à jour : {N learnings + {M topics si applicable}}. MEMORY.md indexé."*. Pas de dump du contenu écrit.
+
+### Étape 7 — suggestion suivante
 
 Lis `PRD.md ## Phases`. Identifie la phase suivante (première sans ✅ Terminée).
 

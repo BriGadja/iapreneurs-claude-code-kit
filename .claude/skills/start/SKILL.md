@@ -22,7 +22,17 @@ Sortie : un `CLAUDE.md` avec l'Identité remplie + un MCP/plugin stack fonctionn
 
 ### Étape 1 — Détecter l'état du projet (10s)
 
-Lis le `CLAUDE.md` à la racine + vérifie 4 signaux :
+**1.0 — Lire MEMORY.md** : si `MEMORY.md` existe à la racine et n'est pas vide (au-delà du template), lis-le rapidement (50 premières lignes max). Tu en extrais :
+- Nombre d'entrées dans `<!-- close:topics-index -->` (compter les liens markdown)
+- Date de la dernière entrée dans `<!-- close:learnings-index -->`
+- Domaines présents (auth, n8n, deploy, etc.)
+
+Si non-vide, **affiche un résumé une fois** au tout début de la session (avant les autres étapes) :
+> *"📚 Mémoire projet détectée : {N} topics ({liste}), dernière session enregistrée le {date}. Tape `cat MEMORY.md` pour le détail, ou continue — je sais que ça existe."*
+
+Si vide ou inexistant → ne dis rien (pas de bruit).
+
+**1.1 — Lire CLAUDE.md** + vérifie 4 signaux :
 1. La section `<!-- start:identité -->` contient encore le placeholder par défaut ?
 2. Y a-t-il un `PRD.md` à la racine ?
 3. Y a-t-il des fichiers `plans/phase-*.md` (ou `phase-*-plan.md` à la racine) ?

@@ -23,7 +23,7 @@
 **Skills envisagés puis droppés** (décision D26 mid-execute, "less is more") :
 - `/troubleshoot` → remplacé par `/debug` (built-in Claude Code natif) + règle de comportement TDD dans CLAUDE.md (test de régression avant fix)
 - `/remember` → remplacé par édition manuelle de `memory/topics/{topic}.md` (skill trop léger pour mériter un slot)
-- **Mémoire persistante** : structure `memory/{learnings,topics}/` + `memory/decisions.md` + `MEMORY.md` index à la racine. Le kit apprend du projet au fil des sessions. Écriture par `/close` (harvest learnings post-commit) + édition manuelle directe (pas de skill `/remember` dédié — édition `memory/topics/{topic}.md` à la main).
+- **Mémoire persistante** : structure `memory/{learnings,topics}/` + `memory/decisions.md` + `MEMORY.md` index à la racine. Le kit apprend du projet au fil des sessions. **Tout est écrit par `/close`** post-commit (auto-récap session dans `learnings/` + 3 questions ciblées opt-in : décision arch ? gotcha ? pattern ? → écrit dans `topics/{domaine}.md` ou `decisions.md`). `/start` et `/recap` lisent `MEMORY.md` au démarrage et affichent le résumé. **L'utilisateur ne touche jamais à la mémoire manuellement.**
 - **3 examples par `project_type`** : `examples/site-vitrine-coach/`, `examples/webapp-saas-freelance-devis/`, `examples/automation-n8n-veille-rss/`.
 - **Request Classification LITE / STANDARD / FULL** dans `CLAUDE.md` template (proposée par `/start` Phase 4).
 - **Glossaire** (4 termes : Phase / Tâche / Critère "Fait quand" / Critères de succès) en intro du `CLAUDE.md` template.

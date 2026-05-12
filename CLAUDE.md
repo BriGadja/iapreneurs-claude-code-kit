@@ -162,6 +162,38 @@ Si tu veux changer de niveau plus tard (ex : un projet LITE qui grossit), édite
 
 ---
 
+## Mémoire persistante
+
+Le kit construit progressivement le **cerveau** de ton projet : gotchas, décisions d'architecture, patterns réutilisables, learnings par session. À chaque nouvelle session, `/start` et `/recap` chargent `MEMORY.md` → Claude arrive avec le contexte projet déjà compris, sans que tu aies à le relire à la main.
+
+### Structure (créée à l'init du kit)
+
+| Fichier / dossier | Contient | Écrit par |
+|-------------------|----------|-----------|
+| `MEMORY.md` (racine) | Index 1-ligne par entrée — lu en intro de chaque `/start` et `/recap` | `/close` (à chaque clôture de phase) |
+| `memory/learnings/{YYYY-MM-DD}.md` | Récap **automatique** par session : commits, fichiers modifiés, durée approx. Pas de question | `/close` (toujours, low-friction) |
+| `memory/topics/{domaine}.md` | Cumul par domaine (auth, n8n, deploy, bugs, etc.). Append-only | `/close` (opt-in via 3 questions ciblées : décision arch ? gotcha ? pattern ?) |
+| `memory/decisions.md` | Log des choix d'arch durables (BDD, hosting, framework, etc.) | `/close` (opt-in via la 1ère question harvest) |
+
+### Règle d'or — l'utilisateur ne touche pas à la mémoire à la main
+
+**Tout est écrit par `/close` après chaque phase validée**. Le harvest est court :
+1. Auto-récap session (toujours, pas de question) → `memory/learnings/{date}.md`
+2. Question 1 : *"Une décision d'arch notable ?"* → si oui, `memory/decisions.md`
+3. Question 2 : *"Un gotcha technique ?"* → si oui, `memory/topics/{domaine}.md`
+4. Question 3 : *"Un pattern réutilisable ?"* → si oui, `memory/topics/{domaine}.md`
+5. Si "rien" à toutes les questions → skip, pas de friction.
+
+Au démarrage d'une nouvelle session, `/start` lit `MEMORY.md` et affiche : *"Mémoire projet : 3 topics ({liste}), dernière session il y a 4 jours"*. Toi tu décides si tu plonges (`cat memory/topics/...`) ou continues.
+
+### Mini-glossaire mémoire
+
+- **learnings** (par session, daté) : "ce qui s'est passé". Auto-écrit, pas de prise de décision.
+- **topics** (cumulatif, par domaine) : "ce qu'on a appris sur X". Tu y reviens quand tu retouches le domaine.
+- **decisions** (choix d'arch durables) : "ce qu'on a tranché et pourquoi". Utile pour les revues 6 mois plus tard.
+
+---
+
 ## Comment ce CLAUDE.md est entretenu
 
 ### Séquencement des skills (3 parcours typiques)
@@ -219,7 +251,7 @@ Si tu veux changer de niveau plus tard (ex : un projet LITE qui grossit), édite
 - `/brainstorm` skip si l'idée est déjà claire après `/start`.
 - `/challenge` skip si Request Classification = LITE.
 - Pour un bug → `/debug` (built-in Claude Code natif) + écrire un test de régression avant le fix (règle TDD).
-- Pour capturer un learning → édite directement `memory/topics/{topic}.md`.
+- Pour capturer un learning → c'est `/close` qui le fait via 3 questions ciblées en fin de phase. Tu n'édites jamais `memory/` à la main.
 
 ### Qui écrit quelle section de ce fichier
 
@@ -280,9 +312,9 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 | `/challenge` | Devil's advocate sur un plan : 3 risques + 3 hypothèses + GO/REWORK/STOP | Avant `/execute`, systématique en Request Classification FULL |
 
 **Notes hors table** :
-- Tu reviens après une pause ? Tape `/recap` — lit PRD/plans/git log et propose la suite.
+- Tu reviens après une pause ? Tape `/recap` — lit PRD/plans/git log/MEMORY.md et propose la suite.
 - Pour debugger un bug → tape `/debug` (built-in Claude Code natif). Règle de comportement : **écris d'abord un test de régression qui reproduit le bug, puis fais-le passer** (TDD).
-- Pour capturer un learning → édite directement `memory/topics/{topic}.md` (append-only). Pas de skill dédié, c'est de l'écriture humaine.
+- **Mémoire persistante** : `/close` maintient automatiquement `memory/learnings/`, `memory/topics/`, `memory/decisions.md`, et `MEMORY.md` (index) à chaque clôture de phase. **Tu n'éditeras jamais ces fichiers à la main** — c'est `/close` qui pose 3 questions ciblées (décision arch ? gotcha ? pattern réutilisable ?) et écrit les réponses dans le bon fichier. Voir `## Mémoire persistante` plus bas.
 
 **Skills `n8n-*`** : 7 skills officiels [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-skills) (MIT) dans `.claude/skills/n8n/`. Auto-invoqués quand tu touches à n8n.
 

@@ -53,9 +53,9 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 | `/challenge` | Devil's advocate sur un plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. Systématique en Request Classification FULL. |
 
 **Notes hors table** :
-- Tu reviens après une pause ? Tape `/recap` — lit `PRD.md` + `phase-*-plan.md` + git log et propose la suite. `/start` détecte automatiquement les projets existants et bifurque vers `/recap`.
+- Tu reviens après une pause ? Tape `/recap` — lit `PRD.md` + `phase-*-plan.md` + git log + `MEMORY.md` et propose la suite. `/start` détecte automatiquement les projets existants et bifurque vers `/recap`.
 - Pour debugger un bug → tape `/debug` (built-in Claude Code natif). **Règle de comportement** : écris d'abord un test de régression qui reproduit le bug, puis fais-le passer (TDD).
-- Pour capturer un learning → édite directement `memory/topics/{topic}.md` (append-only). Pas de skill dédié, c'est de l'écriture humaine.
+- **Mémoire persistante** : `/close` maintient automatiquement `memory/learnings/`, `memory/topics/`, `memory/decisions.md` et `MEMORY.md` (index racine) à chaque clôture de phase, via 3 questions ciblées (décision arch ? gotcha ? pattern ?). **L'utilisateur n'édite jamais ces fichiers à la main.** Détails dans le template `CLAUDE.md` section `## Mémoire persistante`.
 
 Workflow type : `/start` → `/brainstorm`? → `/architect` (PRD + providers + scaffold) → `/design`? → `/plan` Phase 1 → `/execute` → `/validate` → `/close` → `/plan` Phase 2 → ... → `/livrer`. Reprise : `/recap`. Évolution : `/evoluer`.
 
