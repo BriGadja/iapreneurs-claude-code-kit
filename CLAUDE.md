@@ -32,7 +32,7 @@ project_type: {site | webapp | automation}
 > - `webapp` — app web SaaS avec auth + BDD (Next.js + Supabase + shadcn)
 > - `automation` — workflow n8n pur, pas d'UI front (n8n + intégrations externes)
 >
-> Les skills `/scaffold`, `/ship`, `/plan` et `/design` branchent sur cette variable. **Si elle est absente ou invalide**, les skills qui en dépendent stoppent avec un message demandant de relancer `/start`.
+> Les skills `/architect` (Étape 6), `/livrer`, `/plan` et `/design` branchent sur cette variable. **Si elle est absente ou invalide**, les skills qui en dépendent stoppent avec un message demandant de relancer `/start`.
 
 ## Stack
 
@@ -70,7 +70,7 @@ project_type: {site | webapp | automation}
 ## Production
 
 <!-- ship:url -->
-{Écrit par `/ship` après le premier déploiement réussi + smoke test ✅. Contient l'URL prod, le type de déploiement, la date de ship, le dernier smoke test. Exemple : "- **URL production** : https://mon-projet.vercel.app — **Type** : webapp — **Shipped le** : 2026-05-15 — **Dernier smoke test** : ✅ 2026-05-15 14:32"}
+{Écrit par `/livrer` après le premier déploiement réussi + smoke test ✅. Contient l'URL prod, l'hosting détecté, le type de déploiement, la date de livraison, le dernier smoke test. Exemple : "- **URL production** : https://mon-projet.vercel.app — **Hosting** : Vercel — **Type** : webapp — **Livré le** : 2026-05-15 — **Dernier smoke test** : ✅ 2026-05-15 14:32"}
 <!-- /ship:url -->
 
 ## Création UI (si web app) — division du travail `/design` vs `/frontend-design`
@@ -133,6 +133,17 @@ Quand le plugin `frontend-design@claude-code-plugins` est invoqué (auto ou expl
   - "Corrige le bug" devient "Écris un test qui reproduit le bug, puis fais-le passer"
   - "Refactor X" devient "Vérifie que les tests passent avant et après"
 
+### 5. Bug = test de régression d'abord, fix ensuite
+
+Quand un bug est rapporté ou détecté en prod :
+
+1. **Reproduire** le bug de manière déterministe (commande / clic / requête qui échoue à coup sûr).
+2. **Écrire un test** qui reproduit le bug → ce test doit **échouer** sur le code actuel.
+3. **Fixer** le code → le test doit maintenant **passer**.
+4. **Vérifier** que les autres tests passent toujours (pas de régression croisée).
+
+Pour cette étape, tu peux utiliser `/debug` (built-in Claude Code) pour la phase de root cause analysis. Mais le test de régression est **non-négociable** — sans, le bug peut revenir silencieusement à la prochaine modif.
+
 ---
 
 ## Request Classification (LITE / STANDARD / FULL)
@@ -178,7 +189,7 @@ Si tu veux changer de niveau plus tard (ex : un projet LITE qui grossit), édite
    ↓
 /plan Phase 2 → ... (boucle jusqu'à la dernière phase)
    ↓
-/ship               ← déploie en production (Vercel / n8n / GitHub Pages selon project_type)
+/livrer             ← déploie en production selon ## Stack (hosting détecté, jamais hardcode)
 ```
 
 **Parcours 2 — Reprise (tu reviens après quelques jours/semaines)**
@@ -186,28 +197,29 @@ Si tu veux changer de niveau plus tard (ex : un projet LITE qui grossit), édite
 ```
 /recap              ← lit PRD.md + plans + git log + MEMORY.md → "tu as Phase 1 ✅, Phase 2 en cours, action suggérée : /execute"
    ↓
-{action proposée}   ← /execute, /plan Phase N+1, /ship, /evolve... selon l'état détecté
+{action proposée}   ← /execute, /plan Phase N+1, /livrer, /evoluer... selon l'état détecté
 ```
 
-**Parcours 3 — Évolution (projet shipped, tu veux ajouter une feature)**
+**Parcours 3 — Évolution (projet livré, tu veux ajouter une feature)**
 
 ```
-/recap              ← détecte projet shipped → propose /evolve
+/recap              ← détecte projet livré → propose /evoluer
    ↓
-/evolve             ← parse PRD existant + 3 questions cadrage feature + insère Phase N+1 sans écraser
+/evoluer            ← parse PRD existant + 3 questions cadrage feature + insère Phase N+1 sans écraser
    ↓
 /plan Phase N+1     ← reprend le flux standard
    ↓
-/execute → /validate → /close → /ship
+/execute → /validate → /close → /livrer
 ```
 
 **Conditionnels** :
-- `/architect` Étape 6 (Provisioning & Scaffold) branche sur `project_type` : `site` = Next.js minimal + optionnel Resend, `webapp` = Next.js + Supabase init + .env, `automation` = dossier `workflows/` + test n8n MCP.
+- `/architect` Étape 2b demande les **providers favoris** (hosting / BDD / email) avant de figer la stack. Défauts si l'utilisateur n'a pas d'avis : Vercel + Supabase + Resend (couverts par la communauté IAPreneurs).
+- `/architect` Étape 6 (Provisioning & Scaffold) branche sur `project_type` ET la stack retenue : `site` = framework minimal + optionnel email, `webapp` = framework + BDD init + .env, `automation` = dossier `workflows/` + test n8n MCP.
 - `/design` skip si `project_type` ∈ {automation, site simple} ou si le projet n'a pas d'UI custom.
 - `/brainstorm` skip si l'idée est déjà claire après `/start`.
 - `/challenge` skip si Request Classification = LITE.
-- `/troubleshoot` à invoquer **à la demande** quand un bug ou un comportement inattendu apparaît (hors flux nominal).
-- `/remember {topic}` à invoquer **à la demande** quand tu veux capturer un learning hors-clôture-phase.
+- Pour un bug → `/debug` (built-in Claude Code natif) + écrire un test de régression avant le fix (règle TDD).
+- Pour capturer un learning → édite directement `memory/topics/{topic}.md`.
 
 ### Qui écrit quelle section de ce fichier
 
@@ -246,21 +258,20 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 
 ## Skills disponibles dans ce kit
 
-**Table principale — 11 commandes du cycle de vie projet** *(certaines arrivent en v2.0.0 GA — voir colonne "Statut")* :
+**Table principale — 10 commandes du cycle de vie projet** *(certaines arrivent en v2.0.0 GA — voir colonne "Statut")* :
 
 | Skill | Pour quoi | Quand | Statut |
 |-------|-----------|-------|--------|
 | `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage. Détecte aussi projet existant et bifurque vers `/recap`. | 1x à l'ouverture d'une nouvelle session | ✅ |
 | `/brainstorm` | Clarifier une idée vague en 3 questions | Si l'idée n'est pas claire après `/start` | ✅ |
-| `/architect` | Produire un `PRD.md` structuré (mini-3-sections en LITE, 7 sections en STANDARD/FULL) + **Étape 6 Provisioning & Scaffold** (scaffold le repo selon `project_type` + provisioning Supabase/Vercel/n8n + écriture `.env`) | Une fois l'idée claire | ✅ *(Étape 6 à venir v2.0 Phase B)* |
+| `/architect` | Produire un `PRD.md` structuré (mini-3-sections en LITE, 7 sections en STANDARD/FULL) + **Étape 6 Provisioning & Scaffold** (scaffold le repo selon `project_type` + providers retenus + écriture `.env`) | Une fois l'idée claire | ✅ |
 | `/design` | Produire `DESIGN.md` (palette, typo, composants) lu par `frontend-design` | Après `/architect`, **uniquement si project_type = webapp** | ✅ |
 | `/plan` | Découper UNE phase du PRD en tâches numérotées (adapte les questions selon `project_type`) | Avant d'exécuter une phase | ✅ |
 | `/execute` | Exécuter le plan tâche par tâche, coche les `[x]` au fil de l'eau | Après `/plan` (et éventuellement `/challenge`) | ✅ |
-| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / curl / audit RLS Supabase) | Après `/execute` | ✅ |
+| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / curl / audit policy d'accès BDD) | Après `/execute` | ✅ |
 | `/close` | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + harvest learnings + suggestion next | **Mandatory** après `/validate ✅` | ✅ |
-| `/ship` | Déployer en production selon `project_type` (Vercel / n8n / GitHub Pages) + checklist RLS advisory + smoke test | Quand la dernière phase est `/close` | à venir v2.0 Phase D |
-| `/evolve` | Ajouter une nouvelle feature à un projet shipped : insère Phase N+1 dans PRD existant sans écraser | Sur projet shipped, quand tu veux scaler | à venir v2.0 Phase E |
-| `/troubleshoot` | Investiguer un bug : repro → root cause → fix → regression test | À la demande, quand un comportement inattendu apparaît | à venir v2.0 Phase F |
+| `/livrer` | Déployer en production selon `## Stack` (hosting/BDD/email détectés depuis CLAUDE.md, jamais hardcode) + checklist policy d'accès advisory + smoke test | Quand la dernière phase est `/close` | ✅ |
+| `/evoluer` | Ajouter une nouvelle feature à un projet livré : insère Phase N+1 dans PRD existant sans écraser | Sur projet livré, quand tu veux scaler | à venir v2.0 Phase E |
 
 **Skills optionnels avancés** :
 
@@ -269,8 +280,9 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 | `/challenge` | Devil's advocate sur un plan : 3 risques + 3 hypothèses + GO/REWORK/STOP | Avant `/execute`, systématique en Request Classification FULL |
 
 **Notes hors table** :
-- Tu reviens après une pause ? Tape `/recap` — lit PRD/plans/git log/MEMORY.md et propose la suite. *(à venir v2.0 Phase C)*
-- Capture rapide d'un learning ? Tape `/remember {topic}` — append-only dans `memory/topics/{topic}.md`. *(à venir v2.0 Phase H)*
+- Tu reviens après une pause ? Tape `/recap` — lit PRD/plans/git log et propose la suite.
+- Pour debugger un bug → tape `/debug` (built-in Claude Code natif). Règle de comportement : **écris d'abord un test de régression qui reproduit le bug, puis fais-le passer** (TDD).
+- Pour capturer un learning → édite directement `memory/topics/{topic}.md` (append-only). Pas de skill dédié, c'est de l'écriture humaine.
 
 **Skills `n8n-*`** : 7 skills officiels [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-skills) (MIT) dans `.claude/skills/n8n/`. Auto-invoqués quand tu touches à n8n.
 

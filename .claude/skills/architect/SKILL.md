@@ -30,28 +30,42 @@ Si pas de fichier, lire ce que dit le user dans le chat et lui poser **2-3 quest
 
 ### Étape 2 — déterminer la nature du projet, puis proposer la stack
 
-Avant de proposer une stack, **comprends la nature du projet** en posant 1-2 questions ciblées :
+**2a — Comprendre la nature** : avant de proposer une stack, pose 1-2 questions ciblées :
 
 - "Où l'utilisateur final voit-il le résultat — dans son navigateur, par mail, dans une notification, dans un fichier exporté ?"
-- "Y a-t-il un output qui doit s'afficher en temps réel pendant que l'utilisateur attend (streaming, progression visible) ? Ou alors l'output peut-il être livré quelques secondes plus tard (mail, PDF, notification) ?"
+- "Y a-t-il un output qui doit s'afficher en temps réel (streaming, progression visible) ? Ou peut-il être livré quelques secondes plus tard (mail, PDF, notification) ?"
 
 Ces questions déterminent les choix techniques **avant** de figer la stack :
 - **Output live à l'écran (streaming)** → SDK direct (Anthropic, OpenAI) dans une API route ; n8n ne sait pas streamer vers un navigateur.
-- **Output asynchrone (PDF, email, BDD, intégration externe)** → workflow n8n + callback de notification cohabitable avec l'app.
+- **Output asynchrone (PDF, email, BDD, intégration externe)** → workflow n8n + callback de notification.
 - **Mix des deux** → frontière explicite : SDK pour le live, n8n pour le reste.
 
-Puis **propose une stack par défaut** alignée avec la nature du projet :
+**2b — Demander les providers favoris** (avant de proposer une stack par défaut) :
 
-- **App web (CRUD classique + auth)** : Next.js (App Router) + Tailwind + shadcn/ui + Supabase (Auth + BDD + Realtime si besoin) + Vercel
-- **App web avec génération IA visible** : ci-dessus + Anthropic SDK (ou OpenAI / Mistral) dans une API route Next.js (runtime nodejs)
-- **App web avec génération IA async (PDF, email)** : ci-dessus + workflow n8n via webhook + callback Supabase Realtime
-- **Automatisation pure (pas d'UI front)** : n8n + Supabase (stockage / état) + intégrations externes
+> *"Avant que je propose une stack, est-ce que tu as des providers de référence que tu utilises déjà (gratuits ou payants) ? Par exemple :*
+> *- **Hosting** (où ton app tourne) — Vercel ? Netlify ? Cloudflare Pages ? GitHub Pages ? Hostinger ? Autre ? Pas d'avis ?*
+> *- **BDD** (où tes données vivent, si applicable) — Supabase ? Neon ? PlanetScale ? Pas de BDD ? Pas d'avis ?*
+> *- **Email transactionnel** (si applicable) — Resend ? Postmark ? Pas d'envoi d'email ? Pas d'avis ?*
+> *Dis-moi ce que tu sais et je remplis les trous avec mes défauts."*
+
+**Défauts (utilisés si "pas d'avis" pour ce slot)** — alignés sur ce qui est couvert dans la communauté IAPreneurs :
+- Hosting → **Vercel** (gratuit pour projets perso, intégré GitHub, simple)
+- BDD → **Supabase** (gratuit jusqu'à 500 MB, Auth + BDD + Realtime en un, RLS native)
+- Email → **Resend** (3000 emails/mois gratuit, DX moderne)
+- Automation runtime → **n8n self-hosted** (couvert dans la commu) ou **n8n cloud** (si l'utilisateur veut zéro infra)
+
+**2c — Proposer la stack complète**, alignée avec la nature du projet **ET** les providers retenus :
+
+- **App web (CRUD + auth)** : Next.js (App Router) + Tailwind + shadcn/ui + `{BDD retenue}` + `{Hosting retenu}`
+- **App web avec génération IA visible** : ci-dessus + Anthropic SDK dans une API route Next.js
+- **App web avec génération IA async (PDF, email)** : ci-dessus + workflow n8n via webhook + callback `{BDD}` Realtime
+- **Automatisation pure (pas d'UI front)** : n8n + `{BDD}` (stockage / état) + intégrations externes
 - **Voix** : Vapi (provider voice IAPreneurs community-friendly)
 - **Scripts ponctuels** : Python ou TypeScript Node
 
-Toujours **demander confirmation** : "Je propose **{stack}**. Ça te va ou tu veux changer un truc ?"
+Toujours **demander confirmation** : "Je propose **{stack complète avec providers retenus}**. Ça te va ou tu veux changer un truc ?"
 
-Si l'utilisateur ne sait pas trancher entre SDK direct et n8n, ré-explique brièvement la règle : "tokens qui doivent défiler à l'écran = SDK ; PDF ou email qui peut arriver dans 20 secondes = n8n".
+Si l'utilisateur ne sait pas trancher entre SDK direct et n8n, ré-explique brièvement : "tokens qui doivent défiler à l'écran = SDK ; PDF ou email qui peut arriver dans 20 secondes = n8n".
 
 ### Étape 3 — découpe en phases
 
@@ -116,7 +130,7 @@ Affiche le bloc commandes complet, **demande confirmation explicite** : *"J'exé
 **6.3 — Provisioning credentials externes** (interactif, jamais en clair dans le repo) :
 
 - **Supabase** (si `webapp`) : guide l'utilisateur — *"Va sur supabase.com/dashboard, crée un projet, copie-colle l'URL et la `anon key` ici"*. Tu récupères les 2 valeurs, tu les écris dans `.env` au format `NEXT_PUBLIC_SUPABASE_URL=...` + `NEXT_PUBLIC_SUPABASE_ANON_KEY=...`.
-- **Vercel** (si `webapp` ou `site`) : *"Tu veux lier ton repo à Vercel maintenant ou plus tard (au `/ship`) ? Si maintenant, tape `vercel link` dans un autre terminal puis colle le `.vercel/project.json` créé"*. Si l'utilisateur skip, note dans le PRD que Vercel est reporté à `/ship`.
+- **Vercel** (si `webapp` ou `site`) : *"Tu veux lier ton repo à Vercel maintenant ou plus tard (au `/livrer`) ? Si maintenant, tape `vercel link` dans un autre terminal puis colle le `.vercel/project.json` créé"*. Si l'utilisateur skip, note dans le PRD que Vercel est reporté à `/livrer`.
 - **n8n** (si `webapp` async ou `automation`) : vérifie que `.env` contient `N8N_API_URL` + `N8N_API_KEY`. Si absent, demande à l'utilisateur de les fournir (ou de skipper si pas de besoin immédiat). Teste la connexion via le MCP n8n (`claude mcp list` doit montrer `n8n`).
 
 **6.4 — Écrire `.env` depuis `.env.example` + vérifier `.gitignore`** :

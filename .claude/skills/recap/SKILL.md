@@ -48,7 +48,7 @@ Si `MEMORY.md` existe à la racine du projet, lis-le rapidement (50 premières l
 - Date de la dernière session enregistrée (regarder `memory/learnings/`)
 - 1-2 topics récents notables
 
-> **Note v2.0.0-alpha.1** : si le projet est sur une version du kit qui n'a pas encore `/remember` ni le harvest learnings de `/close`, `MEMORY.md` n'existe pas — passe cette étape sans alerter.
+> **Note** : si le projet est sur une version du kit qui n'a pas encore le harvest learnings de `/close`, `MEMORY.md` n'existe pas — passe cette étape sans alerter.
 
 ### Étape 5 — Synthèse + actions proposées
 
@@ -72,15 +72,15 @@ Affiche un bloc structuré :
 {1 à 3 actions concrètes, invocables directement} :
 - → `/execute phase-2-plan.md` (la plus probable, à mettre en premier)
 - → `/plan Phase 3` (si Phase 2 finie mais Phase 3 pas planifiée)
-- → `/ship` (si toutes les phases ✅ et projet jamais déployé)
-- → `/evolve` (si projet shipped et tu veux ajouter une feature)
+- → `/livrer` (si toutes les phases ✅ et projet jamais déployé)
+- → `/evoluer` (si projet shipped et tu veux ajouter une feature)
 ```
 
-**Règle** : toujours **1 à 3 actions**, pas plus. La première doit être la plus probable. Si l'état est ambigu (ex : Phase 2 ✅ Terminée mais plan Phase 3 absent), explicite : *"Phase 2 est marquée Terminée mais je n'ai pas trouvé `phase-3-plan.md`. Tu veux lancer `/plan Phase 3` ou tu considères le projet terminé (`/ship`) ?"*
+**Règle** : toujours **1 à 3 actions**, pas plus. La première doit être la plus probable. Si l'état est ambigu (ex : Phase 2 ✅ Terminée mais plan Phase 3 absent), explicite : *"Phase 2 est marquée Terminée mais je n'ai pas trouvé `phase-3-plan.md`. Tu veux lancer `/plan Phase 3` ou tu considères le projet terminé (`/livrer`) ?"*
 
 ### Étape 6 — Cas limites
 
-- **Projet shipped** (toutes phases ✅ + `<!-- ship:url -->` rempli dans CLAUDE.md OU dernier commit `feat(ship)`) → suggestion `/evolve` en priorité. *(Note alpha : si `/evolve` n'existe pas encore dans la version du kit installée, affiche : "/evolve arrivera en v2.0.0 GA — d'ici là, édite manuellement ton PRD.md ou relance `/architect` pour repartir d'un PRD étendu".)*
+- **Projet livré** (toutes phases ✅ + `<!-- ship:url -->` rempli dans CLAUDE.md OU dernier commit `feat(livrer)`) → suggestion `/evoluer` en priorité. *(Note alpha : si `/evoluer` n'existe pas encore dans la version du kit installée, affiche : "/evoluer arrivera en v2.0.0 GA — d'ici là, édite manuellement ton PRD.md ou relance `/architect` pour repartir d'un PRD étendu".)*
 - **Aucun plan trouvé** mais PRD présent → suggestion `/plan Phase 1`.
 - **PRD absent** → géré dans Étape 1 (stop early avec proposition `/architect`).
 - **Plan en cours avec 80%+ tâches cochées** mais sans `/close` → suggestion `/validate` puis `/close`.
@@ -93,8 +93,8 @@ Tu pourrais dumper le PRD entier, tous les plans, l'historique git complet. **Ne
 
 - Premier lancement sur un projet neuf → `/start` (qui peut ensuite bifurquer ici)
 - Pour relire le PRD entier → ouvre `PRD.md` direct
-- Pour debugger un bug → `/troubleshoot` (v2.0 GA)
-- Pour ajouter une feature → `/evolve` (v2.0 GA)
+- Pour debugger un bug → `/debug` (built-in Claude Code natif) + test de régression avant fix (règle TDD CLAUDE.md)
+- Pour ajouter une feature → `/evoluer` (v2.0 GA)
 
 ## Handoff
 

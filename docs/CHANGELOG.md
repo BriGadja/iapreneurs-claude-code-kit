@@ -15,13 +15,15 @@
 
 ### Ajouté
 
-- **5 nouveaux skills** :
-  - `/recap` — reprendre un projet existant après absence (lit PRD/plans/git log/MEMORY.md)
-  - `/ship` — déployer en production selon `project_type` (Vercel / n8n / GitHub Pages) + checklist RLS advisory + smoke test
-  - `/evolve` — ajouter une feature à un projet shipped sans écraser le PRD
-  - `/troubleshoot` — investiguer un bug (repro → root cause → fix → regression test)
-  - `/remember {topic}` — capturer manuellement un learning dans `memory/topics/{topic}.md`
-- **Mémoire persistante PAI-light** : structure `memory/{learnings,topics}/` + `memory/decisions.md` + `MEMORY.md` index à la racine. Le kit apprend du projet au fil des sessions.
+- **3 nouveaux skills (noms FR pour cohérence communauté IAPreneurs)** :
+  - `/recap` — reprendre un projet existant après absence (lit PRD/plans/git log)
+  - `/livrer` — déployer en production en lisant `## Stack` du CLAUDE.md (jamais hardcode de provider — Vercel/Netlify/Cloudflare/GitHub Pages/autre détectés depuis stack) + checklist policy d'accès BDD advisory + smoke test
+  - `/evoluer` — ajouter une feature à un projet livré sans écraser le PRD
+
+**Skills envisagés puis droppés** (décision D26 mid-execute, "less is more") :
+- `/troubleshoot` → remplacé par `/debug` (built-in Claude Code natif) + règle de comportement TDD dans CLAUDE.md (test de régression avant fix)
+- `/remember` → remplacé par édition manuelle de `memory/topics/{topic}.md` (skill trop léger pour mériter un slot)
+- **Mémoire persistante** : structure `memory/{learnings,topics}/` + `memory/decisions.md` + `MEMORY.md` index à la racine. Le kit apprend du projet au fil des sessions. Écriture par `/close` (harvest learnings post-commit) + édition manuelle directe (pas de skill `/remember` dédié — édition `memory/topics/{topic}.md` à la main).
 - **3 examples par `project_type`** : `examples/site-vitrine-coach/`, `examples/webapp-saas-freelance-devis/`, `examples/automation-n8n-veille-rss/`.
 - **Request Classification LITE / STANDARD / FULL** dans `CLAUDE.md` template (proposée par `/start` Phase 4).
 - **Glossaire** (4 termes : Phase / Tâche / Critère "Fait quand" / Critères de succès) en intro du `CLAUDE.md` template.

@@ -43,7 +43,7 @@ Branche selon le diagnostic :
 - Si (3) → demande **3 confirmations explicites** avant d'écrire (*"sûr ?" "vraiment sûr ?" "dernière chance, on écrase l'identité actuelle ?"*). Puis dérouler phases 2-6.
 
 **Cas C — Migration v1.x → v2.0** (identité remplie MAIS pas de `project_type` dans `<!-- start:identité -->`) → ne stoppe PAS, juste un mini-patch :
-> *"Ton projet utilise une version antérieure du kit (pas de variable `project_type` dans CLAUDE.md). C'est une variable que les nouveaux skills (`/architect Étape 6`, `/ship`, `/plan` adaptatif) attendent. Je te pose une question pour la définir :*
+> *"Ton projet utilise une version antérieure du kit (pas de variable `project_type` dans CLAUDE.md). C'est une variable que les nouveaux skills (`/architect Étape 6`, `/livrer`, `/plan` adaptatif) attendent. Je te pose une question pour la définir :*
 > *Quel type de projet ?*
 > *- **(a) Web app SaaS** (auth + BDD, utilisateurs, plusieurs pages) → `project_type: webapp`*
 > *- **(b) Site vitrine** (1-5 pages, peu/pas de BDD) → `project_type: site`*
@@ -60,13 +60,13 @@ Annonce :
 Si **non** (visite demandée), liste en 6 lignes :
 
 > "Dans ce kit, tu as :
-> - **11 skills cycle de vie** : `/start` (moi), `/brainstorm`, `/architect` (PRD + scaffold + provisioning), `/design` (web app uniquement), `/plan`, `/execute`, `/validate`, `/close`, `/ship`, `/evolve`, `/troubleshoot`. Tous coordonnés pour t'amener du démarrage à un projet shipped en prod.
-> - **Skills hors table** : `/recap` (tu reviens après une absence — lit l'état projet et propose la suite), `/remember {topic}` (capture rapide d'un learning), `/challenge` (devil's advocate optionnel sur un plan).
+> - **10 skills cycle de vie** : `/start` (moi), `/brainstorm`, `/architect` (PRD + providers + scaffold), `/design` (web app uniquement), `/plan`, `/execute`, `/validate`, `/close`, `/livrer`, `/evoluer`. Tous coordonnés pour t'amener du démarrage à un projet livré en prod.
+> - **Skills hors table** : `/recap` (tu reviens après une absence — lit l'état projet et propose la suite), `/challenge` (devil's advocate optionnel sur un plan).
 > - **1 sous-agent** `research-delegate` que les skills invoquent quand ils ont besoin de chercher sans polluer ton contexte.
 > - **7 skills n8n** officiels de Czlonkowski pour les workflows.
 > - **Un `.mcp.json` vide** prêt à recevoir Playwright + n8n MCP + plugin `frontend-design`. Le plugin sera consommé par `/design` pour rester cohérent dans toutes tes pages.
 > - **Un dossier `.claude/rules/`** pour déporter les règles spécifiques à un domaine quand le `CLAUDE.md` devient trop long.
-> Le tout est conçu pour grandir avec toi : tu peux commencer avec 3 skills (`/brainstorm`, `/architect`, `/plan`) et activer le reste au fil du temps. Certains skills (`/ship`, `/evolve`, `/troubleshoot`) arrivent en v2.0.0 GA — `/start` et `/architect` sont déjà à jour."
+> Le tout est conçu pour grandir avec toi : tu peux commencer avec 3 skills (`/brainstorm`, `/architect`, `/plan`) et activer le reste au fil du temps. `/evoluer` arrive en v2.0.0 GA — le reste est déjà à jour. Pour debugger un bug, le built-in `/debug` natif Claude Code fait l'affaire (avec la règle : test de régression avant fix)."
 
 Si **oui** (skip), passe direct à l'étape 3.
 

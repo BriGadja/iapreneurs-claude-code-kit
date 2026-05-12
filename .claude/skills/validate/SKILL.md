@@ -145,6 +145,6 @@ Fin du skill : verdict + prochaine étape.
 
 - **Si ✅ OK** → `/close` (**mandatory**, plus optionnel depuis v2.0). `/close` marque ✅ Terminée dans le PRD, fait le commit conventionnel, et :
   - Si ce n'est pas la dernière phase → suggère `/plan Phase {N+1}`
-  - Si c'est la dernière phase ET le projet n'a jamais été shipped → suggère `/ship`
+  - Si c'est la dernière phase ET le projet n'a jamais été livré → suggère `/livrer`
 - **Si ⚠️ Partiel** → demander à l'utilisateur s'il accepte ou veut corriger via `/execute` puis re-`/validate`
-- **Si ❌ KO** → revenir sur `/execute` (ou `/troubleshoot` en v2.0 GA si bug complexe) pour fix, puis re-`/validate`. **Pas de `/close` tant que ce n'est pas ✅**.
+- **Si ❌ KO** → revenir sur `/execute` (ou `/debug` natif Claude Code si bug complexe, avec test de régression obligatoire avant fix) pour fix, puis re-`/validate`. **Pas de `/close` tant que ce n'est pas ✅**.
