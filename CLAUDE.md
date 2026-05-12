@@ -45,9 +45,11 @@
 
 ## Création UI (si web app)
 
-Avant de créer ou modifier un composant UI, un layout, ou une page : **lire `DESIGN.md` à la racine** pour récupérer la palette, la typographie, les composants définis. Si `DESIGN.md` n'existe pas et que la tâche touche à l'UI, **stop** et propose à l'utilisateur de lancer `/design` d'abord — sans design system, le rendu sera incohérent d'une page à l'autre.
+Avant de créer ou modifier un composant UI, un layout, ou une page : **lire `DESIGN.md` à la racine** pour récupérer les tokens (palette, typographie, composants définis). Si `DESIGN.md` n'existe pas et que la tâche touche à l'UI, **stop** et propose à l'utilisateur de lancer `/design` d'abord — sans design system, le rendu sera incohérent d'une page à l'autre.
 
-Cette règle s'applique aussi quand le plugin `frontend-design@claude-code-plugins` est invoqué : référence `DESIGN.md` dans le prompt envoyé au plugin.
+`DESIGN.md` suit la **spec officielle Google open-source** (`version: alpha`, publiée par l'équipe Stitch — `https://stitch.withgoogle.com/docs/design-md/overview/`) : YAML front matter avec tokens (`colors`, `typography`, `rounded`, `spacing`, `components`) + 8 sections markdown canoniques (Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts). Références cross-sections via `{colors.primary}`, `{typography.body-md}`, etc.
+
+Cette règle s'applique aussi quand le plugin `frontend-design@claude-code-plugins` est invoqué : référence `DESIGN.md` dans le prompt envoyé au plugin. Lint optionnel : `npx @google/design.md lint DESIGN.md` (valide structure, refs de tokens, contrastes WCAG AA).
 
 ## Contexte métier
 
