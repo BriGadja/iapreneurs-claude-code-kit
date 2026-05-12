@@ -115,11 +115,58 @@
 
 ## Skills disponibles dans ce kit
 
-- `/brainstorm` — clarifier une idée vague (3 questions max), produit `brainstorm-{sujet}.md`
+- `/brainstorm` — clarifier une idée vague (3 questions max), produit `brainstorm-{sujet}.md`. Route 2 délègue à `research-delegate` pour explorer projets similaires.
 - `/create-prd` — produire un `PRD.md` structuré (7 sections, à valider avec l'utilisateur avant sauvegarde)
-- `/plan` — découper UNE phase du PRD en tâches numérotées avec critères "Fait quand" ; pose 3-5 questions pour cadrer la nature du projet et la stack
-- `/execute` — exécuter le plan tâche par tâche, cocher les cases au fur et à mesure
-- `/validate` — vérifier que la phase marche pour de vrai (3 options proposées : navigateur / n8n / autre)
+- `/plan` — découper UNE phase du PRD en tâches numérotées avec critères "Fait quand" ; étape 1bis scout le codebase via `research-delegate` pour éviter de planifier des fichiers qui existent déjà
+- `/challenge` *(optionnel)* — passer le plan au crible avant `/execute` : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. À ajouter dans ton workflow quand tu te sens à l'aise — `/plan` reste suffisant pour démarrer.
+- `/execute` — exécuter le plan tâche par tâche, cocher les cases au fur et à mesure. Délègue à `research-delegate` si bloqué par un manque d'info externe (doc d'API, syntaxe de lib).
+- `/validate` — vérifier que la phase marche pour de vrai (3 options proposées : navigateur / n8n / autre). Étape 2bis parallélise via `research-delegate` pour les phases multi-dimensions.
 - 7 skills `n8n-*` — voir `.claude/skills/n8n/README.md` (czlonkowski, MIT)
 
-Workflow type : `/brainstorm` (si flou) → `/create-prd` → `/plan` Phase 1 → `/execute` → `/validate` → `/plan` Phase 2 → ...
+## Sous-agents disponibles dans ce kit
+
+- `research-delegate` — sous-agent de recherche read-only. Invoqué automatiquement par `/brainstorm` (route 2), `/plan` (étape 1bis), `/execute` (blocage info externe), `/validate` (phase grosse). Lit jusqu'à 15 sources et renvoie une synthèse en 3-10 bullets. Garde ta fenêtre de contexte principale propre.
+
+Tu n'as pas besoin de l'invoquer manuellement — les skills le font quand pertinent. Voir `.claude/agents/research-delegate.md` pour le détail.
+
+## Workflow type
+
+`/brainstorm` (si idée floue) → `/create-prd` → `/plan` Phase 1 → *(option `/challenge`)* → `/execute` → `/validate` → `/plan` Phase 2 → ...
+
+`/challenge` est optionnel au départ. Ajoute-le quand tu sens que tes plans partent en exécution sans avoir vu un risque évident. C'est une amélioration de méthode qu'on ajoute au fil du temps, pas un prérequis.
+
+---
+
+## MCP & plugin à installer (recommandé)
+
+Le kit fournit un `.mcp.json` **vide** par défaut. Tu n'es obligé de rien installer pour démarrer, mais voilà les MCP et le plugin qui te servent dans 90 % des projets du module.
+
+### MCP — outils externes que Claude Code peut piloter
+
+| MCP | Pour quoi faire | Commande d'installation |
+|-----|-----------------|--------------------------|
+| **Playwright** | Lancer un navigateur, cliquer, snapshot DOM, screenshot — utilisé par `/validate` option A | `claude mcp add playwright -- npx -y @playwright/mcp@latest` |
+| **n8n** (czlonkowski) | Créer / valider / debugger des workflows n8n sans halluciner les nodes | `claude mcp add n8n -e N8N_API_URL=https://ton-instance-n8n.com -e N8N_API_KEY=ton_token -- npx n8n-mcp@latest` |
+
+Une fois ajouté, l'entrée apparaît dans `.mcp.json`. Commit le fichier dans Git pour que ton équipe ait les mêmes outils.
+
+> Pour n8n, récupère `N8N_API_URL` et `N8N_API_KEY` dans **Settings → API** de ton instance n8n.
+
+### Plugin — `frontend-design`
+
+Pour les apps web (Next.js + Tailwind + shadcn/ui), installe le plugin `frontend-design` officiel Anthropic — il sait construire des composants UI propres au lieu de générer du HTML générique :
+
+```bash
+claude plugin install frontend-design@claude-code-plugins
+```
+
+Tu l'utilises en disant simplement à Claude "construis-moi une page X avec un bouton qui fait Y" — le plugin se charge de structurer la sortie avec les bons composants shadcn.
+
+### Vérifier que tout est en place
+
+```bash
+claude mcp list           # liste les MCP installés
+claude plugin list        # liste les plugins installés
+```
+
+> Si tu n'es pas prêt à toucher aux MCP et plugins maintenant, laisse `.mcp.json` vide et reviens ici plus tard. Aucun skill core du kit n'en dépend pour fonctionner — `/validate` option A bascule sur "tu testes à la main" si Playwright n'est pas installé.

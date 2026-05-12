@@ -25,6 +25,24 @@ Lire le PRD. Identifier la phase à planifier. Reformuler à l'utilisateur :
 
 > "OK, je vais planifier **Phase {N} — {nom}** : {description PRD}. C'est ça ?"
 
+### Étape 1bis — scout du codebase (si le projet a déjà du code)
+
+Avant de découper en tâches du type "créer auth.ts", vérifie ce qui existe déjà. Sinon tu vas planifier la création d'un fichier qui existe sous un autre nom — et `/execute` va dupliquer.
+
+**Si le projet contient déjà du code** (au moins un fichier `src/` ou `app/`), lance un sous-agent `research-delegate` pour scout :
+
+```
+Agent({
+  subagent_type: "research-delegate",
+  description: "Scout codebase pour Phase {N}",
+  prompt: "Liste tous les fichiers liés à {sujet de la phase, ex: 'authentification' ou 'upload de transcripts'} qui existent déjà dans ce projet. Pour chaque fichier : ce qu'il fait en 1 ligne, et les fonctions/composants exportés. Sortie au format research-delegate standard."
+})
+```
+
+Reprends la main avec la synthèse. Tu sais maintenant ce qui existe → tu planifies du nouveau, pas de la duplication. Le sous-agent a lu 20 fichiers, ton contexte n'en a vu que 5 lignes de résumé.
+
+**Si le projet est vide** (juste un `package.json` ou rien), skip cette étape.
+
 ### Étape 2 — poser 3-5 questions ciblées sur la nature du projet et la phase
 
 Selon la phase, poser **3 à 5 questions** précises qui te manquent pour découper. **Tu ne pré-supposes JAMAIS l'architecture** : tu déduis des réponses si SDK direct, n8n, ou autre est approprié.

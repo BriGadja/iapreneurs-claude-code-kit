@@ -37,8 +37,20 @@ Une fois les réponses obtenues, propose à l'utilisateur :
 
 > "OK, deux options :
 > 1. **Je te fais le PRD direct** avec ce qu'on a (`/create-prd`).
-> 2. **On creuse encore** — recherche web, exemples de projets similaires, retours d'utilisateurs (recherche externe).
+> 2. **On creuse encore** — je délègue à un sous-agent `research-delegate` qui va explorer le web, lire 5-10 sources (projets similaires, patterns établis, retours d'expérience), et me ramener une synthèse en 3-10 bullets. Ton contexte principal reste propre, je récupère juste l'essentiel. Bon si tu veux savoir "qui a déjà fait ça, comment, quels pièges éviter".
 > Tu préfères quoi ?"
+
+Si l'utilisateur choisit la route 2, lance le sous-agent comme ceci :
+
+```
+Agent({
+  subagent_type: "research-delegate",
+  description: "Recherche projets similaires {sujet}",
+  prompt: "Cherche sur le web 5-10 projets ou tutos qui font {résumé du brainstorm}. Pour chacun : (1) ce qu'ils font, (2) leur stack, (3) un piège ou retour d'expérience documenté. Sortie au format research-delegate standard."
+})
+```
+
+Reprends la main avec la synthèse, ajoute-la à la section "Idée en 1 phrase" du brainstorm sous une sous-section "Inspirations".
 
 ### Étape 4 — écrire le fichier
 

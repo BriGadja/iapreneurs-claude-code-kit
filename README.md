@@ -7,8 +7,11 @@
 Un dossier `.claude/` prêt à l'emploi avec :
 
 - **5 skills core** qui couvrent le cycle complet d'un projet : clarifier une idée → produire un PRD → planifier une phase → exécuter → vérifier.
+- **1 skill optionnelle** `/challenge` — devil's advocate sur le plan avant `/execute` (à activer dans ton workflow quand tu te sens à l'aise).
+- **1 sous-agent** `research-delegate` — invoqué automatiquement par les skills core pour la recherche (codebase + web), garde ta fenêtre de contexte propre.
 - **7 skills n8n officiels** (MIT, czlonkowski) pour t'aider à construire et debugger des workflows n8n sans halluciner les nodes.
 - **Un `CLAUDE.md` template** à adapter à ton projet (5 couches + 4 règles de comportement inspirées de Karpathy).
+- **Un `.mcp.json` vide** prêt à recevoir les MCP recommandés (Playwright, n8n) — commandes d'installation dans `CLAUDE.md`.
 
 Tu forks, tu adaptes, tu codes. C'est la méthode utilisée dans le module Claude Code IAPreneurs.
 
@@ -36,15 +39,22 @@ Et c'est parti.
 
 ## Ce qu'il y a dans le kit
 
-### `.claude/skills/` — les 5 skills core (méthode SDD simplifiée)
+### `.claude/skills/` — les 5 skills core (méthode SDD simplifiée) + 1 optionnelle
 
 | Skill | Rôle |
 |-------|------|
-| `/brainstorm` | Tu n'as qu'une idée vague. 3 questions et tu repars avec un fichier `brainstorm-{sujet}.md` qui clarifie ce que tu veux. |
+| `/brainstorm` | Tu n'as qu'une idée vague. 3 questions et tu repars avec un fichier `brainstorm-{sujet}.md` qui clarifie ce que tu veux. Route 2 délègue à `research-delegate` pour explorer projets similaires. |
 | `/create-prd` | À partir du brainstorm, génère un Product Requirements Document structuré (sommaire / utilisateurs / MVP / phases / stack / critères de succès). |
-| `/plan` | Prend une phase du PRD et la découpe en tâches numérotées avec critères "Fait quand" vérifiables. 8 tâches max par phase. |
-| `/execute` | Exécute les tâches une par une. Coche les cases au fur et à mesure. Marque la phase ✅ Terminée dans le PRD parent. |
-| `/validate` | Propose 3 options de validation (web → Playwright, n8n → test exécution, autre → demande). Verdict réel, jamais "ça devrait marcher". |
+| `/plan` | Prend une phase du PRD et la découpe en tâches numérotées avec critères "Fait quand" vérifiables. 8 tâches max par phase. Étape 1bis scout le codebase via `research-delegate` pour éviter les doublons. |
+| `/challenge` *(optionnel)* | Passe le plan au crible avant `/execute` : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. À ajouter dans ton workflow quand tu sens que `/plan` seul te laisse partir avec des angles morts. |
+| `/execute` | Exécute les tâches une par une. Coche les cases au fur et à mesure. Marque la phase ✅ Terminée dans le PRD parent. Délègue à `research-delegate` si bloqué par un manque d'info externe. |
+| `/validate` | Propose 3 options de validation (web → Playwright, n8n → test exécution, autre → demande). Verdict réel, jamais "ça devrait marcher". Étape 2bis parallélise via `research-delegate` pour les phases multi-dimensions. |
+
+### `.claude/agents/` — le sous-agent
+
+| Agent | Rôle |
+|-------|------|
+| `research-delegate` | Sous-agent read-only invoqué automatiquement par les skills core. Lit jusqu'à 15 sources (code local, web, docs) et renvoie une synthèse en 3-10 bullets max. Garde ta fenêtre de contexte principale propre. Voir vidéo 3.4 du module pour la théorie. |
 
 ### `.claude/skills/n8n/` — les 7 skills n8n officiels (MIT)
 
@@ -65,6 +75,12 @@ Skills officiels de [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-
 5 couches : **Identité** / **Stack** / **Conventions** / **Instructions** / **Contexte métier** + **4 règles de comportement** inspirées d'Andrej Karpathy (réfléchir avant de coder / simplicité d'abord / modifications chirurgicales / exécution orientée but).
 
 Tu copies, tu adaptes les 5 couches à ton projet, tu gardes les 4 règles (elles s'appliquent à n'importe quel projet).
+
+Le `CLAUDE.md` documente aussi les **MCP recommandés** (Playwright, n8n) et le **plugin `frontend-design`** d'Anthropic — installations en 1 commande.
+
+### `.mcp.json` — scaffolding MCP
+
+Fichier vide par défaut (`{"mcpServers": {}}`). Tu installes les MCP qui te servent (commandes dans `CLAUDE.md`), `.mcp.json` se remplit tout seul. Tu commit ce fichier dans Git pour que ton équipe ait les mêmes outils.
 
 ## ⚠️ Sécurité — important
 

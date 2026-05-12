@@ -15,7 +15,9 @@ Tu prends un fichier `phase-{N}-plan.md` et tu **fais** ce qu'il dit. Une tâche
 2. **Cocher la case `[x]`** dans le fichier `phase-{N}-plan.md` **à chaque** tâche finie.
 3. **Vérifier le critère "Fait quand"** avant de cocher. Si le critère n'est pas vérifié, la tâche n'est pas finie.
 4. **Pas d'improvisation**. Si tu vois un truc à améliorer hors plan, **note-le** dans la section "Découvertes" en bas du fichier mais ne le fais pas. Le scope du plan, c'est le scope.
-5. Si une tâche **ne peut pas être finie** (manque info, blocage technique), arrête-toi et demande à l'utilisateur.
+5. Si une tâche **ne peut pas être finie** (manque info, blocage technique), deux options :
+   - **Manque d'info externe** (doc d'API, syntaxe d'une lib, exemple de config) → lance un sous-agent `research-delegate` qui va lire la doc à ta place et te ramener juste ce dont tu as besoin. Ton contexte ne se remplit pas de pages de docs entières.
+   - **Blocage qui dépend d'une décision utilisateur** → arrête-toi et demande.
 
 ## Comment procéder
 

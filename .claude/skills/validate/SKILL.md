@@ -39,6 +39,21 @@ Toujours **proposer 3 options** à l'utilisateur, pas une décision en silence :
 >
 > Tu préfères quelle option ?"
 
+### Étape 2bis — phase grosse ? Parallélise
+
+Si la phase touche **plusieurs dimensions** (UI + API + sécurité RLS + workflow n8n), valide en parallèle au lieu de tout faire toi-même en série :
+
+```
+Agent en parallèle (dans le même message, plusieurs tool calls) :
+- research-delegate : "Vérifie que les composants UI de Phase {N} s'affichent dans le navigateur — liste ce que tu vois"
+- research-delegate : "Vérifie que les RPC Supabase de Phase {N} retournent les bons types — liste les outputs"
+- research-delegate : "Audit RLS sur les tables touchées en Phase {N} — get_advisors + lister les policies"
+```
+
+Chaque sous-agent te ramène son verdict, tu compiles le tien. Tu gagnes du temps (parallèle au lieu de série) et ton contexte reste propre.
+
+**Pour une phase simple** (1 dimension, ex: juste un bouton qui appelle une API), skip cette étape — tu testes toi-même direct en Étape 3.
+
 ### Étape 3 — exécuter le test
 
 Selon l'option choisie, **lance vraiment le test** :
