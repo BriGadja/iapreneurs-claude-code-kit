@@ -110,7 +110,7 @@ Une fois le deploy passé (URL prod reçue) :
 
 **`project_type = webapp` ou `site`** :
 1. Récupère l'URL prod (de la sortie deploy).
-2. Lance via Playwright MCP : `mcp__playwright__browser_navigate({ url: "https://..." })` + `mcp__playwright__browser_snapshot()`.
+2. Lance via Playwright MCP : `mcp__playwright__browser_navigate({ url: "https://..." })` + `mcp__playwright__browser_snapshot()`. Si tu prends un screenshot, enregistre-le dans `tmp/smoke-test-{date}.png` (le dossier `tmp/` est gitignored), supprime après vérification.
 3. Vérifie : (a) la page charge sans 5xx, (b) contenu principal visible (pas page blanche), (c) pas d'erreur console critique.
 
 **`project_type = automation`** :

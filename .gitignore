@@ -10,8 +10,12 @@ node_modules/
 out/
 dist/
 build/
-tmp/
 *.tsbuildinfo
+
+# Fichiers temporaires (screenshots Playwright, scripts ad-hoc, outputs de skills...)
+# Le dossier tmp/ est gardé dans le repo (via .gitkeep) mais son contenu est ignoré
+tmp/*
+!tmp/.gitkeep
 
 # Logs
 *.log

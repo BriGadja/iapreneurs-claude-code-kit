@@ -1,0 +1,14 @@
+# tmp/ — dossier temporaire (contenu gitignored)
+
+Ce dossier est destiné aux **fichiers temporaires** créés par les skills, les sous-agents, ou les vérifications ad-hoc :
+
+- Screenshots Playwright pris pendant `/validate`, `/livrer` (smoke test post-deploy) ou auto-évaluation après modif UI
+- Outputs intermédiaires de scripts (avant intégration ailleurs)
+- Snapshots DOM, exports JSON debug, dumps SQL ad-hoc
+
+**Règles d'usage** :
+- Le contenu est ignoré par git (`.gitignore` : `tmp/*` + `!tmp/.gitkeep`). Tu peux écrire ce que tu veux sans polluer le repo.
+- Nettoie après usage : un screenshot Playwright pour vérifier une modif UI doit être supprimé une fois la vérification faite et reportée.
+- **Jamais** de fichier critique ici (PRD, plans, code de prod). Ces fichiers vivent à la racine ou dans leurs dossiers dédiés.
+
+Le fichier `.gitkeep` est juste un marker pour que git garde le dossier dans le repo même quand il est vide.

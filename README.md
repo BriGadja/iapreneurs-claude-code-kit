@@ -92,6 +92,8 @@ Voir `.claude/rules/README.md` pour le détail du pattern.
 - `.mcp.json` vide prêt à recevoir Playwright, n8n MCP, plugin frontend-design (commandes documentées dans `CLAUDE.md`)
 - `.env.example` avec placeholders pour n8n, Anthropic SDK, Supabase, Resend
 - `.gitignore` durci sur `.env`, `.env.local`, `.env.*.local`, `.envrc`
+- `tmp/` (gitignored sauf `.gitkeep`) pour les fichiers temporaires : screenshots Playwright produits par l'auto-évaluation (cf. CLAUDE.md règle 6), dumps debug, outputs intermédiaires de skills. **Nettoie après usage** — le dossier existe pour ne pas polluer le repo, pas pour s'accumuler.
+- `memory/` (structure créée à l'init) + `MEMORY.md` (index racine) — **maintenu par `/close`**, pas d'édition manuelle
 
 ## Sécurité
 

@@ -26,6 +26,8 @@
 - **Mémoire persistante** : structure `memory/{learnings,topics}/` + `memory/decisions.md` + `MEMORY.md` index à la racine. Le kit apprend du projet au fil des sessions. **Tout est écrit par `/close`** post-commit (auto-récap session dans `learnings/` + 3 questions ciblées opt-in : décision arch ? gotcha ? pattern ? → écrit dans `topics/{domaine}.md` ou `decisions.md`). `/start` et `/recap` lisent `MEMORY.md` au démarrage et affichent le résumé. **L'utilisateur ne touche jamais à la mémoire manuellement.**
 - **3 examples par `project_type`** : `examples/site-vitrine-coach/`, `examples/webapp-saas-freelance-devis/`, `examples/automation-n8n-veille-rss/`.
 - **Request Classification LITE / STANDARD / FULL** dans `CLAUDE.md` template (proposée par `/start` Phase 4).
+- **Règle de comportement #6 — Auto-évaluation** dans CLAUDE.md template : tu ne dis jamais "done" sans avoir vérifié programmatiquement ou visuellement. Pour webapp + modif UI → Playwright MCP (navigate + snapshot/screenshot dans `tmp/`). Pour automation + workflow → exécution réelle via MCP. Pour API → curl. Pour BDD → query directe. Si tu ne peux pas raconter exactement ce que tu as vérifié, tu n'as pas auto-évalué.
+- **Dossier `tmp/`** (gitignored sauf `.gitkeep`) créé par défaut dans le kit : destination des screenshots Playwright, dumps debug, outputs intermédiaires. Skills `/validate` et `/livrer` y enregistrent leurs artefacts temporaires.
 - **Glossaire** (4 termes : Phase / Tâche / Critère "Fait quand" / Critères de succès) en intro du `CLAUDE.md` template.
 - **README enrichi** : 3 diagrammes de parcours (création / reprise / évolution) + table 12 skills (hard cap) + section "Quel example regarder ?".
 - **`docs/CHANGELOG.md`** : ce fichier (historique rétroactif v1.0 → v2.0).

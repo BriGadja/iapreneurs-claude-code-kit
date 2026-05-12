@@ -64,11 +64,12 @@ Chaque sous-agent te ramène son verdict, tu compiles le tien. Tu gagnes du temp
 Selon l'option choisie, **lance vraiment le test** :
 
 **Option A — Playwright** :
-- Lancer le serveur (`npm run dev` ou URL Vercel)
-- Naviguer vers la page
-- Snapshot DOM ou screenshot
+- Lancer le serveur (`npm run dev` ou URL prod selon hosting détecté)
+- Naviguer vers la page (`mcp__playwright__browser_navigate`)
+- Snapshot DOM (`browser_snapshot`) ou screenshot (`browser_take_screenshot` → **filename: `tmp/{nom-test}.png`**)
 - Vérifier les éléments attendus (boutons, textes, couleurs)
 - Vérifier les actions (clic → état change)
+- **Nettoie le screenshot** une fois la vérification consignée (le `tmp/` est gitignored mais on ne laisse pas traîner)
 
 **Option B — n8n** :
 - Identifier le webhook ou trigger du workflow

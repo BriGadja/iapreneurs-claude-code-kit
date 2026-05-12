@@ -144,6 +144,29 @@ Quand un bug est rapporté ou détecté en prod :
 
 Pour cette étape, tu peux utiliser `/debug` (built-in Claude Code) pour la phase de root cause analysis. Mais le test de régression est **non-négociable** — sans, le bug peut revenir silencieusement à la prochaine modif.
 
+### 6. Auto-évaluation : tu vérifies AVANT de dire "done"
+
+Ne jamais annoncer "c'est bon", "ça marche", "tâche terminée" sans avoir vérifié programmatiquement ou visuellement le résultat. La règle dépend du `project_type` :
+
+| project_type | Modif touche... | Vérification obligatoire |
+|--------------|----------------|--------------------------|
+| `webapp` ou `site` | UI (`.tsx`, `.css`, page, layout) | **Playwright MCP** : `browser_navigate({url})` + `browser_snapshot()` ou `browser_take_screenshot()` (screenshot dans `tmp/`). Compare au résultat attendu décrit dans la tâche. |
+| `webapp` | API route / handler | `curl` ou fetch direct → vérifier status code + payload de réponse |
+| `webapp` | BDD / migration | Query directe (psql / MCP) pour vérifier que la table existe, les colonnes attendues, RLS active |
+| `automation` | Workflow n8n | Exécuter via `n8n_test_workflow` MCP ou `curl` sur le webhook → vérifier output + status d'exécution |
+| Tout type | Tests automatisés ajoutés | Lancer le runner (`npm test` / `vitest` / etc.) → vérifier 0 failure |
+
+**Exemple typique (webapp + modif UI)** : tu viens de modifier le formulaire de contact. Avant de marquer la tâche `[x]` :
+1. Lance `npm run dev` si pas déjà actif.
+2. `mcp__playwright__browser_navigate({ url: "http://localhost:3000/contact" })`
+3. `mcp__playwright__browser_take_screenshot({ filename: "tmp/contact-form-modif.png" })`
+4. Compare visuellement à ce que la tâche demandait. Si écart → corrige et re-vérifie.
+5. Supprime le screenshot une fois la vérification consignée (le `tmp/` est gitignored mais on ne laisse pas traîner).
+
+**Règle générale** : si tu n'arrives pas à raconter à l'utilisateur **exactement ce que tu as vérifié et observé**, tu n'as pas auto-évalué. Une supposition ("ça devrait marcher") n'est pas une vérification.
+
+Les fichiers temporaires (screenshots, dumps, snapshots DOM) vont dans `tmp/` (gitignored par défaut). Nettoie après usage.
+
 ---
 
 ## Request Classification (LITE / STANDARD / FULL)
