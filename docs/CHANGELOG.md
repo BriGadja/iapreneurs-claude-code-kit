@@ -15,8 +15,7 @@
 
 ### Ajouté
 
-- **6 nouveaux skills** :
-  - `/scaffold` — scaffold projet selon `project_type` + provisioning credentials externes (gap entre `/architect` et `/plan Phase 1`)
+- **5 nouveaux skills** :
   - `/recap` — reprendre un projet existant après absence (lit PRD/plans/git log/MEMORY.md)
   - `/ship` — déployer en production selon `project_type` (Vercel / n8n / GitHub Pages) + checklist RLS advisory + smoke test
   - `/evolve` — ajouter une feature à un projet shipped sans écraser le PRD
@@ -32,7 +31,8 @@
 ### Modifié
 
 - `/start` détecte projet existant et bifurque vers `/recap` (au lieu de toujours faire l'onboarding). Migration v1.x → v2.0 transparente.
-- `/architect` route vers `/scaffold` puis `/design` puis `/plan` ; route vers `/evolve` pour modifications de PRD existant.
+- `/architect` étendu avec **Étape 6 — Provisioning & Scaffold** (scaffold le repo selon `project_type` + provisioning Supabase/Vercel/n8n + écriture `.env`). Décision D25 : fold de l'ancien `/scaffold` envisagé puis dropped — `architect` définit le projet end-to-end, scaffolding est Phase 1 du PRD donc redondant comme skill séparé. Handoff route vers `/design` (si webapp) puis `/plan Phase 1`.
+- `/architect` route aussi vers `/evolve` pour modifications de PRD existant.
 - `/validate` handoff → `/close` (mandatory), plus de skip optionnel.
 - `/close` enrichi : harvest learnings post-commit + handoff vers `/ship` si projet jamais shippé.
 - `/plan` adapte ses questions selon `project_type` (automation = retire web-app-centric, ajoute credentials externes).

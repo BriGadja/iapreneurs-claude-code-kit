@@ -156,9 +156,7 @@ Si tu veux changer de niveau plus tard (ex : un projet LITE qui grossit), édite
    ↓
 /brainstorm         ← (optionnel) si idée floue
    ↓
-/architect          ← produit PRD.md (source de vérité)
-   ↓
-/scaffold           ← scaffold le repo selon project_type + provisioning credentials
+/architect          ← produit PRD.md + Étape 6 scaffold le repo selon project_type + provisioning credentials
    ↓
 /design             ← SI webapp : produit DESIGN.md (sinon skip)
    ↓
@@ -198,6 +196,7 @@ Si tu veux changer de niveau plus tard (ex : un projet LITE qui grossit), édite
 ```
 
 **Conditionnels** :
+- `/architect` Étape 6 (Provisioning & Scaffold) branche sur `project_type` : `site` = Next.js minimal + optionnel Resend, `webapp` = Next.js + Supabase init + .env, `automation` = dossier `workflows/` + test n8n MCP.
 - `/design` skip si `project_type` ∈ {automation, site simple} ou si le projet n'a pas d'UI custom.
 - `/brainstorm` skip si l'idée est déjà claire après `/start`.
 - `/challenge` skip si Request Classification = LITE.
@@ -241,15 +240,14 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 
 ## Skills disponibles dans ce kit
 
-**Table principale — 12 commandes du cycle de vie projet** *(certaines arrivent en v2.0.0 GA — voir colonne "Statut")* :
+**Table principale — 11 commandes du cycle de vie projet** *(certaines arrivent en v2.0.0 GA — voir colonne "Statut")* :
 
 | Skill | Pour quoi | Quand | Statut |
 |-------|-----------|-------|--------|
 | `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage. Détecte aussi projet existant et bifurque vers `/recap`. | 1x à l'ouverture d'une nouvelle session | ✅ |
 | `/brainstorm` | Clarifier une idée vague en 3 questions | Si l'idée n'est pas claire après `/start` | ✅ |
-| `/architect` | Produire un `PRD.md` structuré (mini-3-sections en LITE, 7 sections en STANDARD/FULL) | Une fois l'idée claire | ✅ |
-| `/scaffold` | Scaffold le repo selon `project_type` + provisioning credentials externes (Supabase, Vercel, n8n) | Après `/architect`, avant `/plan Phase 1` | à venir v2.0 Phase B |
-| `/design` | Produire `DESIGN.md` (palette, typo, composants) lu par `frontend-design` | Après `/scaffold`, **uniquement si project_type = webapp** | ✅ |
+| `/architect` | Produire un `PRD.md` structuré (mini-3-sections en LITE, 7 sections en STANDARD/FULL) + **Étape 6 Provisioning & Scaffold** (scaffold le repo selon `project_type` + provisioning Supabase/Vercel/n8n + écriture `.env`) | Une fois l'idée claire | ✅ *(Étape 6 à venir v2.0 Phase B)* |
+| `/design` | Produire `DESIGN.md` (palette, typo, composants) lu par `frontend-design` | Après `/architect`, **uniquement si project_type = webapp** | ✅ |
 | `/plan` | Découper UNE phase du PRD en tâches numérotées (adapte les questions selon `project_type`) | Avant d'exécuter une phase | ✅ |
 | `/execute` | Exécuter le plan tâche par tâche, coche les `[x]` au fil de l'eau | Après `/plan` (et éventuellement `/challenge`) | ✅ |
 | `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / curl / audit RLS Supabase) | Après `/execute` | ✅ |
