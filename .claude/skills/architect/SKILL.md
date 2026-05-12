@@ -46,7 +46,7 @@ Puis **propose une stack par défaut** alignée avec la nature du projet :
 - **App web avec génération IA visible** : ci-dessus + Anthropic SDK (ou OpenAI / Mistral) dans une API route Next.js (runtime nodejs)
 - **App web avec génération IA async (PDF, email)** : ci-dessus + workflow n8n via webhook + callback Supabase Realtime
 - **Automatisation pure (pas d'UI front)** : n8n + Supabase (stockage / état) + intégrations externes
-- **Voix** : Dipler ou Vapi (selon contexte client)
+- **Voix** : Vapi (provider voice IAPreneurs community-friendly)
 - **Scripts ponctuels** : Python ou TypeScript Node
 
 Toujours **demander confirmation** : "Je propose **{stack}**. Ça te va ou tu veux changer un truc ?"
