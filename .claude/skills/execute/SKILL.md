@@ -1,6 +1,6 @@
 ---
 name: execute
-description: Utiliser pour exécuter un fichier `phase-{N}-plan.md` créé par /plan. Coche les tâches au fur et à mesure, marque la phase ✅ Terminée dans le PRD parent à la fin. Ne PAS utiliser sans plan — créer le plan d'abord avec /plan.
+description: Utiliser pour exécuter un fichier `phase-{N}-plan.md` créé par /plan. Coche les tâches au fur et à mesure (`[x]` dans le plan). Ne marque PAS ✅ Terminée dans le PRD — depuis v2.0 c'est `/close` qui le fait (source unique, après `/validate ✅`). Ne PAS utiliser sans plan — créer le plan d'abord avec /plan.
 ---
 
 # Skill /execute — exécuter un plan tâche par tâche
@@ -9,7 +9,7 @@ description: Utiliser pour exécuter un fichier `phase-{N}-plan.md` créé par /
 
 ## Pour quoi faire
 
-Tu prends un fichier `phase-{N}-plan.md` et tu **fais** ce qu'il dit. Une tâche, puis la suivante. Tu coches `[x]` quand c'est fini. À la fin de la phase, tu marques la phase comme **✅ Terminée** dans le PRD parent.
+Tu prends un fichier `phase-{N}-plan.md` et tu **fais** ce qu'il dit. Une tâche, puis la suivante. Tu coches `[x]` quand c'est fini. À la fin de la phase, tu **ne marques PAS ✅ Terminée dans le PRD** — depuis v2.0 c'est `/close` qui s'en charge (source unique, après le verdict `/validate ✅`). Tu finis tes tâches, tu passes la main à `/validate` puis `/close`.
 
 ## Règles strictes
 
@@ -40,15 +40,12 @@ Boucle sur les tâches `[ ]` non cochées :
 4. **Si critère vérifié** → cocher `[x]` dans le fichier `phase-{N}-plan.md`
 5. **Si critère non vérifié** → corriger, retenter (max 3 fois). Si échec persistant → arrêter et demander.
 
-### Étape 3 — phase complète
+### Étape 3 — phase complète (tâches `[x]`, mais ✅ Terminée pas encore écrit)
 
 Quand toutes les tâches sont `[x]` :
-1. Vérifier le **critère de phase complète** (en bas du plan)
-2. Si OK → marquer la phase **✅ Terminée** dans le PRD parent (section Phases) :
-   ```
-   - **Phase 1** — Nom : description ✅ Terminée le YYYY-MM-DD
-   ```
-3. Annoncer à l'utilisateur : "Phase {N} terminée. Tu veux que je passe à `/validate` ou `/plan` Phase {N+1} ?"
+1. Vérifier le **critère de phase complète** (en bas du plan).
+2. **Ne PAS marquer ✅ Terminée dans le PRD** — c'est le job de `/close` (source unique depuis v2.0, après le verdict de `/validate`).
+3. Annoncer à l'utilisateur : *"Phase {N} : toutes les tâches cochées et critère de phase OK. Passe à `/validate phase-{N}-plan.md` pour vérifier que ça marche en vrai, puis `/close` marquera ✅ Terminée et fera le commit."*
 
 ## Risque #1 — sauter le critère "Fait quand"
 

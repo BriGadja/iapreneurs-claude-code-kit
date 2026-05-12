@@ -17,16 +17,19 @@ Prendre **UNE phase** d'un PRD et la découper en tâches numérotées avec des 
 
 ## Comment procéder
 
-### Étape 1 — lire le PRD (+ DESIGN.md si UI) + identifier la phase
+### Étape 1 — lire le PRD (+ project_type + DESIGN.md si UI) + identifier la phase
 
 L'utilisateur passe en argument soit `PRD.md`, soit le numéro de phase ("phase 1"), soit les deux.
 
-Lire le PRD. **Si la phase touche à l'UI web** (composants, pages, layout) ET qu'un fichier `DESIGN.md` existe à la racine → le lire aussi. Tes tâches devront référencer la palette/typo/composants définis dedans. Si la phase touche à l'UI mais qu'il n'y a pas de `DESIGN.md` → suggère à l'utilisateur de lancer `/design` d'abord (anti-incohérence visuelle).
+**1.1 — Lire `project_type` depuis `CLAUDE.md ## Identité`** (variable `project_type:` ∈ `{webapp, site, automation}`). Cette valeur **adapte les questions de l'Étape 2** (skip les questions web-app-centriques si `automation`, ajoute des questions credentials externes n8n, etc.). Si absent → suggère `/start` migration v1.x.
 
-Identifier la phase à planifier. Reformuler à l'utilisateur :
+**1.2 — Lire le PRD**. **Si la phase touche à l'UI web** (composants, pages, layout) ET qu'un fichier `DESIGN.md` existe à la racine → le lire aussi. Tes tâches devront référencer la palette/typo/composants définis dedans. Si la phase touche à l'UI mais qu'il n'y a pas de `DESIGN.md` → suggère à l'utilisateur de lancer `/design` d'abord (anti-incohérence visuelle).
+
+**1.3 — Identifier la phase à planifier**. Reformuler à l'utilisateur :
 
 > "OK, je vais planifier **Phase {N} — {nom}** : {description PRD}. C'est ça ?"
 > *(Si DESIGN.md lu)* "Je vais respecter le design system de `DESIGN.md` dans les tâches UI."
+> *(Si `project_type` détecté)* "Project type : `{valeur}`. Je vais adapter mes questions et tâches en conséquence."
 
 ### Étape 1bis — scout du codebase (si le projet a déjà du code)
 
@@ -46,24 +49,37 @@ Reprends la main avec la synthèse. Tu sais maintenant ce qui existe → tu plan
 
 **Si le projet est vide** (juste un `package.json` ou rien), skip cette étape.
 
-### Étape 2 — poser 3-5 questions ciblées sur la nature du projet et la phase
+### Étape 2 — poser 3-5 questions ciblées (adaptées au `project_type`)
 
-Selon la phase, poser **3 à 5 questions** précises qui te manquent pour découper. **Tu ne pré-supposes JAMAIS l'architecture** : tu déduis des réponses si SDK direct, n8n, ou autre est approprié.
+Selon la phase ET le `project_type`, poser **3 à 5 questions** précises qui te manquent pour découper. **Tu ne pré-supposes JAMAIS l'architecture** : tu déduis des réponses si SDK direct, n8n, ou autre est approprié.
 
-Axes de questions (priorise selon ce que le PRD laisse ouvert) :
+**Axes de questions adaptés par `project_type`** :
 
+**Si `project_type = webapp`** (priorise) :
 1. **Type d'output utilisateur** → "Le résultat de cette phase, l'utilisateur le voit où ? Page web qui se met à jour, mail reçu, fichier téléchargé, notification ?"
 2. **Latence acceptable** → "L'output doit-il s'afficher en temps réel pendant que l'utilisateur attend (streaming token par token), ou peut-il arriver quelques secondes plus tard ?"
-3. **Sensibilité des données** → "Tu manipules des données clients réelles (transcripts, contacts, paiements) ou des données éphémères (sondage live, kanban d'atelier) ? Cela détermine si RLS Supabase est obligatoire ou skippable."
-4. **Infrastructure existante** → "Tu as déjà un compte Supabase / Vercel / GitHub / n8n configuré ? Sinon il faudra une tâche provisioning."
-5. **Frontend ou backend d'abord ?** → "Tu préfères qu'on attaque le squelette UI ou la logique métier en premier ?"
-6. **Test** → "Pour cette phase, tu veux des tests automatisés ou on valide à la main avec `/validate` ?"
+3. **Sensibilité des données** → "Tu manipules des données clients réelles (transcripts, contacts, paiements) ou des données éphémères (sondage live, kanban d'atelier) ? Cela détermine si policy d'accès BDD est obligatoire ou skippable."
+4. **Frontend ou backend d'abord ?** → "Tu préfères qu'on attaque le squelette UI ou la logique métier en premier ?"
+5. **Test** → "Pour cette phase, tu veux des tests automatisés ou on valide à la main avec `/validate` ?"
 
-**Règle d'inférence architecturale** : à partir des réponses Q1+Q2+Q3, infère l'architecture **sans la cacher** :
-- Output live + streaming → Anthropic SDK (ou autre LLM SDK) dans une API route, `runtime='nodejs'`, ReadableStream cote front
-- Output async (PDF, email, BDD) → workflow n8n + webhook + callback Supabase Realtime
-- Données sensibles → RLS Supabase MANDATORY, audit `get_advisors` après chaque migration
-- Données éphémères → RLS skippable, mais à justifier explicitement
+**Si `project_type = site`** (priorise) :
+1. **Pages concernées** → "Quelles pages cette phase concerne ? Accueil, contact, à propos, autre ?"
+2. **Formulaires / interactions** → "La phase ajoute-t-elle un formulaire ou une interaction côté utilisateur (newsletter, contact, devis) ? Si oui, où va la donnée (Resend, Google Sheets, autre) ?"
+3. **SEO / performance** → "Cette phase a-t-elle des contraintes SEO ou perf (Lighthouse ≥ 90) ?"
+4. **Test** → "Validation manuelle ou tests automatisés (Playwright pour les pages clés) ?"
+
+**Si `project_type = automation`** (priorise, **retire** les questions web-app-centriques) :
+1. **Trigger** → "Comment le workflow est-il déclenché ? Webhook entrant, cron, event d'une autre app (Make/Zapier/intégration n8n native) ?"
+2. **Credentials externes** → "Quels services externes le workflow appelle ? (API, BDD, email, IA, etc.). Quelles credentials manquent dans la config n8n actuelle ?"
+3. **Output / effet** → "Que produit le workflow ? Insertion BDD, envoi message, génération fichier, callback HTTP ?"
+4. **Idempotence** → "Le workflow doit-il être idempotent (rejouable sans doublon) ? Si oui, quelle clé d'unicité ?"
+5. **Test** → "Validation via `n8n_test_workflow` MCP, curl direct sur webhook, ou exécution manuelle dans l'UI n8n ?"
+
+**Règle d'inférence architecturale** (webapp principalement) : à partir des réponses Q1+Q2+Q3, infère l'architecture **sans la cacher** :
+- Output live + streaming → Anthropic SDK (ou autre LLM SDK) dans une API route, `runtime='nodejs'`, ReadableStream côté front
+- Output async (PDF, email, BDD) → workflow n8n + webhook + callback BDD Realtime
+- Données sensibles → policy d'accès BDD (RLS si Supabase/Neon) MANDATORY, audit après chaque migration
+- Données éphémères → policy skippable, mais à justifier explicitement
 
 Présente ton inférence à l'utilisateur AVANT de découper : "Vu tes réponses, je propose **{architecture}**. Ça te va, ou tu veux changer ?"
 

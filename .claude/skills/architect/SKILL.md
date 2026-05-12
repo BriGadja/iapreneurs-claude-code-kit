@@ -42,17 +42,9 @@ Ces questions déterminent les choix techniques **avant** de figer la stack :
 
 **2b — Demander les providers favoris** (avant de proposer une stack par défaut) :
 
-> *"Avant que je propose une stack, est-ce que tu as des providers de référence que tu utilises déjà (gratuits ou payants) ? Par exemple :*
-> *- **Hosting** (où ton app tourne) — Vercel ? Netlify ? Cloudflare Pages ? GitHub Pages ? Hostinger ? Autre ? Pas d'avis ?*
-> *- **BDD** (où tes données vivent, si applicable) — Supabase ? Neon ? PlanetScale ? Pas de BDD ? Pas d'avis ?*
-> *- **Email transactionnel** (si applicable) — Resend ? Postmark ? Pas d'envoi d'email ? Pas d'avis ?*
-> *Dis-moi ce que tu sais et je remplis les trous avec mes défauts."*
+> *"Tu as des providers de référence que tu utilises déjà ? Hosting (Vercel/Netlify/Cloudflare/GitHub Pages/autre), BDD (Supabase/Neon/PlanetScale/autre/aucune), Email (Resend/Postmark/autre/aucun). Dis-moi ce que tu sais, je remplis les trous avec mes défauts."*
 
-**Défauts (utilisés si "pas d'avis" pour ce slot)** — alignés sur ce qui est couvert dans la communauté IAPreneurs :
-- Hosting → **Vercel** (gratuit pour projets perso, intégré GitHub, simple)
-- BDD → **Supabase** (gratuit jusqu'à 500 MB, Auth + BDD + Realtime en un, RLS native)
-- Email → **Resend** (3000 emails/mois gratuit, DX moderne)
-- Automation runtime → **n8n self-hosted** (couvert dans la commu) ou **n8n cloud** (si l'utilisateur veut zéro infra)
+**Défauts si "pas d'avis"** — alignés sur la communauté IAPreneurs : Hosting → **Vercel**, BDD → **Supabase** (RLS native), Email → **Resend**, Automation runtime → **n8n self-hosted** ou **n8n cloud**.
 
 **2c — Proposer la stack complète**, alignée avec la nature du projet **ET** les providers retenus :
 
@@ -67,11 +59,21 @@ Toujours **demander confirmation** : "Je propose **{stack complète avec provide
 
 Si l'utilisateur ne sait pas trancher entre SDK direct et n8n, ré-explique brièvement : "tokens qui doivent défiler à l'écran = SDK ; PDF ou email qui peut arriver dans 20 secondes = n8n".
 
-### Étape 3 — découpe en phases
+### Étape 3 — proposer le niveau Request Classification + découpe en phases
 
-**3 à 5 phases max**. Pas plus. Si t'as 7 phases, c'est trop large : faut un PRD parent + plusieurs sous-PRDs.
+**3.1 — Proposer le niveau Request Classification** (LITE / STANDARD / FULL).
 
-Exemple de découpe pour une web app :
+> *"Calibrons l'effort avant la découpe. **LITE** : site vitrine 1-5 pages ou automation simple ou MVP weekend (PRD 3 sections, `/challenge` skip). **STANDARD** *(défaut)* : web app classique 2-5 phases (PRD 7 sections, `/challenge` optionnel). **FULL** : projet client critique 5+ phases (AC scorés, `/challenge` systématique, audit policy d'accès BDD obligatoire). Quel niveau ?"*
+
+Stocke le niveau. Tu l'écriras dans le PRD (header) ET dans `CLAUDE.md` section `## Request Classification` (ligne "Niveau choisi pour ce projet").
+
+**3.2 — Découpe en phases** selon le niveau retenu :
+
+- **LITE** : 1 à 2 phases max. Souvent : Phase 1 — MVP. Optionnel Phase 2 — Polish.
+- **STANDARD** : **3 à 5 phases max**. Pas plus. Si t'as 7 phases, c'est trop large : faut un PRD parent + plusieurs sous-PRDs.
+- **FULL** : 5 à 8 phases max. Au-delà → PRD parent + sous-PRDs.
+
+Exemple de découpe STANDARD pour une web app :
 - Phase 1 — Squelette + 1 feature critique end-to-end
 - Phase 2 — Compléments features
 - Phase 3 — Authentification / multi-utilisateur
