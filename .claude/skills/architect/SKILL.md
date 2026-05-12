@@ -94,6 +94,39 @@ Si les ancres `<!-- architect:stack -->` / `<!-- /architect:stack -->` ne sont p
 
 Annonce à l'utilisateur : *"Stack synchronisée dans `CLAUDE.md ## Stack`. Future Claude saura quelle techno tu utilises sans relire le PRD entier."*
 
+### Étape 6 — Provisioning & Scaffold
+
+Une fois `PRD.md` et `CLAUDE.md ## Stack` à jour, on **scaffold le repo concrètement** et on **provisionne les credentials externes** — sans ça, l'utilisateur a un PRD mais un repo vide et `/plan Phase 1` commence dans le mur.
+
+**6.1 — Lire `project_type`** depuis `<!-- start:identité -->` dans `CLAUDE.md`. Si la variable est absente ou invalide (∉ `{site, webapp, automation}`) :
+- Demande **une fois** : *"Quel type de projet : (a) site vitrine 1-5 pages, (b) web app SaaS avec auth+BDD, (c) automatisation n8n pure ?"*
+- Écris la réponse dans `<!-- start:identité -->` (`project_type: webapp` par exemple)
+- Continue. **Pas de re-demande ensuite.**
+
+**6.2 — Proposer la séquence de commandes shell** (jamais auto-exécutées sans validation explicite, **jamais** de destructive `rm -rf`/`--force`/`--no-verify` automatiquement) :
+
+| `project_type` | Commandes proposées |
+|---------------|---------------------|
+| `site` | `npx create-next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias "@/*"` + optionnel `npm i resend` (si formulaire contact prévu) |
+| `webapp` | `npx create-next-app@latest . --typescript --tailwind --app --src-dir --import-alias "@/*"` + `npm i @supabase/supabase-js @supabase/ssr` + `npx supabase init` (génère `supabase/config.toml`) |
+| `automation` | `mkdir -p workflows` + créer `workflows/.gitkeep` + tester connexion n8n MCP via `claude mcp list` (vérifier que n8n est listé) |
+
+Affiche le bloc commandes complet, **demande confirmation explicite** : *"J'exécute cette séquence ? (oui / modifie / skip)"*. Si "modifie", l'utilisateur édite, tu re-affiches. Si "skip", tu passes à 6.3. Si "oui", tu exécutes ligne par ligne en montrant l'output.
+
+**6.3 — Provisioning credentials externes** (interactif, jamais en clair dans le repo) :
+
+- **Supabase** (si `webapp`) : guide l'utilisateur — *"Va sur supabase.com/dashboard, crée un projet, copie-colle l'URL et la `anon key` ici"*. Tu récupères les 2 valeurs, tu les écris dans `.env` au format `NEXT_PUBLIC_SUPABASE_URL=...` + `NEXT_PUBLIC_SUPABASE_ANON_KEY=...`.
+- **Vercel** (si `webapp` ou `site`) : *"Tu veux lier ton repo à Vercel maintenant ou plus tard (au `/ship`) ? Si maintenant, tape `vercel link` dans un autre terminal puis colle le `.vercel/project.json` créé"*. Si l'utilisateur skip, note dans le PRD que Vercel est reporté à `/ship`.
+- **n8n** (si `webapp` async ou `automation`) : vérifie que `.env` contient `N8N_API_URL` + `N8N_API_KEY`. Si absent, demande à l'utilisateur de les fournir (ou de skipper si pas de besoin immédiat). Teste la connexion via le MCP n8n (`claude mcp list` doit montrer `n8n`).
+
+**6.4 — Écrire `.env` depuis `.env.example` + vérifier `.gitignore`** :
+1. Si `.env.example` existe à la racine, fais `cp .env.example .env` (uniquement si `.env` n'existe pas — **jamais** d'écrasement).
+2. Écris les credentials récupérées en 6.3 dans `.env`.
+3. Vérifie que `.gitignore` contient `.env` et `.env.local` et `.env.*.local`. Si absent, ajoute (sans toucher au reste du `.gitignore`).
+4. **Test final** : `git check-ignore .env` doit retourner `.env`. Si non, alerte l'utilisateur — sécurité critique.
+
+Annonce à l'utilisateur : *"Repo scaffold + credentials provisionnées. `.env` est gitignored. Prêt pour `/plan Phase 1`."*
+
 ## Format du PRD
 
 ```markdown
@@ -143,7 +176,7 @@ Annonce à l'utilisateur : *"Stack synchronisée dans `CLAUDE.md ## Stack`. Futu
 
 ## Handoff
 
-Fin du skill : message avec le path du PRD validé.
+Fin du skill : message avec le path du PRD validé + confirmation scaffold/provisioning.
 
-- **Si la stack du PRD inclut une UI web** (Next.js, React, Vue, Svelte, etc.) → suggestion `/design` AVANT `/plan` Phase 1. Le `DESIGN.md` produit par `/design` sera lu par le plugin `frontend-design` à chaque création de composant — sans, le plugin réinvente une palette à chaque page.
-- **Sinon** (script CLI, automation n8n pure, API backend) → suggestion `/plan` Phase 1 direct.
+- **Si `project_type = webapp`** → suggestion `/design` AVANT `/plan Phase 1`. Le `DESIGN.md` produit par `/design` sera lu par le plugin `frontend-design` à chaque création de composant — sans, le plugin réinvente une palette à chaque page.
+- **Si `project_type = site` ou `automation`** → suggestion `/plan Phase 1` direct (pas de design system custom nécessaire).
