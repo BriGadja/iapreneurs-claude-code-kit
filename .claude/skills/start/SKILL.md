@@ -175,13 +175,23 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 `.env.example` est **committé** (sert de doc pour les futurs forkers/collègues). `.env` ne l'est jamais.
 
-**Étape 5b.3 — Demander les valeurs réelles**
+**Étape 5b.3 — Choix du mode n8n MCP + demander les valeurs**
 
-Annonce : *"Je vais te demander 2 valeurs pour ton instance n8n. Elles vont dans `.env` (qui est gitignored, donc privé)."*
+Annonce : *"Le MCP n8n (czlonkowski) a 2 modes. Je te laisse choisir."*
 
-Demande `N8N_API_URL` et `N8N_API_KEY` (récupérables dans Settings → API de l'instance n8n).
+> **Mode A — docs-only (7 tools)** : aucune instance n8n requise, marche immédiatement. Tu peux **apprendre n8n**, chercher des nodes, lire la doc, valider des workflows JSON localement. Tu n'as besoin de rien d'autre.
+>
+> **Mode B — API-connected (20 tools)** : les 7 du mode A + 13 management (création/update workflows, run executions, audit instance). Nécessite `N8N_API_URL` + `N8N_API_KEY` (Settings → API de ton instance n8n).
+>
+> Lequel tu choisis ?
 
-**Si l'utilisateur dit "pas tout de suite"** : skip ; crée juste `.env` vide ou avec les placeholders, dis *"OK on le mettra quand tu en auras besoin. Edit `.env` direct."*
+**Si Mode A** : skip la demande de credentials. Annonce *"Mode docs-only retenu — tu pourras passer en API-connected plus tard en ajoutant N8N_API_URL + N8N_API_KEY dans `.env`."* Passe direct à 5b.4 (sans bloc N8N_API_*).
+
+**Si Mode B (ou "pas sûr, je veux les 2 dispo")** : Annonce *"Je vais te demander 2 valeurs. Elles vont dans `.env` (gitignored, donc privé)."*
+
+Demande `N8N_API_URL` et `N8N_API_KEY`.
+
+**Si l'utilisateur dit "pas tout de suite" en mode B** : bascule sur Mode A, dis *"OK on reste docs-only. Quand tu auras une instance, édite `.env` direct."*
 
 **Si l'utilisateur donne les valeurs** : crée/édite `.env` à la racine avec :
 ```
@@ -191,17 +201,38 @@ N8N_API_KEY=<valeur fournie>
 
 **JAMAIS** echo, log, ou répète la valeur de `N8N_API_KEY` dans la conversation. Tu confirmes juste *"Clé écrite dans `.env`."*
 
-**Étape 5b.4 — Ajouter n8n à `.mcp.json` avec `${VAR}`**
+**Étape 5b.4 — Ajouter n8n à `.mcp.json` avec les 3 env vars OBLIGATOIRES**
 
-Lis `.mcp.json`. Édite-le pour ajouter l'entrée n8n avec syntaxe d'expansion (PAS de valeurs en dur) :
+Lis `.mcp.json`. Édite-le pour ajouter l'entrée `n8n-mcp` avec les 3 env vars OBLIGATOIRES (`MCP_MODE`, `LOG_LEVEL`, `DISABLE_CONSOLE_OUTPUT` — sans elles, le canal stdio se pollue et Claude voit des JSON parse errors).
 
+**Si Mode A (docs-only)** :
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "n8n-mcp": {
       "command": "npx",
       "args": ["-y", "n8n-mcp@latest"],
       "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true"
+      }
+    }
+  }
+}
+```
+
+**Si Mode B (API-connected)** :
+```json
+{
+  "mcpServers": {
+    "n8n-mcp": {
+      "command": "npx",
+      "args": ["-y", "n8n-mcp@latest"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
         "N8N_API_URL": "${N8N_API_URL}",
         "N8N_API_KEY": "${N8N_API_KEY}"
       }
@@ -211,6 +242,8 @@ Lis `.mcp.json`. Édite-le pour ajouter l'entrée n8n avec syntaxe d'expansion (
 ```
 
 (Préserve les autres entrées MCP éventuellement déjà présentes — fusion, pas remplacement.)
+
+**Pin de version** : `n8n-mcp@latest` te donne le dernier release. Pour la reproductibilité, l'utilisateur peut remplacer par `n8n-mcp@2.51.3` (ou la version observée via `npm view n8n-mcp version`). Mentionne-le mais ne le force pas.
 
 **Étape 5b.5 — Indiquer comment charger `.env` pour la session**
 

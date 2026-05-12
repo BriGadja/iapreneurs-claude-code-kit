@@ -146,8 +146,20 @@ Le kit fournit un `.mcp.json` quasi-vide. `/start` te guide pour ajouter ceux-ci
 | Outil | Pour quoi | Credentials nécessaires |
 |-------|-----------|--------------------------|
 | **Playwright MCP** | `/validate` option A : navigateur, snapshot DOM | Aucune |
-| **n8n MCP** (czlonkowski) | Créer / valider / debugger des workflows n8n | `N8N_API_URL` + `N8N_API_KEY` → `.env` |
+| **n8n MCP** (czlonkowski) | Créer / valider / debugger des workflows n8n. Deux modes (voir ci-dessous) | 3 env vars MCP **obligatoires** + (optionnel) `N8N_API_URL` + `N8N_API_KEY` |
 | **Plugin `frontend-design`** (Anthropic) | Composants UI propres (shadcn/Tailwind) au lieu de HTML générique | Aucune |
+
+### n8n MCP — deux modes selon ton besoin
+
+Le MCP czlonkowski tourne dans 2 modes, déterminés uniquement par la présence (ou non) de `N8N_API_URL` + `N8N_API_KEY` :
+
+- **Docs-only (7 tools)** — `search_nodes`, `get_node_documentation`, `search_templates`, `get_template`, `validate_workflow_json`, etc. Aucun credential n8n requis. Parfait pour **apprendre** n8n ou **prototyper** un workflow en local avant d'avoir une instance.
+- **API-connected (20 tools)** — les 7 docs + 13 management : `n8n_create_workflow`, `n8n_update_full_workflow`, `n8n_test_workflow`, `n8n_executions`, `n8n_audit_instance`, etc. Nécessite une instance n8n active + sa clé API.
+
+**Les 3 env vars MCP suivantes sont obligatoires** dans les deux modes (sinon le canal stdio se pollue et Claude voit des JSON parse errors) :
+- `MCP_MODE=stdio`
+- `LOG_LEVEL=error`
+- `DISABLE_CONSOLE_OUTPUT=true`
 
 ### Commandes brutes (si tu préfères installer sans `/start`)
 
@@ -155,18 +167,35 @@ Le kit fournit un `.mcp.json` quasi-vide. `/start` te guide pour ajouter ceux-ci
 # Playwright (aucun credential)
 claude mcp add playwright -- npx -y @playwright/mcp@latest
 
-# n8n — les single-quotes (') sont OBLIGATOIRES autour de N8N_API_URL=${N8N_API_URL}.
-# Avec des double-quotes ("), ton shell développerait ${N8N_API_URL} immédiatement au moment du
-# `claude mcp add` (souvent à vide si .env pas encore sourcé) → la valeur en dur serait stockée
-# dans .mcp.json. Avec single-quotes, la chaîne ${N8N_API_URL} est stockée littéralement et
-# résolue plus tard par Claude au lancement du MCP. Le -y évite le prompt npx.
-claude mcp add n8n -e 'N8N_API_URL=${N8N_API_URL}' -e 'N8N_API_KEY=${N8N_API_KEY}' -- npx -y n8n-mcp@latest
+# n8n MCP — mode docs-only (sans instance n8n, 7 tools, marche immédiatement)
+# Les 3 env vars MCP_MODE/LOG_LEVEL/DISABLE_CONSOLE_OUTPUT sont OBLIGATOIRES.
+claude mcp add n8n-mcp \
+  -e MCP_MODE=stdio \
+  -e LOG_LEVEL=error \
+  -e DISABLE_CONSOLE_OUTPUT=true \
+  -- npx -y n8n-mcp@latest
+
+# n8n MCP — mode API-connected (20 tools)
+# Les single-quotes (') sont OBLIGATOIRES autour de ${N8N_API_*}. Avec des double-quotes ("),
+# ton shell développerait ${N8N_API_URL} immédiatement au moment du `claude mcp add` (souvent
+# à vide si .env pas encore sourcé) → la valeur en dur serait stockée dans .mcp.json. Avec
+# single-quotes, la chaîne ${N8N_API_URL} est stockée littéralement et résolue plus tard par
+# Claude au lancement du MCP.
+claude mcp add n8n-mcp \
+  -e MCP_MODE=stdio \
+  -e LOG_LEVEL=error \
+  -e DISABLE_CONSOLE_OUTPUT=true \
+  -e 'N8N_API_URL=${N8N_API_URL}' \
+  -e 'N8N_API_KEY=${N8N_API_KEY}' \
+  -- npx -y n8n-mcp@latest
 
 # Plugin frontend-design
 claude plugin install frontend-design@claude-code-plugins
 ```
 
 Puis : `claude mcp list` et `claude plugin list` pour vérifier.
+
+> **Pin de version recommandé** — `n8n-mcp@latest` te donne le dernier release (czlonkowski ship souvent : `2.51.x` actuellement). Pour la reproductibilité, pinne une version explicite dans `.mcp.json` (ex : `n8n-mcp@2.51.3`) et bump volontairement après avoir lu le CHANGELOG.
 
 ### Pattern Anthropic-officiel pour les credentials
 
@@ -176,15 +205,26 @@ Puis : `claude mcp list` et `claude plugin list` pour vérifier.
    ```json
    {
      "mcpServers": {
-       "n8n": {
-         "command": "npx", "args": ["-y", "n8n-mcp@latest"],
-         "env": { "N8N_API_KEY": "${N8N_API_KEY}" }
+       "n8n-mcp": {
+         "command": "npx",
+         "args": ["-y", "n8n-mcp@latest"],
+         "env": {
+           "MCP_MODE": "stdio",
+           "LOG_LEVEL": "error",
+           "DISABLE_CONSOLE_OUTPUT": "true",
+           "N8N_API_URL": "${N8N_API_URL}",
+           "N8N_API_KEY": "${N8N_API_KEY}"
+         }
        }
      }
    }
    ```
-   Le `-y` dans `args` évite que npx te bloque sur un prompt "install ?" au premier lancement du MCP.
+   Le `-y` dans `args` évite que npx te bloque sur un prompt "install ?" au premier lancement du MCP. Si tu veux le mode docs-only, retire les 2 dernières lignes `N8N_API_*`.
 4. **Charger `.env` dans le shell** avant `claude` : `set -a && source .env && set +a` (ou installer `direnv` pour le faire automatiquement)
+
+### Directives système (Silent Execution, Templates-First, Validate Before Deploy)
+
+Le créateur du MCP prescrit 4 directives pour utiliser l'outil correctement. Elles sont consignées dans **`.claude/rules/n8n.md`** (auto-chargées sur `.workflow.json`, `.mcp.json`, et tout fichier du dossier `.claude/skills/n8n/`). En résumé : `search_templates` avant de coder, `validate_workflow` avant de déployer, jamais d'édition AI directe sur `[PROD]`, exécution silencieuse des outils.
 
 Si tu vois un secret en clair quelque part dans le repo, **stop immédiatement** et déplace-le dans `.env`. Re-write l'historique git si nécessaire (`git filter-repo` ou re-création du repo si récent).
 

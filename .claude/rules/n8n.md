@@ -1,10 +1,33 @@
 ---
-paths: "**/*.workflow.json"
+paths:
+  - "**/*.workflow.json"
+  - "**/.mcp.json"
+  - ".claude/skills/n8n/**"
 ---
 
-# Règles n8n (auto-chargées sur tout `.workflow.json`)
+# Règles n8n (auto-chargées sur `.workflow.json`, `.mcp.json`, ou skill n8n)
 
-> Adapte ou supprime selon ton projet. Ce fichier complète les 7 skills `n8n-*` du kit qui couvrent la création/validation/debug — ici on documente les conventions transverses.
+> Adapte ou supprime selon ton projet. Ce fichier complète les 7 skills `n8n-*` du kit (création/validation/debug) — ici on documente les **directives système prescrites par czlonkowski** (auteur du MCP) **+** les conventions transverses du projet.
+
+## Directives système — n8n MCP (prescrites par czlonkowski)
+
+Ces 4 règles viennent du README de [czlonkowski/n8n-mcp](https://github.com/czlonkowski/n8n-mcp) et sont la condition pour utiliser le MCP correctement :
+
+1. **Silent Execution** — exécute les outils MCP sans commentaire intermédiaire. Réponds **après** que tous les outils soient terminés, pas pendant. Pas de "Je vais maintenant appeler…" + tool call + "Voici le résultat…" — fais juste les tool calls et synthétise à la fin.
+2. **Templates-First** — avant de construire un workflow from scratch, **toujours** chercher dans les ~2 352 templates disponibles via `search_templates` / `get_template`. Tu pars d'un template existant 80 % du temps.
+3. **Validate Before Deploy** — avant d'écrire un workflow dans n8n via `n8n_create_workflow` / `n8n_update_full_workflow`, **toujours** appeler `validate_workflow` sur le JSON proposé. Si la validation retourne des warnings, fix avant de déployer.
+4. **Never edit production with AI** — ne modifie **jamais** directement un workflow en `[PROD]` via le MCP. Édite la version `[DEV]` (copie), valide, teste, puis l'utilisateur fait le swap manuellement.
+
+**Flow type pour "crée-moi un workflow X"** : `search_templates` → `get_template` (si match) → adapt → `validate_workflow` → `n8n_create_workflow` en `[DEV]`. Pas de raccourci.
+
+## Mode docs-only vs API-connected
+
+Le MCP czlonkowski a deux modes selon la présence (ou non) de `N8N_API_URL` + `N8N_API_KEY` :
+
+- **Docs-only** (sans credentials) — 7 tools : search nodes, get docs, templates, validate JSON. Suffisant pour **apprendre** n8n ou construire des workflows en local avant déploiement.
+- **API-connected** (avec credentials) — 20 tools (les 7 docs + 13 management : create/update workflows, run executions, audit instance).
+
+Si l'utilisateur n'a pas encore d'instance n8n, le mode docs-only marche immédiatement après `claude mcp add`. Pas besoin de bloquer l'onboarding.
 
 ## Naming des workflows
 

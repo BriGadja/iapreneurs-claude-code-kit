@@ -78,6 +78,19 @@ project_type: {site | webapp | automation}
 
 Détail (spec Google DESIGN.md alpha, duo `/design` ⇄ plugin `frontend-design`, lint optionnel) : voir `.claude/skills/design/SKILL.md`.
 
+## Travailler avec n8n MCP (si stack inclut n8n)
+
+Le MCP `n8n-mcp` (czlonkowski) est installé par `/start`. Quatre directives système prescrites par l'auteur du MCP, **non-négociables** quand tu manipules n8n :
+
+1. **Silent Execution** — exécute les outils MCP sans commentaire intermédiaire. Pas de "Je vais appeler…" + tool call + "Voici le résultat…" — fais les tool calls puis synthétise à la fin.
+2. **Templates-First** — avant de construire un workflow from scratch, `search_templates` + `get_template` dans les ~2 352 templates disponibles. Tu pars d'un template existant 80 % du temps.
+3. **Validate Before Deploy** — avant `n8n_create_workflow` ou `n8n_update_full_workflow`, **toujours** `validate_workflow` sur le JSON. Fix les warnings avant de déployer.
+4. **Never edit production with AI** — jamais d'édition AI directe sur un workflow `[PROD]`. Édite la copie `[DEV]`, valide, teste — le swap reste manuel.
+
+**Modes du MCP** : sans `N8N_API_URL`/`N8N_API_KEY`, le MCP tourne en mode **docs-only** (7 tools : search nodes/docs/templates, validate JSON local) — suffisant pour apprendre n8n. Avec credentials : mode **API-connected** (20 tools, management complet).
+
+Détail complet + flow type "crée-moi un workflow X" : voir `.claude/rules/n8n.md` (auto-chargé sur `.workflow.json`, `.mcp.json`, `.claude/skills/n8n/**`).
+
 ---
 
 ## Règles de comportement
