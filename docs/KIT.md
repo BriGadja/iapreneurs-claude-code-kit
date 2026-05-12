@@ -1,0 +1,198 @@
+# Kit IAPreneurs Claude Code — doc de référence
+
+> Doc de référence complète du kit. **Lue à la demande, pas à chaque session.** Pour démarrer un projet : tape `/start`. Le `CLAUDE.md` à la racine ne contient que ce qui sert à *chaque* session — tout le reste vit ici.
+
+## Skills du kit
+
+### Table principale — 10 commandes du cycle de vie projet
+
+| Skill | Pour quoi | Quand | Statut |
+|-------|-----------|-------|--------|
+| `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage. Détecte aussi projet existant et bifurque vers `/recap`. Écrit `project_type` ∈ `{webapp, site, automation}` dans CLAUDE.md `## Identité`. | 1x à l'ouverture d'une nouvelle session | ✅ |
+| `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. | Si l'idée n'est pas claire après `/start` | ✅ |
+| `/architect` | Produire un `PRD.md` structuré (mini-3-sections en LITE, 7 sections en STANDARD/FULL) + **Étape 2b providers favoris** (hosting/BDD/email) + **Étape 6 Provisioning & Scaffold** (scaffold le repo selon `project_type` + retenus + écriture `.env`). Écrit `## Stack` dans CLAUDE.md. | Une fois l'idée claire | ✅ |
+| `/design` *(webapp uniquement)* | Définit le design system au format **DESIGN.md officiel Google** (open-source, spec alpha). Template fourni. **Complémentaire** au plugin Anthropic `frontend-design`. | Après `/architect`, **uniquement si project_type = webapp** | ✅ |
+| `/plan` | Découper UNE phase du PRD en tâches numérotées avec critères "Fait quand". Adapte ses questions selon `project_type`. | Avant d'exécuter une phase | ✅ |
+| `/execute` | Exécuter le plan tâche par tâche, coche les `[x]` au fil de l'eau. Délègue à `research-delegate` si bloqué par une doc API externe. | Après `/plan` (et éventuellement `/challenge`) | ✅ |
+| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / curl / **audit policy d'accès BDD** si données clients). Jamais "ça devrait marcher". | Après `/execute` | ✅ |
+| `/close` | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + harvest learnings (3 questions ciblées) + suggestion next. | **Mandatory** après `/validate ✅` | ✅ |
+| `/livrer` | Déployer en production selon `## Stack` (hosting/BDD/email **détectés depuis CLAUDE.md, jamais hardcode** — Vercel/Netlify/Cloudflare/GitHub Pages/autre) + checklist policy d'accès advisory + smoke test. | Quand la dernière phase est `/close` | ✅ |
+| `/evoluer` | Ajouter une nouvelle feature à un projet livré : insère Phase N+1 dans PRD existant sans écraser (regex parse + 3 questions + idempotent). | Sur projet livré, quand tu veux scaler | ✅ |
+
+### Skills optionnels avancés
+
+| Skill | Pour quoi | Quand |
+|-------|-----------|-------|
+| `/challenge` | Devil's advocate sur un plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. | Avant `/execute`, systématique en Request Classification FULL |
+
+### Hors table — built-in & utilitaires
+
+- **`/recap`** — tu reviens après une pause ? Lit `PRD.md` + `phase-*-plan.md` + git log + `MEMORY.md` et propose la suite. `/start` détecte automatiquement les projets existants et bifurque vers `/recap`.
+- **`/debug`** (built-in Claude Code natif) — pour debugger un bug. **Règle de comportement** : écris d'abord un test de régression qui reproduit le bug, puis fais-le passer (TDD).
+- **`/start` Phase 4** — propose le niveau Request Classification (LITE / STANDARD / FULL). Stocké dans `CLAUDE.md ## Request Classification`.
+
+### Skills `n8n-*` — 7 skills tiers
+
+7 skills officiels [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-skills) (MIT) dans `.claude/skills/n8n/` :
+- `n8n-mcp-tools-expert`
+- `n8n-workflow-patterns`
+- `n8n-validation-expert`
+- `n8n-node-configuration`
+- `n8n-expression-syntax`
+- `n8n-code-javascript`
+- `n8n-code-python`
+
+Auto-invoqués quand tu touches à n8n. Attribution dans `.claude/skills/n8n/LICENSE-czlonkowski`.
+
+---
+
+## 3 parcours typiques
+
+### Parcours 1 — Création (premier projet)
+
+```
+/start              ← cadrage + outillage + project_type + Request Classification
+   ↓
+/brainstorm         ← (optionnel) si idée floue
+   ↓
+/architect          ← PRD.md + Étape 2b providers + Étape 6 scaffold + provisioning
+   ↓
+/design             ← SI webapp : produit DESIGN.md (sinon skip)
+   ↓
+/plan Phase 1       ← découpe une phase en tâches
+   ↓
+/challenge          ← (optionnel) devil's advocate avant exécution
+   ↓
+/execute            ← coche les [x] une par une
+   ↓
+/validate           ← verdict réel "ça marche / ça marche pas"
+   ↓
+/close              ← MANDATORY : ✅ Terminée + commit + harvest learnings
+   ↓
+/plan Phase 2 → ... (boucle jusqu'à la dernière phase)
+   ↓
+/livrer             ← deploy prod selon ## Stack (hosting détecté, jamais hardcode)
+```
+
+### Parcours 2 — Reprise (tu reviens après quelques jours/semaines)
+
+```
+/recap              ← lit PRD.md + plans + git log + MEMORY.md → "tu as Phase 1 ✅, Phase 2 en cours, action suggérée : /execute"
+   ↓
+{action proposée}   ← /execute, /plan Phase N+1, /livrer, /evoluer... selon l'état détecté
+```
+
+### Parcours 3 — Évolution (projet livré, tu veux ajouter une feature)
+
+```
+/recap              ← détecte projet livré → propose /evoluer
+   ↓
+/evoluer            ← parse PRD existant + 3 questions cadrage feature + insère Phase N+1 sans écraser
+   ↓
+/plan Phase N+1     ← reprend le flux standard
+   ↓
+/execute → /validate → /close → /livrer
+```
+
+---
+
+## Qui écrit quelle section du CLAUDE.md
+
+| Section | Ancre HTML | Écrit par | Quand |
+|---------|-----------|-----------|-------|
+| `## Identité` | `<!-- start:identité -->` | `/start` | Au démarrage, après les 3 questions de cadrage. Inclut `project_type:`. |
+| `## Stack` | `<!-- architect:stack -->` | `/architect` | Après ta validation de la stack proposée |
+| `## Design system` | `<!-- design:summary -->` | `/design` | Après création de `DESIGN.md` (webapp uniquement) |
+| `## Production` | `<!-- ship:url -->` | `/livrer` | Après premier déploiement réussi + smoke test |
+| `## Request Classification` | (heading) | `/architect` Étape 3.1 | Après ta validation du niveau LITE/STANDARD/FULL |
+| `## Conventions` | — | Toi (manuel) | Au fil de l'eau, quand tu vois Claude faire l'inverse |
+| `## Instructions` | — | Toi (manuel) | Au fil de l'eau |
+| `## Contexte métier` | — | Toi (manuel) | Au fil de l'eau, dès que tu utilises du vocabulaire métier |
+
+**Règle d'or** : les ancres `<!-- skill:nom -->` ... `<!-- /skill:nom -->` délimitent les zones d'écriture des skills. **Ne les supprime pas.** Si tu veux retirer le contenu sans casser le skill, laisse les ancres vides.
+
+Le fichier `DESIGN.md` (produit par `/design` si webapp) vit à part, à la racine, et est lu automatiquement par Claude pour toute création UI (voir CLAUDE.md `## Création UI`).
+
+---
+
+## Conditionnels — quand skip un skill
+
+- **`/architect` Étape 2b** demande les **providers favoris** (hosting / BDD / email) avant de figer la stack. Défauts si l'utilisateur n'a pas d'avis : Vercel + Supabase + Resend (couverts par la communauté IAPreneurs).
+- **`/architect` Étape 6** (Provisioning & Scaffold) branche sur `project_type` ET la stack retenue : `site` = framework minimal + optionnel email, `webapp` = framework + BDD init + .env, `automation` = dossier `workflows/` + test n8n MCP.
+- **`/design` skip** si `project_type` ∈ {automation, site simple} ou si le projet n'a pas d'UI custom.
+- **`/brainstorm` skip** si l'idée est déjà claire après `/start`.
+- **`/challenge` skip** si Request Classification = LITE. Systématique en FULL.
+- **Pour un bug** → `/debug` (built-in Claude Code natif) + écrire un test de régression avant le fix (règle TDD).
+- **Pour capturer un learning** → c'est `/close` qui le fait via 3 questions ciblées en fin de phase. Tu n'édites jamais `memory/` à la main.
+
+---
+
+## Sous-agent `research-delegate`
+
+Sous-agent read-only invoqué automatiquement par :
+- `/brainstorm` (recherche web)
+- `/plan` (scout codebase anti-doublons)
+- `/execute` (lecture doc API quand bloqué)
+- `/validate` (parallélisation phases multi-dimensions)
+
+Lit jusqu'à 15 sources et renvoie une synthèse en 3-10 bullets. Garde ta fenêtre de contexte propre. Tu n'as pas besoin de l'invoquer manuellement — les skills le font quand pertinent. Voir `.claude/agents/research-delegate.md`.
+
+---
+
+## MCP & plugin — installation détaillée
+
+Le kit fournit un `.mcp.json` quasi-vide. `/start` te guide pour ajouter ceux-ci proprement (avec sécurisation des credentials) :
+
+| Outil | Pour quoi | Credentials nécessaires |
+|-------|-----------|--------------------------|
+| **Playwright MCP** | `/validate` option A : navigateur, snapshot DOM | Aucune |
+| **n8n MCP** (czlonkowski) | Créer / valider / debugger des workflows n8n | `N8N_API_URL` + `N8N_API_KEY` → `.env` |
+| **Plugin `frontend-design`** (Anthropic) | Composants UI propres (shadcn/Tailwind) au lieu de HTML générique | Aucune |
+
+### Commandes brutes (si tu préfères installer sans `/start`)
+
+```bash
+# Playwright (aucun credential)
+claude mcp add playwright -- npx -y @playwright/mcp@latest
+
+# n8n — les single-quotes (') sont OBLIGATOIRES autour de N8N_API_URL=${N8N_API_URL}.
+# Avec des double-quotes ("), ton shell développerait ${N8N_API_URL} immédiatement au moment du
+# `claude mcp add` (souvent à vide si .env pas encore sourcé) → la valeur en dur serait stockée
+# dans .mcp.json. Avec single-quotes, la chaîne ${N8N_API_URL} est stockée littéralement et
+# résolue plus tard par Claude au lancement du MCP. Le -y évite le prompt npx.
+claude mcp add n8n -e 'N8N_API_URL=${N8N_API_URL}' -e 'N8N_API_KEY=${N8N_API_KEY}' -- npx -y n8n-mcp@latest
+
+# Plugin frontend-design
+claude plugin install frontend-design@claude-code-plugins
+```
+
+Puis : `claude mcp list` et `claude plugin list` pour vérifier.
+
+### Pattern Anthropic-officiel pour les credentials
+
+1. **`.env`** à la racine — vraies valeurs, **gitignored** (vérifié par `/start`)
+2. **`.env.example`** committé — placeholders pour les futurs forkers/collègues
+3. **`.mcp.json`** committé avec syntaxe `${VAR}` (env var expansion) — pas de valeur en dur :
+   ```json
+   {
+     "mcpServers": {
+       "n8n": {
+         "command": "npx", "args": ["-y", "n8n-mcp@latest"],
+         "env": { "N8N_API_KEY": "${N8N_API_KEY}" }
+       }
+     }
+   }
+   ```
+   Le `-y` dans `args` évite que npx te bloque sur un prompt "install ?" au premier lancement du MCP.
+4. **Charger `.env` dans le shell** avant `claude` : `set -a && source .env && set +a` (ou installer `direnv` pour le faire automatiquement)
+
+Si tu vois un secret en clair quelque part dans le repo, **stop immédiatement** et déplace-le dans `.env`. Re-write l'historique git si nécessaire (`git filter-repo` ou re-création du repo si récent).
+
+---
+
+## Aller plus loin
+
+- `.claude/rules/README.md` — pattern des règles auto-chargées par chemin (paths-scoped)
+- `memory/README.md` — système mémoire persistante (learnings / topics / decisions)
+- `.claude/skills/{skill}/SKILL.md` — détail d'un skill spécifique
+- `examples/` — 3 exemples remplis (site, webapp, automation)

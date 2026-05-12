@@ -61,22 +61,19 @@ Branche selon le diagnostic :
 - Écris la réponse dans `<!-- start:identité -->` au format `project_type: {valeur}` (sur sa propre ligne, après le paragraphe identité).
 - Continue ensuite vers Étape 5 (outillage) puis 6 (routage) — pas de re-cadrage complet, le projet est déjà défini.
 
-### Étape 2 — Visite guidée (1 min, skippable)
+### Étape 2 — Visite guidée (30s, skippable)
 
 Annonce :
 
-> "Bienvenue. Je vais te guider en 4 phases : visite du kit (1 min, skippable), 3 questions sur ton projet, vérif de ton outillage, puis routage. **Tu veux skipper la visite ?** (oui / non)"
+> "Bienvenue. Je vais te guider en 4 phases : visite courte (skippable), 3 questions sur ton projet, vérif de ton outillage, puis routage. **Tu veux skipper la visite ?** (oui / non)"
 
-Si **non** (visite demandée), liste en 6 lignes :
+Si **non** (visite demandée), résume en 3 lignes :
 
-> "Dans ce kit, tu as :
-> - **10 skills cycle de vie** : `/start` (moi), `/brainstorm`, `/architect` (PRD + providers + scaffold), `/design` (web app uniquement), `/plan`, `/execute`, `/validate`, `/close`, `/livrer`, `/evoluer`. Tous coordonnés pour t'amener du démarrage à un projet livré en prod.
-> - **Skills hors table** : `/recap` (tu reviens après une absence — lit l'état projet et propose la suite), `/challenge` (devil's advocate optionnel sur un plan).
-> - **1 sous-agent** `research-delegate` que les skills invoquent quand ils ont besoin de chercher sans polluer ton contexte.
-> - **7 skills n8n** officiels de Czlonkowski pour les workflows.
-> - **Un `.mcp.json` vide** prêt à recevoir Playwright + n8n MCP + plugin `frontend-design`. Le plugin sera consommé par `/design` pour rester cohérent dans toutes tes pages.
-> - **Un dossier `.claude/rules/`** pour déporter les règles spécifiques à un domaine quand le `CLAUDE.md` devient trop long.
-> Le tout est conçu pour grandir avec toi : tu peux commencer avec 3 skills (`/brainstorm`, `/architect`, `/plan`) et activer le reste au fil du temps. `/evoluer` arrive en v2.0.0 GA — le reste est déjà à jour. Pour debugger un bug, le built-in `/debug` natif Claude Code fait l'affaire (avec la règle : test de régression avant fix)."
+> "Le kit a **10 skills cycle de vie** (`/start`, `/brainstorm`, `/architect`, `/design`, `/plan`, `/execute`, `/validate`, `/close`, `/livrer`, `/evoluer`) + `/challenge` optionnel + 7 skills n8n tiers + 1 sous-agent `research-delegate`. Tout est coordonné pour t'amener du démarrage à un projet livré en prod, en t'adaptant au niveau (LITE / STANDARD / FULL) et au `project_type` (site / webapp / automation).
+>
+> Pour le détail complet (parcours, table skills, conditionnels, MCP install) → `cat docs/KIT.md` quand tu veux. Pour debugger un bug → built-in `/debug` + test de régression avant fix.
+>
+> On continue le cadrage ?"
 
 Si **oui** (skip), passe direct à l'étape 3.
 
