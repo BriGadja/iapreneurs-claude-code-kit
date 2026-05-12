@@ -31,21 +31,35 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 
 ## Skills
 
+**Table principale — 11 commandes du cycle de vie projet** *(certaines arrivent en v2.0.0 GA — voir colonne "Statut")* :
+
+| Skill | Rôle | Statut |
+|-------|------|--------|
+| `/start` | Onboarding piloté (5 phases + détection projet existant qui bifurque vers `/recap`). À taper 1x à l'ouverture. Écrit la variable `project_type` ∈ {webapp, site, automation}. | ✅ |
+| `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. | ✅ |
+| `/architect` | Produire un `PRD.md` structuré + **Étape 6 Provisioning & Scaffold** (scaffold le repo selon `project_type` + provisioning Supabase/Vercel/n8n + écriture `.env`). Écrit la section `## Stack` du `CLAUDE.md`. | ✅ |
+| `/design` *(webapp uniquement)* | **Définit** le design system (architecte) au format **DESIGN.md officiel Google** (open-source, spec alpha — YAML tokens + 8 sections markdown). Template fourni dans `.claude/skills/design/template.md`. Lint optionnel : `npx @google/design.md lint DESIGN.md`. **Complémentaire** au plugin Anthropic `frontend-design` (le constructeur) qui lit `DESIGN.md` pour build des composants cohérents. | ✅ |
+| `/plan` | Découper UNE phase du PRD en tâches avec critères "Fait quand". Lit `DESIGN.md` si la phase touche à l'UI. Adapte ses questions selon `project_type`. | ✅ |
+| `/execute` | Exécuter le plan tâche par tâche, cocher au fur et à mesure. Délègue à `research-delegate` si bloqué par une doc API externe. | ✅ |
+| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre / **audit RLS Supabase** si données clients). Jamais "ça devrait marcher". | ✅ |
+| `/close` | Clôturer la phase : marque ✅ Terminée dans le PRD + commit conventionnel + harvest learnings + handoff. **Mandatory** après `/validate ✅`. | ✅ |
+| `/ship` | Déployer en production selon `project_type` (Vercel / n8n / GitHub Pages) + checklist RLS advisory + smoke test. | à venir v2.0 Phase D |
+| `/evolve` | Ajouter une nouvelle feature à un projet shipped : insère Phase N+1 dans PRD existant sans écraser. | à venir v2.0 Phase E |
+| `/troubleshoot` | Investiguer un bug : repro → root cause → fix → regression test. | à venir v2.0 Phase F |
+
+**Skills optionnels avancés** :
+
 | Skill | Rôle |
 |-------|------|
-| `/start` | Onboarding piloté (5 phases). À taper 1x à l'ouverture. |
-| `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. |
-| `/architect` | Produire un `PRD.md` structuré (7 sections). Écrit la section `## Stack` du `CLAUDE.md`. |
-| `/design` *(web app uniquement)* | **Définit** le design system (architecte) au format **DESIGN.md officiel Google** (open-source, spec alpha — YAML tokens + 8 sections markdown). Template fourni dans `.claude/skills/design/template.md`. Lint optionnel : `npx @google/design.md lint DESIGN.md`. **Complémentaire** au plugin Anthropic `frontend-design` (le constructeur) qui lit `DESIGN.md` pour build des composants cohérents — voir `.claude/skills/design/SKILL.md` section "division du travail" pour le détail. |
-| `/plan` | Découper UNE phase du PRD en tâches avec critères "Fait quand". Lit `DESIGN.md` si la phase touche à l'UI. Scout le codebase via `research-delegate` pour éviter les doublons. |
-| `/challenge` *(optionnel)* | Devil's advocate sur le plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. |
-| `/execute` | Exécuter le plan tâche par tâche, cocher au fur et à mesure. Délègue à `research-delegate` si bloqué par une doc API externe. |
-| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre / **audit RLS Supabase** si données clients). Jamais "ça devrait marcher". |
-| `/close` *(optionnel)* | Clôturer la phase : marque ✅ Terminée dans le PRD, propose un message de commit conventionnel, suggère `/plan` Phase {N+1}. Pas de `git push` automatique. |
+| `/challenge` | Devil's advocate sur un plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. Systématique en Request Classification FULL. |
 
-Workflow type : `/start` → `/brainstorm`? → `/architect` → `/design`? → `/plan` Phase 1 → `/challenge`? → `/execute` → `/validate` → `/close`? → `/plan` Phase 2 → ...
+**Notes hors table** :
+- Tu reviens après une pause ? Tape `/recap` — lit `PRD.md` + `phase-*-plan.md` + git log + `MEMORY.md` et propose la suite. `/start` détecte automatiquement les projets existants et bifurque vers `/recap`.
+- Capture rapide d'un learning ? Tape `/remember {topic}` — append-only dans `memory/topics/{topic}.md`. *(à venir v2.0 Phase H)*
 
-`/design` est conditionnel — skip si pas d'UI (script CLI, automation n8n, API). `/challenge` et `/close` sont optionnels à activer quand tu te sens à l'aise.
+Workflow type : `/start` → `/brainstorm`? → `/architect` (PRD + scaffold) → `/design`? → `/plan` Phase 1 → `/execute` → `/validate` → `/close` → `/plan` Phase 2 → ... → `/ship`. Reprise : `/recap`. Évolution : `/evolve`.
+
+`/design` est conditionnel — skip si `project_type` ∈ {site, automation}. `/challenge` est optionnel.
 
 ## Sous-agent
 

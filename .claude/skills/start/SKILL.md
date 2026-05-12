@@ -20,12 +20,36 @@ Sortie : un `CLAUDE.md` avec l'Identité remplie + un MCP/plugin stack fonctionn
 
 ## Comment procéder
 
-### Étape 1 — Détecter l'état (10s)
+### Étape 1 — Détecter l'état du projet (10s)
 
-Lis le `CLAUDE.md` à la racine.
+Lis le `CLAUDE.md` à la racine + vérifie 4 signaux :
+1. La section `<!-- start:identité -->` contient encore le placeholder par défaut ?
+2. Y a-t-il un `PRD.md` à la racine ?
+3. Y a-t-il des fichiers `plans/phase-*.md` (ou `phase-*-plan.md` à la racine) ?
+4. La variable `project_type:` est-elle présente dans `<!-- start:identité -->` ?
 
-- Si la section `<!-- start:identité -->` contient encore le placeholder `{2-3 phrases écrites par /start...}` → **première fois**, tu déroules les phases 2 à 5.
-- Si la section est déjà remplie → demande : *"Identité déjà cadrée. Tu veux la re-écrire ou je passe direct à la vérif outillage et au routage ?"* Adapte.
+Branche selon le diagnostic :
+
+**Cas A — Projet neuf** (placeholder identité présent, pas de PRD, pas de plans, pas de `project_type`) → tu déroules les phases 2 à 6 normalement (visite + 3 questions + écriture identité + outillage + routage).
+
+**Cas B — Projet existant en cours** (identité remplie + PRD ou plans présents) → bifurque vers `/recap` :
+> *"Projet déjà cadré et en cours ({Nom détecté de l'identité}). Trois options :*
+> *(1) **Reprendre où tu en étais** — je délègue à `/recap` qui lit l'état et te propose la suite [recommandé]*
+> *(2) **Cadrer une nouvelle tâche/feature** sur ce projet — on continue en mode visite + routage*
+> *(3) **Ré-onboarder complet** (efface l'identité actuelle et re-fais le cadrage) — confirmation à 3 reprises avant écrasement"*
+> *Tu choisis ?"*
+- Si (1) → annonce *"OK, je passe la main à `/recap`"* et stoppe (l'utilisateur lance `/recap` ou tu peux suggérer en handoff).
+- Si (2) → saute à l'Étape 5 (outillage) puis 6 (routage), skip phases 2-4.
+- Si (3) → demande **3 confirmations explicites** avant d'écrire (*"sûr ?" "vraiment sûr ?" "dernière chance, on écrase l'identité actuelle ?"*). Puis dérouler phases 2-6.
+
+**Cas C — Migration v1.x → v2.0** (identité remplie MAIS pas de `project_type` dans `<!-- start:identité -->`) → ne stoppe PAS, juste un mini-patch :
+> *"Ton projet utilise une version antérieure du kit (pas de variable `project_type` dans CLAUDE.md). C'est une variable que les nouveaux skills (`/architect Étape 6`, `/ship`, `/plan` adaptatif) attendent. Je te pose une question pour la définir :*
+> *Quel type de projet ?*
+> *- **(a) Web app SaaS** (auth + BDD, utilisateurs, plusieurs pages) → `project_type: webapp`*
+> *- **(b) Site vitrine** (1-5 pages, peu/pas de BDD) → `project_type: site`*
+> *- **(c) Automatisation n8n** (workflow déclenché, pas d'UI utilisateur) → `project_type: automation`"*
+- Écris la réponse dans `<!-- start:identité -->` au format `project_type: {valeur}` (sur sa propre ligne, après le paragraphe identité).
+- Continue ensuite vers Étape 5 (outillage) puis 6 (routage) — pas de re-cadrage complet, le projet est déjà défini.
 
 ### Étape 2 — Visite guidée (1 min, skippable)
 
@@ -36,12 +60,13 @@ Annonce :
 Si **non** (visite demandée), liste en 6 lignes :
 
 > "Dans ce kit, tu as :
-> - **8 skills** : `/start` (moi), `/brainstorm`, `/architect`, `/design` (web app uniquement), `/plan`, `/challenge` (optionnel), `/execute`, `/validate`.
+> - **11 skills cycle de vie** : `/start` (moi), `/brainstorm`, `/architect` (PRD + scaffold + provisioning), `/design` (web app uniquement), `/plan`, `/execute`, `/validate`, `/close`, `/ship`, `/evolve`, `/troubleshoot`. Tous coordonnés pour t'amener du démarrage à un projet shipped en prod.
+> - **Skills hors table** : `/recap` (tu reviens après une absence — lit l'état projet et propose la suite), `/remember {topic}` (capture rapide d'un learning), `/challenge` (devil's advocate optionnel sur un plan).
 > - **1 sous-agent** `research-delegate` que les skills invoquent quand ils ont besoin de chercher sans polluer ton contexte.
 > - **7 skills n8n** officiels de Czlonkowski pour les workflows.
-> - **Un `.mcp.json` vide** prêt à recevoir Playwright + n8n MCP + plugin `frontend-design` (on les installe en phase 3). Le plugin `frontend-design` sera consommé par `/design` pour rester cohérent dans toutes tes pages.
+> - **Un `.mcp.json` vide** prêt à recevoir Playwright + n8n MCP + plugin `frontend-design`. Le plugin sera consommé par `/design` pour rester cohérent dans toutes tes pages.
 > - **Un dossier `.claude/rules/`** pour déporter les règles spécifiques à un domaine quand le `CLAUDE.md` devient trop long.
-> Le tout est conçu pour grandir avec toi : tu peux commencer avec 3 skills (`/brainstorm`, `/architect`, `/plan`) et activer le reste au fil du temps."
+> Le tout est conçu pour grandir avec toi : tu peux commencer avec 3 skills (`/brainstorm`, `/architect`, `/plan`) et activer le reste au fil du temps. Certains skills (`/ship`, `/evolve`, `/troubleshoot`) arrivent en v2.0.0 GA — `/start` et `/architect` sont déjà à jour."
 
 Si **oui** (skip), passe direct à l'étape 3.
 
@@ -51,19 +76,19 @@ Pose **exactement 3 questions**, une par une (pas en bloc — attendre la répon
 
 1. **Nom + une phrase** : "Ton projet s'appelle comment, et en une phrase, ça fait quoi ?"
 2. **Pour qui** : "Qui va l'utiliser ? Toi tout seul, ton équipe, des clients pros, le grand public ?"
-3. **Type d'output** : "L'utilisateur final voit le résultat où ?
-   - **A** : page web qui se met à jour en direct (streaming, dashboard)
-   - **B** : email / PDF / notification qui arrive en différé
-   - **C** : script ou CLI (pas d'UI)
-   - **D** : automatisation pure (n8n, pas d'utilisateur direct)"
+3. **Type de projet** : "Quel type de projet ?
+   - **A** : web app SaaS (auth + BDD, plusieurs pages, utilisateurs connectés) → `project_type: webapp`
+   - **B** : site vitrine 1-5 pages (présence en ligne, peu/pas de BDD) → `project_type: site`
+   - **C** : automatisation n8n (workflow déclenché, pas d'UI utilisateur) → `project_type: automation`
+   - **D** : autre / je ne sais pas → fallback `project_type: webapp` (le plus polyvalent), tu pourras changer plus tard"
 
-Stocke les 3 réponses. **Ne propose pas la stack maintenant** — c'est `/architect` qui le fera.
+Stocke les 3 réponses **et la valeur de `project_type`** correspondante (A→webapp, B→site, C→automation, D→webapp). **Ne propose pas la stack technique maintenant** — c'est `/architect` qui le fera.
 
 ### Étape 4 — Écrire la section Identité du CLAUDE.md
 
 Compose 2-3 phrases à partir des réponses :
 
-> "**{Nom}** est {phrase Q1}, destiné à {Q2}. Le résultat est livré via {Q3 en clair, ex: 'page web temps réel' / 'email avec PDF en pièce jointe' / 'script CLI' / 'workflow n8n déclenché par webhook'}."
+> "**{Nom}** est {phrase Q1}, destiné à {Q2}. {1 phrase qui décrit le résultat livré selon project_type : 'Application web avec authentification et base de données' / 'Site vitrine avec page d'accueil et formulaire de contact' / 'Workflow n8n déclenché par webhook'}."
 
 Lis le `CLAUDE.md`, trouve le bloc :
 
@@ -73,9 +98,15 @@ Lis le `CLAUDE.md`, trouve le bloc :
 <!-- /start:identité -->
 ```
 
-Remplace le contenu entre les deux ancres par ton paragraphe. **Garde les ancres**. **Ne touche à aucune autre partie du fichier.**
+Remplace le contenu entre les deux ancres par **ton paragraphe sur 1 ou plusieurs lignes**, suivi (ligne suivante après une ligne vide) de :
 
-Affiche la diff à l'utilisateur : *"Voici ce que je vais écrire dans `## Identité`. OK ou tu veux ajuster ?"* — sauvegarde après validation.
+```
+project_type: {webapp | site | automation}
+```
+
+(la valeur exacte du Q3 stocké en Étape 3). **Garde les ancres**. **Ne touche à aucune autre partie du fichier.**
+
+Affiche la diff à l'utilisateur : *"Voici ce que je vais écrire dans `## Identité` (paragraphe + variable `project_type`). OK ou tu veux ajuster ?"* — sauvegarde après validation.
 
 ### Étape 5 — Vérifier l'outillage (et sécuriser les credentials avant n8n)
 
