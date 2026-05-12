@@ -2,7 +2,16 @@
 
 > Ce fichier est un **template**. Tu le copies dans ton projet, tu adaptes les 5 couches du début à ton cas, tu gardes les 4 règles de comportement à la fin (elles s'appliquent à n'importe quel projet).
 
-> **À l'ouverture d'une nouvelle session** : tape `/start` — le skill te guide pour cadrer le projet, sécuriser tes credentials, vérifier ton outillage (MCP + plugin), et te router vers la bonne suite (`/brainstorm` ou `/architect`).
+> **À l'ouverture d'une nouvelle session** : tape `/start` — le skill te guide pour cadrer le projet, sécuriser tes credentials, vérifier ton outillage (MCP + plugin), et te router vers la bonne suite (`/brainstorm` ou `/architect`). Si tu reviens sur un projet existant après une absence, tape `/recap` pour reprendre où tu en étais.
+
+## Glossaire
+
+Quatre mots reviennent sans cesse dans ce kit :
+
+- **Phase** — un palier macro du projet, défini dans le `PRD.md` (ex : "Phase 1 — Formulaire public + stockage Supabase"). Une phase contient plusieurs tâches. Marquée `✅ Terminée` par `/close` une fois validée.
+- **Tâche** — une étape concrète et vérifiable d'une phase, listée dans `phase-N-plan.md` (ex : "Créer la route `POST /api/leads` qui insert dans `leads`"). Cochée `[x]` par `/execute` au fil de l'eau.
+- **Critère "Fait quand"** — la définition de done d'une tâche, écrite avant de commencer ("la route renvoie 201 avec l'`id` créé sur payload valide, 400 sur payload invalide"). Sans ce critère, tu ne sais pas quand t'arrêter.
+- **Critères de succès** — la définition de done d'une phase entière (ex : "10 leads insérés en BDD via formulaire public, 0 erreur Supabase"). Vérifiés par `/validate`.
 
 ---
 
@@ -14,7 +23,16 @@
 
 <!-- start:identité -->
 {En 2-3 phrases : ce qu'est ton projet, à qui il s'adresse, et le résultat qu'il livre. Cette section est remplie par `/start` après ses 3 questions de cadrage. Exemple final : "Application web qui automatise la génération de devis pour un freelance français. Le client final reçoit des demandes via formulaire, un moteur n8n qualifie + calcule + stocke le devis, le pro relit et envoie."}
+
+project_type: {site | webapp | automation}
 <!-- /start:identité -->
+
+> **Variable `project_type`** : déterminée par `/start` selon ton cas d'usage. Trois valeurs possibles :
+> - `site` — site vitrine 1-5 pages (Next.js minimal, pas de BDD, optionnellement Resend pour formulaire de contact)
+> - `webapp` — app web SaaS avec auth + BDD (Next.js + Supabase + shadcn)
+> - `automation` — workflow n8n pur, pas d'UI front (n8n + intégrations externes)
+>
+> Les skills `/scaffold`, `/ship`, `/plan` et `/design` branchent sur cette variable. **Si elle est absente ou invalide**, les skills qui en dépendent stoppent avec un message demandant de relancer `/start`.
 
 ## Stack
 
@@ -42,6 +60,12 @@
 - Jamais de pop-ups JavaScript (`alert`, `confirm`) : utiliser des toasts (sonner)
 - Toujours valider les téléphones au format français (`+33` ou `06/07`)
 - TVA par défaut : 20% (configurable en base)
+
+## Design system (si web app)
+
+<!-- design:summary -->
+{Résumé du design system, écrit par `/design` après sa première exécution. 3-5 lignes max : palette principale (couleurs primaire + neutres), famille typographique, philosophie UI (épuré/dense, formel/casual). Sert de référence rapide sans devoir relire `DESIGN.md` à chaque fois. Exemple : "Palette : violet `#6855F8` primaire + neutres chauds. Typo Inter (sans-serif). UI épurée, formel mais pas froid, beaucoup de blanc. Voir `DESIGN.md` pour les tokens complets."}
+<!-- /design:summary -->
 
 ## Création UI (si web app) — division du travail `/design` vs `/frontend-design`
 
@@ -105,33 +129,80 @@ Quand le plugin `frontend-design@claude-code-plugins` est invoqué (auto ou expl
 
 ---
 
+## Request Classification (LITE / STANDARD / FULL)
+
+Le kit s'adapte à la taille du projet. Trois niveaux, proposés par `/start` Phase 4 et figés dans ce fichier :
+
+| Niveau | Profil projet | Ce qui change |
+|--------|---------------|---------------|
+| **LITE** | Site vitrine 1-5 pages, automation n8n simple (1 workflow), MVP weekend | `/architect` produit un **mini-PRD 3 sections** (Identité + 1-2 Phases + Hors-MVP) au lieu du PRD complet 7 sections. `/challenge` est skippé par défaut. `/plan` peut grouper plusieurs petites tâches en une. |
+| **STANDARD** | Web app SaaS classique, automation n8n multi-étapes, projet 2-5 phases | Comportement par défaut. PRD 7 sections complet, `/challenge` optionnel, `/plan` détaille tâche par tâche. |
+| **FULL** | Web app complexe 5+ phases, projet client critique, sécurité / RLS / multi-tenant strict | `/challenge` est **systématique** après chaque `/plan`. `/architect` exige des AC scorés (pas juste binary). `/validate` inclut audit RLS Supabase obligatoire si données clients. |
+
+**Niveau choisi pour ce projet** : `{LITE | STANDARD | FULL}` *(écrit par `/start` Phase 4 après ta validation)*
+
+Si tu veux changer de niveau plus tard (ex : un projet LITE qui grossit), édite cette ligne et relance `/architect` — le kit s'adapte sans casser l'existant.
+
+---
+
 ## Comment ce CLAUDE.md est entretenu
 
-### Séquencement des skills (workflow type)
+### Séquencement des skills (3 parcours typiques)
+
+**Parcours 1 — Création (premier projet)**
 
 ```
-/start                  ← 1x au démarrage (cadrage + outillage + routage)
+/start              ← cadrage + outillage + project_type + Request Classification
    ↓
-/brainstorm             ← si idée floue (skippé sinon)
+/brainstorm         ← (optionnel) si idée floue
    ↓
-/architect              ← produit PRD.md (source de vérité pour tout ce qui suit)
+/architect          ← produit PRD.md (source de vérité)
    ↓
-/design                 ← SI web app : produit DESIGN.md (palette, typo, composants)
+/scaffold           ← scaffold le repo selon project_type + provisioning credentials
    ↓
-/plan Phase 1           ← découpe une phase en tâches (lit DESIGN.md si phase UI)
+/design             ← SI webapp : produit DESIGN.md (sinon skip)
    ↓
-/challenge (optionnel)  ← devil's advocate avant exécution
+/plan Phase 1       ← découpe une phase en tâches
    ↓
-/execute Phase 1        ← coche les tâches une par une
+/challenge          ← (optionnel) devil's advocate avant exécution
    ↓
-/validate Phase 1       ← verdict réel "ça marche / ça marche pas"
+/execute            ← coche les tâches une par une
    ↓
-/close Phase 1          ← marque ✅ Terminée dans le PRD, propose un commit conventionnel
+/validate           ← verdict réel "ça marche / ça marche pas"
    ↓
-/plan Phase 2 → ... (boucle)
+/close              ← mandatory : ✅ Terminée dans PRD + commit conventionnel + harvest learnings
+   ↓
+/plan Phase 2 → ... (boucle jusqu'à la dernière phase)
+   ↓
+/ship               ← déploie en production (Vercel / n8n / GitHub Pages selon project_type)
 ```
 
-`/design` est conditionnel (skip si pas d'UI : script CLI, automation n8n pure, API). `/challenge` est optionnel — à ajouter quand tu sens que `/plan` te laisse partir avec des angles morts. `/close` est optionnel mais recommandé — sans rituel de sortie, les phases s'accumulent et l'historique git devient illisible.
+**Parcours 2 — Reprise (tu reviens après quelques jours/semaines)**
+
+```
+/recap              ← lit PRD.md + plans + git log + MEMORY.md → "tu as Phase 1 ✅, Phase 2 en cours, action suggérée : /execute"
+   ↓
+{action proposée}   ← /execute, /plan Phase N+1, /ship, /evolve... selon l'état détecté
+```
+
+**Parcours 3 — Évolution (projet shipped, tu veux ajouter une feature)**
+
+```
+/recap              ← détecte projet shipped → propose /evolve
+   ↓
+/evolve             ← parse PRD existant + 3 questions cadrage feature + insère Phase N+1 sans écraser
+   ↓
+/plan Phase N+1     ← reprend le flux standard
+   ↓
+/execute → /validate → /close → /ship
+```
+
+**Conditionnels** :
+- `/design` skip si `project_type` ∈ {automation, site simple} ou si le projet n'a pas d'UI custom.
+- `/brainstorm` skip si l'idée est déjà claire après `/start`.
+- `/challenge` skip si Request Classification = LITE.
+- `/troubleshoot` à invoquer **à la demande** quand un bug ou un comportement inattendu apparaît (hors flux nominal).
+- `/remember {topic}` à invoquer **à la demande** quand tu veux capturer un learning hors-clôture-phase.
 
 ### Qui écrit quelle section de ce fichier
 
@@ -170,18 +241,34 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 
 ## Skills disponibles dans ce kit
 
+**Table principale — 12 commandes du cycle de vie projet** *(certaines arrivent en v2.0.0 GA — voir colonne "Statut")* :
+
+| Skill | Pour quoi | Quand | Statut |
+|-------|-----------|-------|--------|
+| `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage. Détecte aussi projet existant et bifurque vers `/recap`. | 1x à l'ouverture d'une nouvelle session | ✅ |
+| `/brainstorm` | Clarifier une idée vague en 3 questions | Si l'idée n'est pas claire après `/start` | ✅ |
+| `/architect` | Produire un `PRD.md` structuré (mini-3-sections en LITE, 7 sections en STANDARD/FULL) | Une fois l'idée claire | ✅ |
+| `/scaffold` | Scaffold le repo selon `project_type` + provisioning credentials externes (Supabase, Vercel, n8n) | Après `/architect`, avant `/plan Phase 1` | à venir v2.0 Phase B |
+| `/design` | Produire `DESIGN.md` (palette, typo, composants) lu par `frontend-design` | Après `/scaffold`, **uniquement si project_type = webapp** | ✅ |
+| `/plan` | Découper UNE phase du PRD en tâches numérotées (adapte les questions selon `project_type`) | Avant d'exécuter une phase | ✅ |
+| `/execute` | Exécuter le plan tâche par tâche, coche les `[x]` au fil de l'eau | Après `/plan` (et éventuellement `/challenge`) | ✅ |
+| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / curl / audit RLS Supabase) | Après `/execute` | ✅ |
+| `/close` | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + harvest learnings + suggestion next | **Mandatory** après `/validate ✅` | ✅ |
+| `/ship` | Déployer en production selon `project_type` (Vercel / n8n / GitHub Pages) + checklist RLS advisory + smoke test | Quand la dernière phase est `/close` | à venir v2.0 Phase D |
+| `/evolve` | Ajouter une nouvelle feature à un projet shipped : insère Phase N+1 dans PRD existant sans écraser | Sur projet shipped, quand tu veux scaler | à venir v2.0 Phase E |
+| `/troubleshoot` | Investiguer un bug : repro → root cause → fix → regression test | À la demande, quand un comportement inattendu apparaît | à venir v2.0 Phase F |
+
+**Skills optionnels avancés** :
+
 | Skill | Pour quoi | Quand |
 |-------|-----------|-------|
-| `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage | 1x à l'ouverture d'une nouvelle session |
-| `/brainstorm` | Clarifier une idée vague en 3 questions | Si l'idée n'est pas claire après `/start` |
-| `/architect` | Produire un `PRD.md` structuré (7 sections) | Une fois l'idée claire |
-| `/design` | Produire `DESIGN.md` (palette, typo, composants) lu par `frontend-design` | Après `/architect`, **uniquement si web app** |
-| `/plan` | Découper UNE phase du PRD en tâches numérotées (lit `DESIGN.md` si phase UI) | Avant d'exécuter une phase |
-| `/challenge` *(optionnel)* | Devil's advocate sur un plan : 3 risques + 3 hypothèses + GO/REWORK/STOP | Avant `/execute`, quand tu veux un dernier crible |
-| `/execute` | Exécuter le plan tâche par tâche | Après `/plan` (et éventuellement `/challenge`) |
-| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre / RLS Supabase) | Après `/execute` |
-| `/close` *(optionnel)* | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + suggestion phase suivante | Après `/validate ✅` |
-| 7 skills `n8n-*` | Créer / valider / debugger des workflows n8n | Auto-invoqués quand tu touches à n8n |
+| `/challenge` | Devil's advocate sur un plan : 3 risques + 3 hypothèses + GO/REWORK/STOP | Avant `/execute`, systématique en Request Classification FULL |
+
+**Notes hors table** :
+- Tu reviens après une pause ? Tape `/recap` — lit PRD/plans/git log/MEMORY.md et propose la suite. *(à venir v2.0 Phase C)*
+- Capture rapide d'un learning ? Tape `/remember {topic}` — append-only dans `memory/topics/{topic}.md`. *(à venir v2.0 Phase H)*
+
+**Skills `n8n-*`** : 7 skills officiels [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-skills) (MIT) dans `.claude/skills/n8n/`. Auto-invoqués quand tu touches à n8n.
 
 ## Sous-agent
 
