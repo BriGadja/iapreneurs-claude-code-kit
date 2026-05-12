@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Utiliser quand l'utilisateur a une idée vague ou floue ("j'aimerais une app pour...", "je voudrais automatiser...", "j'ai envie de faire un truc qui..."). Ne PAS utiliser si l'utilisateur a déjà une idée précise — passer direct à /architect. Sortie : fichier `brainstorm-{sujet}.md` clarifié.
+description: Utiliser quand l'utilisateur a une idée vague ou floue ("j'aimerais une app pour...", "je voudrais automatiser...", "j'ai envie de faire un truc qui..."). Ne PAS utiliser si l'utilisateur a déjà une idée précise — passer direct à /architect. Sortie — fichier `brainstorm-{sujet}.md` clarifié.
 ---
 
 # Skill /brainstorm — clarifier une idée vague

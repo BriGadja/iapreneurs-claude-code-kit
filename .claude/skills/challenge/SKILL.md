@@ -1,6 +1,6 @@
 ---
 name: challenge
-description: Utiliser pour passer un plan (`phase-{N}-plan.md`) au crible d'un devil's advocate avant /execute. Sortie : 3 risques majeurs + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. Ne PAS utiliser sans plan — créer le plan d'abord avec /plan. Ne PAS utiliser pour challenger un PRD — c'est /plan qui pose les questions de cadrage en amont.
+description: Utiliser pour passer un plan (`phase-{N}-plan.md`) au crible d'un devil's advocate avant /execute. Sortie — 3 risques majeurs + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. Ne PAS utiliser sans plan — créer le plan d'abord avec /plan. Ne PAS utiliser pour challenger un PRD — c'est /plan qui pose les questions de cadrage en amont.
 ---
 
 # Skill /challenge — devil's advocate sur un plan

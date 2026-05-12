@@ -1,6 +1,6 @@
 ---
 name: evoluer
-description: Utiliser quand un projet est livré (toutes phases ✅ Terminée, /livrer passé) et que tu veux ajouter une nouvelle feature. Mini-/architect ciblé : 3 questions de cadrage feature, insertion idempotente d'une Phase N+1 dans le PRD existant sans écraser les Phases ✅ Terminée, handoff vers /plan. Ne PAS utiliser sur un projet non-livré (utilise /plan Phase suivante directement) ni pour modifier une Phase existante (édite manuellement).
+description: Utiliser quand un projet est livré (toutes phases ✅ Terminée, /livrer passé) et que tu veux ajouter une nouvelle feature. Mini-/architect ciblé — 3 questions de cadrage feature, insertion idempotente d'une Phase N+1 dans le PRD existant sans écraser les Phases ✅ Terminée, handoff vers /plan. Ne PAS utiliser sur un projet non-livré (utilise /plan Phase suivante directement) ni pour modifier une Phase existante (édite manuellement).
 ---
 
 # Skill /evoluer — ajouter une feature à un projet livré
