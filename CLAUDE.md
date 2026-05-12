@@ -326,7 +326,7 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 | `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / curl / audit policy d'accès BDD) | Après `/execute` | ✅ |
 | `/close` | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + harvest learnings + suggestion next | **Mandatory** après `/validate ✅` | ✅ |
 | `/livrer` | Déployer en production selon `## Stack` (hosting/BDD/email détectés depuis CLAUDE.md, jamais hardcode) + checklist policy d'accès advisory + smoke test | Quand la dernière phase est `/close` | ✅ |
-| `/evoluer` | Ajouter une nouvelle feature à un projet livré : insère Phase N+1 dans PRD existant sans écraser | Sur projet livré, quand tu veux scaler | à venir v2.0 Phase E |
+| `/evoluer` | Ajouter une nouvelle feature à un projet livré : insère Phase N+1 dans PRD existant sans écraser (regex parse + 3 questions + idempotent) | Sur projet livré, quand tu veux scaler | ✅ |
 
 **Skills optionnels avancés** :
 

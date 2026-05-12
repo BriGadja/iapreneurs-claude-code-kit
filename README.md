@@ -44,7 +44,7 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 | `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre / **audit policy d'accès BDD** si données clients). Jamais "ça devrait marcher". | ✅ |
 | `/close` | Clôturer la phase : marque ✅ Terminée dans le PRD + commit conventionnel + harvest learnings + handoff. **Mandatory** après `/validate ✅`. | ✅ |
 | `/livrer` | Déployer en production selon `## Stack` (hosting/BDD/email **détectés depuis CLAUDE.md, jamais hardcode** — Vercel/Netlify/Cloudflare/GitHub Pages/autre) + checklist policy d'accès advisory + smoke test. | ✅ |
-| `/evoluer` | Ajouter une nouvelle feature à un projet livré : insère Phase N+1 dans PRD existant sans écraser. | à venir v2.0 Phase E |
+| `/evoluer` | Ajouter une nouvelle feature à un projet livré : insère Phase N+1 dans PRD existant sans écraser (regex parse + 3 questions + idempotent). | ✅ |
 
 **Skills optionnels avancés** :
 

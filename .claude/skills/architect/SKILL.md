@@ -185,7 +185,7 @@ Annonce à l'utilisateur : *"Repo scaffold + credentials provisionnées. `.env` 
 ## Quand ne PAS utiliser ce skill
 
 - Idée encore floue → `/brainstorm` d'abord
-- Modification d'un PRD existant → édite directement le fichier
+- **Ajouter une feature à un projet livré (PRD existant + phases ✅ Terminée)** → `/evoluer` (jamais d'édition manuelle du PRD)
 - Projet très petit (1-2 fichiers, fix rapide) → pas besoin de PRD
 
 ## Handoff
