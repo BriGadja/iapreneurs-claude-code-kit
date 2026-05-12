@@ -1,6 +1,51 @@
 # IAPreneurs Claude Code Kit
 
-> Kit Claude Code prêt à forker. Tape `/start` après le clone, suis le guide piloté, et tu attaques ton premier projet en 5 minutes.
+> **Framework guidé Claude Code pour débutants**, du démarrage au scaling. Supporte 3 cas d'usage : **site vitrine**, **web app SaaS**, **automatisation n8n**. Tape `/start` après le clone, suis le guide piloté, et tu attaques ton premier projet en 5 minutes.
+
+## 3 parcours typiques
+
+**Parcours 1 — Création (premier projet)** :
+```
+/start              ← cadrage + outillage + project_type + Request Classification
+   ↓
+/brainstorm         ← (optionnel) si idée floue
+   ↓
+/architect          ← PRD.md + providers favoris + Étape 6 scaffold + provisioning
+   ↓
+/design             ← SI webapp : produit DESIGN.md (sinon skip)
+   ↓
+/plan Phase 1       ← découpe en tâches (adapté project_type)
+   ↓
+/challenge          ← (optionnel, systématique en FULL)
+   ↓
+/execute            ← coche les [x] une par une
+   ↓
+/validate           ← verdict réel "ça marche / ça marche pas"
+   ↓
+/close              ← MANDATORY : ✅ Terminée + commit + harvest mémoire
+   ↓
+/plan Phase 2 → ... (boucle)
+   ↓
+/livrer             ← deploy prod selon ## Stack (Vercel/Netlify/Cloudflare/autre)
+```
+
+**Parcours 2 — Reprise (tu reviens après une absence)** :
+```
+/recap              ← lit PRD + plans + git log + MEMORY.md → propose la suite
+   ↓
+{action proposée}   ← /execute, /plan, /livrer, /evoluer selon l'état détecté
+```
+
+**Parcours 3 — Évolution (projet livré, tu veux ajouter une feature)** :
+```
+/recap              ← détecte projet livré → propose /evoluer
+   ↓
+/evoluer            ← parse PRD + 3 questions cadrage + insère Phase N+1
+   ↓
+/plan Phase N+1     ← reprend le flux standard
+   ↓
+/execute → /validate → /close → /livrer
+```
 
 ## Démarrage
 
@@ -20,12 +65,13 @@ Une fois dans Claude, tape :
 /start
 ```
 
-`/start` te guide en 5 phases :
-1. **Visite du kit** (skippable)
-2. **3 questions de cadrage** → remplit la section `## Identité` de ton `CLAUDE.md`
-3. **Sécurisation des credentials** → `.env` créé et gitignored, `.mcp.json` avec syntaxe `${VAR}`
-4. **Vérification de l'outillage** → Playwright + n8n MCP + plugin frontend-design
-5. **Routage** → `/brainstorm` (idée floue) ou `/architect` (idée claire)
+`/start` te guide :
+1. **Détection projet** — lit MEMORY.md + CLAUDE.md + PRD.md. Si projet existant détecté → bifurque vers `/recap`.
+2. **Visite du kit** (skippable)
+3. **3 questions de cadrage** → remplit la section `## Identité` de ton `CLAUDE.md` + écrit `project_type` ∈ `{webapp, site, automation}`
+4. **Sécurisation des credentials** → `.env` créé et gitignored, `.mcp.json` avec syntaxe `${VAR}`
+5. **Vérification de l'outillage** → Playwright + n8n MCP + plugin frontend-design
+6. **Routage** → `/brainstorm` (idée floue) ou `/architect` (idée claire) ou `/recap` (projet existant)
 
 Sortie : projet cadré, outillage testé, prochain skill suggéré.
 
@@ -85,7 +131,15 @@ Voir `.claude/rules/README.md` pour le détail du pattern.
 
 ## Exemples remplis
 
-`examples/freelance-devis/` montre à quoi ressemblent un `PRD.md`, un `phase-1-plan.md`, un `DESIGN.md` et un `CLAUDE.md` produits par la suite des skills sur un projet illustratif (freelance qui automatise ses devis). Ouvre ces fichiers en parallèle de tes propres essais — le format est plus parlant qu'une longue doc.
+Trois exemples, un par `project_type` :
+
+| Exemple | `project_type` | Niveau | Stack |
+|---------|---------------|--------|-------|
+| [`examples/site-vitrine-coach/`](examples/site-vitrine-coach/) | `site` | LITE | Next.js + Vercel + Resend |
+| [`examples/webapp-saas-freelance-devis/`](examples/webapp-saas-freelance-devis/) | `webapp` | STANDARD | Next.js + Supabase + n8n + Resend + Vercel |
+| [`examples/automation-n8n-veille-rss/`](examples/automation-n8n-veille-rss/) | `automation` | STANDARD | n8n + Supabase + Anthropic Haiku + Slack |
+
+Détails et critères de choix dans [`examples/README.md`](examples/README.md). Ouvre ces fichiers en parallèle de tes propres essais — le format est plus parlant qu'une longue doc.
 
 ## Scaffolding outillage
 

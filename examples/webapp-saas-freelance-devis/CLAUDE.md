@@ -6,6 +6,8 @@
 
 <!-- start:identité -->
 Application web qui automatise la génération de devis pour un freelance français. Le client final reçoit des demandes via un formulaire public, un moteur n8n qualifie et calcule un brouillon de devis, le freelance relit dans un espace admin et envoie un PDF par mail. Sert un seul freelance par instance, 2-5x par semaine.
+
+project_type: webapp
 <!-- /start:identité -->
 
 ## Stack

@@ -3,7 +3,9 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
-## [v2.0.0] — En cours
+## [v2.0.0] — 2026-05-12
+
+> **Statut** : GA — validation script-driven `scripts/validate-kit-v2.sh` = 44/44 PASS. Voir `docs/VALIDATION-SCENARIOS-V2.md`.
 
 > **Refonte majeure** : passage d'un squelette spec-driven web-app-centric à un **framework guidé complet** couvrant tout le cycle de vie d'un projet pour **3 cas d'usage** (site / webapp / automation).
 

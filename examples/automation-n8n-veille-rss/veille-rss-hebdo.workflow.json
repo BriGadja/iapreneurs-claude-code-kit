@@ -1,0 +1,52 @@
+{
+  "name": "[PROD] veille-rss-ia-hebdo",
+  "description": "Workflow n8n minimal pour Phase 1 — exemple pédagogique. À adapter avec credentials réelles avant prod. Trigger Cron lundi 7h, 10 flux RSS, dédup Supabase, classement Haiku, envoi Slack.",
+  "nodes": [
+    {
+      "name": "Cron lundi 7h",
+      "type": "n8n-nodes-base.cron",
+      "notes": "Trigger : tous les lundis 7h Europe/Paris. À configurer via UI n8n."
+    },
+    {
+      "name": "RSS list (config)",
+      "type": "n8n-nodes-base.set",
+      "notes": "Liste hardcoded de 10 URLs RSS pour Phase 1. Phase 2 = lire depuis Supabase table rss_feeds."
+    },
+    {
+      "name": "Fetch RSS (loop)",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "notes": "Loop sur les 10 URLs, parse XML, retourne items."
+    },
+    {
+      "name": "Hash URL + Check Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "notes": "SHA-256 de l'URL canonicalisée + SELECT seen_articles WHERE url_hash = ?. Si trouvé → drop l'item (déjà vu)."
+    },
+    {
+      "name": "Insert seen_articles",
+      "type": "n8n-nodes-base.supabase",
+      "notes": "Pour chaque item nouveau, INSERT INTO seen_articles (url_hash, url, seen_at) VALUES (...)."
+    },
+    {
+      "name": "Classement pertinence (Claude Haiku)",
+      "type": "n8n-nodes-base.anthropic",
+      "notes": "Prompt : 'Note de 0 à 10 la pertinence pour un entrepreneur IA débutant-intermédiaire. JSON : {score, raison_1_phrase}'. Modèle claude-haiku-4-5-20251001."
+    },
+    {
+      "name": "Top 10 par score desc",
+      "type": "n8n-nodes-base.itemLists",
+      "notes": "Sort par score desc, limit 10. Si moins de 5 avec score ≥ 7, prend juste top 3 et flag 'semaine calme'."
+    },
+    {
+      "name": "Format Markdown",
+      "type": "n8n-nodes-base.code",
+      "notes": "JS : génère un message Slack au format '*Top 10 IA semaine du {date}*\\n1. **{titre}** — {raison} — {url}\\n...'"
+    },
+    {
+      "name": "Send to Slack",
+      "type": "n8n-nodes-base.slack",
+      "notes": "Webhook incoming, canal #veille-ia. Phase 1 : canal test. Phase 2 : canal prod."
+    }
+  ],
+  "_NOTE": "Ce JSON est un SQUELETTE PÉDAGOGIQUE — il liste les nodes sans connections ni credentials. À importer dans n8n via l'UI puis configurer chaque node manuellement (credentials Anthropic, Supabase, Slack webhook). N'utilise PAS ce fichier en prod tel quel."
+}
