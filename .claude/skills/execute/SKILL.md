@@ -5,6 +5,8 @@ description: Utiliser pour exécuter un fichier `phase-{N}-plan.md` créé par /
 
 # Skill /execute — exécuter un plan tâche par tâche
 
+**Invocation** : `/execute phase-{N}-plan.md` (passe le fichier plan en argument).
+
 ## Pour quoi faire
 
 Tu prends un fichier `phase-{N}-plan.md` et tu **fais** ce qu'il dit. Une tâche, puis la suivante. Tu coches `[x]` quand c'est fini. À la fin de la phase, tu marques la phase comme **✅ Terminée** dans le PRD parent.

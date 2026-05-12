@@ -5,6 +5,8 @@ description: Utiliser après /execute pour vérifier qu'une phase fonctionne ré
 
 # Skill /validate — vérifier que ça marche pour de vrai
 
+**Invocation** : `/validate phase-{N}-plan.md` (passe le fichier plan en argument).
+
 ## Pour quoi faire
 
 Après `/execute`, vérifier que la phase **fait vraiment ce qu'elle est censée faire**. Pas "le code compile". Pas "ça devrait marcher". Tu **lances** l'application, tu **observes** le comportement, tu donnes un **verdict** réel.
@@ -24,6 +26,7 @@ Lire `phase-{N}-plan.md`. Identifier le type de livrable :
 - **App web** (Next.js, page web déployée) → option A
 - **Workflow n8n** → option B
 - **Autre** (script, API, CLI) → option C
+- **Phase touche Supabase + données clients (transcripts, contacts, paiements, multi-tenant)** → option D **en plus** de A/B/C, jamais à la place
 
 ### Étape 2 — proposer 3 options
 
@@ -36,6 +39,8 @@ Toujours **proposer 3 options** à l'utilisateur, pas une décision en silence :
 > **B. Test workflow n8n** — j'envoie un trigger réel au workflow, je vérifie la sortie. Bon pour n8n.
 >
 > **C. Autre** — dis-moi comment tu veux que je teste, je m'adapte (script, API call, manuel avec captures d'écran).
+>
+> **D. Audit sécurité Supabase** *(en plus de A/B/C, pas à la place)* — `get_advisors` sur ton projet + lister les policies RLS sur les tables touchées en Phase {N}. Pas de policy = critical. À lancer dès que la phase manipule des données clients réelles (transcripts, contacts, paiements, multi-tenant).
 >
 > Tu préfères quelle option ?"
 
@@ -75,6 +80,17 @@ Selon l'option choisie, **lance vraiment le test** :
 - Demander à l'utilisateur comment tester
 - Suivre les instructions
 - Toujours **observer la sortie**
+
+**Option D — audit sécurité Supabase** (en complément de A/B/C, jamais seul) :
+- Lance `mcp__supabase__get_advisors` (ou équivalent) sur le projet — note les advisories `security:high` et `security:medium`
+- Pour chaque table touchée en Phase {N} (créée, modifiée, ou requêtée), liste les policies RLS :
+  ```sql
+  SELECT tablename, policyname, cmd, qual, with_check
+  FROM pg_policies
+  WHERE schemaname = 'public' AND tablename IN (...);
+  ```
+- **Critical** si une table contient des données clients ET n'a aucune policy RLS — la table est ouverte à n'importe qui avec l'anon key
+- Inclure les findings dans la section "Tests réalisés" du verdict avec préfixe `[RLS]`
 
 ### Étape 4 — verdict
 

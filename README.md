@@ -40,11 +40,12 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 | `/plan` | Découper UNE phase du PRD en tâches avec critères "Fait quand". Lit `DESIGN.md` si la phase touche à l'UI. Scout le codebase via `research-delegate` pour éviter les doublons. |
 | `/challenge` *(optionnel)* | Devil's advocate sur le plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. |
 | `/execute` | Exécuter le plan tâche par tâche, cocher au fur et à mesure. Délègue à `research-delegate` si bloqué par une doc API externe. |
-| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre). Jamais "ça devrait marcher". |
+| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre / **audit RLS Supabase** si données clients). Jamais "ça devrait marcher". |
+| `/close` *(optionnel)* | Clôturer la phase : marque ✅ Terminée dans le PRD, propose un message de commit conventionnel, suggère `/plan` Phase {N+1}. Pas de `git push` automatique. |
 
-Workflow type : `/start` → `/brainstorm`? → `/architect` → `/design`? → `/plan` Phase 1 → `/challenge`? → `/execute` → `/validate` → `/plan` Phase 2 → ...
+Workflow type : `/start` → `/brainstorm`? → `/architect` → `/design`? → `/plan` Phase 1 → `/challenge`? → `/execute` → `/validate` → `/close`? → `/plan` Phase 2 → ...
 
-`/design` est conditionnel — skip si pas d'UI (script CLI, automation n8n, API). `/challenge` est optionnel à activer quand tu te sens à l'aise.
+`/design` est conditionnel — skip si pas d'UI (script CLI, automation n8n, API). `/challenge` et `/close` sont optionnels à activer quand tu te sens à l'aise.
 
 ## Sous-agent
 
@@ -58,11 +59,19 @@ Workflow type : `/start` → `/brainstorm`? → `/architect` → `/design`? → 
 
 `.claude/rules/` contient des fichiers Markdown avec frontmatter `paths:` qui se chargent **automatiquement** quand Claude ouvre un fichier matching le glob. Permet de garder le `CLAUDE.md` court.
 
-Exemple fourni : `frontend.md` (`paths: src/**/*.{ts,tsx}`, 8 règles React + Tailwind + shadcn). Voir `.claude/rules/README.md` pour le détail du pattern.
+Exemples fournis :
+- `frontend.md` (`paths: src/**/*.{ts,tsx}`) — React + Tailwind + shadcn
+- `n8n.md` (`paths: **/*.workflow.json`) — naming workflows, credentials, webhooks, anti-patterns
+
+Voir `.claude/rules/README.md` pour le détail du pattern.
 
 ## Template `CLAUDE.md`
 
 5 couches **Identité / Stack / Conventions / Instructions / Contexte métier** avec ancres HTML pour les zones écrites par les skills (`<!-- start:identité -->`, `<!-- architect:stack -->`) + 4 règles de comportement (réfléchir avant de coder, simplicité, modifs chirurgicales, exécution orientée but) + section "Comment ce CLAUDE.md est entretenu" (séquencement skills, qui écrit quoi, déportation vers `.claude/rules/`) + section "Sécurité des credentials".
+
+## Exemples remplis
+
+`examples/freelance-devis/` montre à quoi ressemblent un `PRD.md`, un `phase-1-plan.md`, un `DESIGN.md` et un `CLAUDE.md` produits par la suite des skills sur un projet illustratif (freelance qui automatise ses devis). Ouvre ces fichiers en parallèle de tes propres essais — le format est plus parlant qu'une longue doc.
 
 ## Scaffolding outillage
 
@@ -98,7 +107,6 @@ Et au-delà de RLS : valide les inputs côté serveur (jamais juste côté clien
 ## Crédits
 
 - **Skills n8n** : [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-skills) (MIT, attribution dans `.claude/skills/n8n/LICENSE-czlonkowski`)
-- **Règles de comportement** : adaptées d'Andrej Karpathy
 
 ## License
 

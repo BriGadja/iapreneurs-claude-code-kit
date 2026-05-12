@@ -162,7 +162,7 @@ Lis `.mcp.json`. Édite-le pour ajouter l'entrée n8n avec syntaxe d'expansion (
   "mcpServers": {
     "n8n": {
       "command": "npx",
-      "args": ["n8n-mcp@latest"],
+      "args": ["-y", "n8n-mcp@latest"],
       "env": {
         "N8N_API_URL": "${N8N_API_URL}",
         "N8N_API_KEY": "${N8N_API_KEY}"

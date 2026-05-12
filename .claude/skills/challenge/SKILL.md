@@ -5,6 +5,8 @@ description: Utiliser pour passer un plan (`phase-{N}-plan.md`) au crible d'un d
 
 # Skill /challenge — devil's advocate sur un plan
 
+**Invocation** : `/challenge phase-{N}-plan.md` (passe le fichier plan en argument).
+
 ## Pour quoi faire
 
 Avant `/execute`, faire un dernier passage critique sur le plan. **Objectif** : trouver ce que `/plan` n'a pas vu. Tu joues le rôle d'un collègue lucide qui pose les questions qui dérangent. Sortie : 3 risques majeurs + 3 hypothèses non vérifiées + un verdict **GO / REWORK / STOP**.

@@ -75,6 +75,25 @@ Itère jusqu'à ce que l'utilisateur dise oui.
 
 Sauvegarder dans `PRD.md` à la racine du projet uniquement après validation explicite.
 
+### Étape 5b — propager la Stack dans CLAUDE.md
+
+Une fois `PRD.md` sauvegardé, ouvre `CLAUDE.md` et trouve le bloc :
+
+```
+<!-- architect:stack -->
+{...placeholder ou contenu précédent...}
+<!-- /architect:stack -->
+```
+
+Remplace le contenu entre les deux ancres par la **section Stack du PRD** (juste les bullets, pas le titre `## Stack technique`). **Garde les ancres**, **ne touche à aucune autre partie du `CLAUDE.md`**.
+
+Si les ancres `<!-- architect:stack -->` / `<!-- /architect:stack -->` ne sont pas trouvées (CLAUDE.md trop ancien ou template modifié) :
+1. Cherche le heading `## Stack` à la racine du fichier
+2. Si trouvé, remplace son contenu placeholder par les bullets du PRD + ajoute les ancres autour pour les futures sessions
+3. Si pas trouvé non plus, dis à l'utilisateur : *"Pas d'ancre `<!-- architect:stack -->` ni de section `## Stack` dans CLAUDE.md. Je n'écris pas pour ne pas casser ta structure. Tu veux que je l'ajoute en bas du fichier ?"*
+
+Annonce à l'utilisateur : *"Stack synchronisée dans `CLAUDE.md ## Stack`. Future Claude saura quelle techno tu utilises sans relire le PRD entier."*
+
 ## Format du PRD
 
 ```markdown

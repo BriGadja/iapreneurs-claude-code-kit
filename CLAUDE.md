@@ -126,10 +126,12 @@ Quand le plugin `frontend-design@claude-code-plugins` est invoqué (auto ou expl
    ↓
 /validate Phase 1       ← verdict réel "ça marche / ça marche pas"
    ↓
+/close Phase 1          ← marque ✅ Terminée dans le PRD, propose un commit conventionnel
+   ↓
 /plan Phase 2 → ... (boucle)
 ```
 
-`/design` est conditionnel (skip si pas d'UI : script CLI, automation n8n pure, API). `/challenge` est optionnel — à ajouter quand tu sens que `/plan` te laisse partir avec des angles morts.
+`/design` est conditionnel (skip si pas d'UI : script CLI, automation n8n pure, API). `/challenge` est optionnel — à ajouter quand tu sens que `/plan` te laisse partir avec des angles morts. `/close` est optionnel mais recommandé — sans rituel de sortie, les phases s'accumulent et l'historique git devient illisible.
 
 ### Qui écrit quelle section de ce fichier
 
@@ -177,7 +179,8 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 | `/plan` | Découper UNE phase du PRD en tâches numérotées (lit `DESIGN.md` si phase UI) | Avant d'exécuter une phase |
 | `/challenge` *(optionnel)* | Devil's advocate sur un plan : 3 risques + 3 hypothèses + GO/REWORK/STOP | Avant `/execute`, quand tu veux un dernier crible |
 | `/execute` | Exécuter le plan tâche par tâche | Après `/plan` (et éventuellement `/challenge`) |
-| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre) | Après `/execute` |
+| `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre / RLS Supabase) | Après `/execute` |
+| `/close` *(optionnel)* | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + suggestion phase suivante | Après `/validate ✅` |
 | 7 skills `n8n-*` | Créer / valider / debugger des workflows n8n | Auto-invoqués quand tu touches à n8n |
 
 ## Sous-agent
@@ -201,12 +204,13 @@ Pattern recommandé (Anthropic-officiel) :
    {
      "mcpServers": {
        "n8n": {
-         "command": "npx", "args": ["n8n-mcp@latest"],
+         "command": "npx", "args": ["-y", "n8n-mcp@latest"],
          "env": { "N8N_API_KEY": "${N8N_API_KEY}" }
        }
      }
    }
    ```
+   Le `-y` dans `args` évite que npx te bloque sur un prompt "install ?" au premier lancement du MCP.
 4. **Charger `.env` dans le shell** avant `claude` : `set -a && source .env && set +a` (ou installer `direnv` pour le faire automatiquement)
 
 Si tu vois un secret en clair quelque part dans le repo, **stop immédiatement** et déplace-le dans `.env`. Re-write l'historique git si nécessaire (`git filter-repo` ou re-création du repo si récent).
@@ -229,8 +233,12 @@ Commandes brutes si tu préfères installer sans passer par `/start` :
 # Playwright (aucun credential)
 claude mcp add playwright -- npx -y @playwright/mcp@latest
 
-# n8n (les ${VAR} restent littéraux grâce aux quotes simples — expansion au lancement de claude)
-claude mcp add n8n -e 'N8N_API_URL=${N8N_API_URL}' -e 'N8N_API_KEY=${N8N_API_KEY}' -- npx n8n-mcp@latest
+# n8n — les single-quotes (') sont OBLIGATOIRES autour de N8N_API_URL=${N8N_API_URL}.
+# Avec des double-quotes ("), ton shell développerait ${N8N_API_URL} immédiatement au moment du
+# `claude mcp add` (souvent à vide si .env pas encore sourcé) → la valeur en dur serait stockée
+# dans .mcp.json. Avec single-quotes, la chaîne ${N8N_API_URL} est stockée littéralement et
+# résolue plus tard par Claude au lancement du MCP. Le -y évite le prompt npx.
+claude mcp add n8n -e 'N8N_API_URL=${N8N_API_URL}' -e 'N8N_API_KEY=${N8N_API_KEY}' -- npx -y n8n-mcp@latest
 
 # Plugin frontend-design
 claude plugin install frontend-design@claude-code-plugins
