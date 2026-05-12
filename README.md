@@ -36,12 +36,15 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 | `/start` | Onboarding piloté (5 phases). À taper 1x à l'ouverture. |
 | `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. |
 | `/architect` | Produire un `PRD.md` structuré (7 sections). Écrit la section `## Stack` du `CLAUDE.md`. |
-| `/plan` | Découper UNE phase du PRD en tâches avec critères "Fait quand". Scout le codebase via `research-delegate` pour éviter les doublons. |
+| `/design` *(web app uniquement)* | Définir le design system (palette, typographie, ton, composants) → produit `DESIGN.md`. Lu par le plugin `frontend-design` à chaque création UI pour garder la cohérence visuelle entre pages. |
+| `/plan` | Découper UNE phase du PRD en tâches avec critères "Fait quand". Lit `DESIGN.md` si la phase touche à l'UI. Scout le codebase via `research-delegate` pour éviter les doublons. |
 | `/challenge` *(optionnel)* | Devil's advocate sur le plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. |
 | `/execute` | Exécuter le plan tâche par tâche, cocher au fur et à mesure. Délègue à `research-delegate` si bloqué par une doc API externe. |
 | `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre). Jamais "ça devrait marcher". |
 
-Workflow type : `/start` → `/brainstorm`? → `/architect` → `/plan` Phase 1 → `/challenge`? → `/execute` → `/validate` → `/plan` Phase 2 → ...
+Workflow type : `/start` → `/brainstorm`? → `/architect` → `/design`? → `/plan` Phase 1 → `/challenge`? → `/execute` → `/validate` → `/plan` Phase 2 → ...
+
+`/design` est conditionnel — skip si pas d'UI (script CLI, automation n8n, API). `/challenge` est optionnel à activer quand tu te sens à l'aise.
 
 ## Sous-agent
 

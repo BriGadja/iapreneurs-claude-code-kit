@@ -43,6 +43,12 @@
 - Toujours valider les téléphones au format français (`+33` ou `06/07`)
 - TVA par défaut : 20% (configurable en base)
 
+## Création UI (si web app)
+
+Avant de créer ou modifier un composant UI, un layout, ou une page : **lire `DESIGN.md` à la racine** pour récupérer la palette, la typographie, les composants définis. Si `DESIGN.md` n'existe pas et que la tâche touche à l'UI, **stop** et propose à l'utilisateur de lancer `/design` d'abord — sans design system, le rendu sera incohérent d'une page à l'autre.
+
+Cette règle s'applique aussi quand le plugin `frontend-design@claude-code-plugins` est invoqué : référence `DESIGN.md` dans le prompt envoyé au plugin.
+
 ## Contexte métier
 
 {Le vocabulaire et les règles métier propres à ton domaine, écrits au fil de l'eau. Exemple :}
@@ -99,9 +105,11 @@
    ↓
 /brainstorm             ← si idée floue (skippé sinon)
    ↓
-/architect             ← produit PRD.md (source de vérité pour tout ce qui suit)
+/architect              ← produit PRD.md (source de vérité pour tout ce qui suit)
    ↓
-/plan Phase 1           ← découpe une phase en tâches
+/design                 ← SI web app : produit DESIGN.md (palette, typo, composants)
+   ↓
+/plan Phase 1           ← découpe une phase en tâches (lit DESIGN.md si phase UI)
    ↓
 /challenge (optionnel)  ← devil's advocate avant exécution
    ↓
@@ -112,7 +120,7 @@
 /plan Phase 2 → ... (boucle)
 ```
 
-`/challenge` est optionnel. Ajoute-le quand tu sens que `/plan` te laisse partir avec des angles morts.
+`/design` est conditionnel (skip si pas d'UI : script CLI, automation n8n pure, API). `/challenge` est optionnel — à ajouter quand tu sens que `/plan` te laisse partir avec des angles morts.
 
 ### Qui écrit quelle section de ce fichier
 
@@ -123,6 +131,8 @@
 | `## Conventions` | Toi (manuel) | Au fil de l'eau, quand tu vois Claude faire l'inverse de ce que tu veux |
 | `## Instructions` | Toi (manuel) | Au fil de l'eau |
 | `## Contexte métier` | Toi (manuel) | Au fil de l'eau, dès que tu utilises du vocabulaire métier que Claude doit comprendre |
+
+Le fichier `DESIGN.md` (produit par `/design` si web app) vit à part, à la racine, et est lu automatiquement par Claude pour toute création UI (voir section "Création UI" plus bas).
 
 Les ancres `<!-- skill:nom -->` ... `<!-- /skill:nom -->` délimitent les zones d'écriture des skills. Ne les supprime pas. Si tu veux retirer le contenu sans casser le skill, laisse les ancres vides.
 
@@ -154,7 +164,8 @@ Voir `.claude/rules/README.md` pour le détail du pattern + 1 exemple prêt à l
 | `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage | 1x à l'ouverture d'une nouvelle session |
 | `/brainstorm` | Clarifier une idée vague en 3 questions | Si l'idée n'est pas claire après `/start` |
 | `/architect` | Produire un `PRD.md` structuré (7 sections) | Une fois l'idée claire |
-| `/plan` | Découper UNE phase du PRD en tâches numérotées | Avant d'exécuter une phase |
+| `/design` | Produire `DESIGN.md` (palette, typo, composants) lu par `frontend-design` | Après `/architect`, **uniquement si web app** |
+| `/plan` | Découper UNE phase du PRD en tâches numérotées (lit `DESIGN.md` si phase UI) | Avant d'exécuter une phase |
 | `/challenge` *(optionnel)* | Devil's advocate sur un plan : 3 risques + 3 hypothèses + GO/REWORK/STOP | Avant `/execute`, quand tu veux un dernier crible |
 | `/execute` | Exécuter le plan tâche par tâche | Après `/plan` (et éventuellement `/challenge`) |
 | `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / autre) | Après `/execute` |

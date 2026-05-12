@@ -17,13 +17,16 @@ Prendre **UNE phase** d'un PRD et la découper en tâches numérotées avec des 
 
 ## Comment procéder
 
-### Étape 1 — lire le PRD + identifier la phase
+### Étape 1 — lire le PRD (+ DESIGN.md si UI) + identifier la phase
 
 L'utilisateur passe en argument soit `PRD.md`, soit le numéro de phase ("phase 1"), soit les deux.
 
-Lire le PRD. Identifier la phase à planifier. Reformuler à l'utilisateur :
+Lire le PRD. **Si la phase touche à l'UI web** (composants, pages, layout) ET qu'un fichier `DESIGN.md` existe à la racine → le lire aussi. Tes tâches devront référencer la palette/typo/composants définis dedans. Si la phase touche à l'UI mais qu'il n'y a pas de `DESIGN.md` → suggère à l'utilisateur de lancer `/design` d'abord (anti-incohérence visuelle).
+
+Identifier la phase à planifier. Reformuler à l'utilisateur :
 
 > "OK, je vais planifier **Phase {N} — {nom}** : {description PRD}. C'est ça ?"
+> *(Si DESIGN.md lu)* "Je vais respecter le design system de `DESIGN.md` dans les tâches UI."
 
 ### Étape 1bis — scout du codebase (si le projet a déjà du code)
 

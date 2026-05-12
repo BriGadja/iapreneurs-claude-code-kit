@@ -36,10 +36,10 @@ Annonce :
 Si **non** (visite demandée), liste en 6 lignes :
 
 > "Dans ce kit, tu as :
-> - **7 skills** : `/start` (moi), `/brainstorm`, `/architect`, `/plan`, `/challenge` (optionnel), `/execute`, `/validate`.
+> - **8 skills** : `/start` (moi), `/brainstorm`, `/architect`, `/design` (web app uniquement), `/plan`, `/challenge` (optionnel), `/execute`, `/validate`.
 > - **1 sous-agent** `research-delegate` que les skills invoquent quand ils ont besoin de chercher sans polluer ton contexte.
 > - **7 skills n8n** officiels de Czlonkowski pour les workflows.
-> - **Un `.mcp.json` vide** prêt à recevoir Playwright + n8n MCP + plugin `frontend-design` (on les installe en phase 3).
+> - **Un `.mcp.json` vide** prêt à recevoir Playwright + n8n MCP + plugin `frontend-design` (on les installe en phase 3). Le plugin `frontend-design` sera consommé par `/design` pour rester cohérent dans toutes tes pages.
 > - **Un dossier `.claude/rules/`** pour déporter les règles spécifiques à un domaine quand le `CLAUDE.md` devient trop long.
 > Le tout est conçu pour grandir avec toi : tu peux commencer avec 3 skills (`/brainstorm`, `/architect`, `/plan`) et activer le reste au fil du temps."
 
@@ -238,6 +238,7 @@ Format strict :
 
 ### Prochaine étape
 - `/{brainstorm | architect}` selon ta réponse à la dernière question
+- *(si web app)* Après `/architect`, lance `/design` pour produire `DESIGN.md` avant `/plan` Phase 1 — le plugin `frontend-design` le lira pour rester cohérent sur toutes tes pages.
 
 Tu peux relancer `/start` à tout moment pour ré-cadrer ou re-vérifier l'outillage.
 ```

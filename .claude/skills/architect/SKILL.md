@@ -124,4 +124,7 @@ Sauvegarder dans `PRD.md` à la racine du projet uniquement après validation ex
 
 ## Handoff
 
-Fin du skill : message avec le path du PRD validé + suggestion `/plan {prd-projet}.md` Phase 1.
+Fin du skill : message avec le path du PRD validé.
+
+- **Si la stack du PRD inclut une UI web** (Next.js, React, Vue, Svelte, etc.) → suggestion `/design` AVANT `/plan` Phase 1. Le `DESIGN.md` produit par `/design` sera lu par le plugin `frontend-design` à chaque création de composant — sans, le plugin réinvente une palette à chaque page.
+- **Sinon** (script CLI, automation n8n pure, API backend) → suggestion `/plan` Phase 1 direct.
