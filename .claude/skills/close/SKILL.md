@@ -1,19 +1,24 @@
 ---
 name: close
-description: Utiliser à la fin d'une phase (après /validate ✅) pour clôturer proprement — propose un message de commit conventionnel à partir du diff, coche la phase ✅ Terminée dans le PRD, suggère /plan Phase N+1. Ne PAS utiliser au milieu d'une phase, ni si /validate n'a pas tourné — c'est un rituel de sortie, pas un raccourci.
+description: Utiliser à la fin d'une phase (après /validate ✅) pour clôturer proprement — marque la phase ✅ Terminée dans le PRD (source unique depuis v2.0), propose un commit conventionnel à partir du diff, suggère /plan Phase N+1 ou /ship si dernière phase. Ne PAS utiliser au milieu d'une phase, ni si /validate ❌ KO. Skill mandatory post /validate ✅ (plus optionnel depuis v2.0).
 ---
 
 # Skill /close — clôturer proprement une phase
 
 **Invocation** : `/close` (rien à passer, le skill détecte la phase depuis le PRD + git status).
 
+**Mandatory post-`/validate ✅`** depuis v2.0 — sans `/close`, le commit n'est jamais fait et le PRD reste non-à-jour. Le handoff de `/validate` ne propose plus le skip.
+
 ## Pour quoi faire
 
 Après `/validate ✅`, faire la sortie propre :
-1. Marquer la phase **✅ Terminée le YYYY-MM-DD** dans le PRD parent.
+1. Marquer la phase **✅ Terminée le YYYY-MM-DD** dans le PRD parent — **source unique** depuis v2.0 (avant, `/execute` Étape 3 marquait aussi → doublon résolu).
 2. Proposer un message de commit conventionnel à partir du diff git réel.
 3. Demander confirmation avant `git commit`. Pas de `git push` automatique.
-4. Suggérer la prochaine étape : `/plan` Phase {N+1} ou pause projet.
+4. Suggérer la prochaine étape :
+   - Si ce n'est **pas la dernière phase** → `/plan Phase {N+1}`
+   - Si c'est la **dernière phase** ET projet **jamais shipped** (pas d'`<!-- ship:url -->` rempli dans CLAUDE.md) → `/ship`
+   - Sinon → pause projet (et `/recap` pour reprendre plus tard)
 
 C'est court. C'est un rituel, pas un skill de production.
 
@@ -95,9 +100,16 @@ Annonce le SHA résultant. **Ne push pas automatiquement** — c'est à l'utilis
 
 ### Étape 6 — suggestion suivante
 
-Lis `PRD.md ## Phases`. Identifie la phase suivante (première sans ✅ Terminée). Propose :
+Lis `PRD.md ## Phases`. Identifie la phase suivante (première sans ✅ Terminée).
 
-> "Phase {N} clôturée. Tu veux enchaîner sur **Phase {N+1} — {nom}** maintenant avec `/plan Phase {N+1}`, ou tu fais une pause ?"
+- **Si une phase suivante existe** :
+  > "Phase {N} clôturée. Tu veux enchaîner sur **Phase {N+1} — {nom}** maintenant avec `/plan Phase {N+1}`, ou tu fais une pause ?"
+
+- **Si toutes les phases sont ✅ Terminées** (Phase {N} était la dernière), vérifie si le projet a déjà été shipped : grep `<!-- ship:url -->` dans `CLAUDE.md`, regarde si le bloc contient une URL (pas juste le placeholder).
+  - **Pas encore shipped** :
+    > "Phase {N} clôturée. Toutes les phases du PRD sont ✅ Terminées et le projet n'a jamais été déployé. Tu veux lancer **`/ship`** pour passer en production ?"
+  - **Déjà shipped** :
+    > "Phase {N} clôturée. Toutes les phases du PRD sont ✅ Terminées et le projet est déjà en production. Quand tu veux ajouter une feature → `/evolve` (v2.0 GA). Sinon, projet bouclé. 🎉"
 
 ## Risque #1 — commit silencieux
 
@@ -116,4 +128,7 @@ Si `/validate` n'a pas dit `✅ OK`, la phase n'est pas finie. Marquer ✅ Termi
 
 ## Handoff
 
-Fin du skill : SHA du commit + suggestion `/plan Phase {N+1}` (ou message de fin de projet si dernière phase).
+Fin du skill : SHA du commit + suggestion selon l'état du PRD :
+- Phase suivante existe → `/plan Phase {N+1}`
+- Dernière phase + pas shipped → `/ship`
+- Dernière phase + déjà shipped → fin de cycle (proposer `/evolve` pour future feature)

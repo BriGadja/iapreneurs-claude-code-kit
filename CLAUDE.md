@@ -67,6 +67,12 @@ project_type: {site | webapp | automation}
 {Résumé du design system, écrit par `/design` après sa première exécution. 3-5 lignes max : palette principale (couleurs primaire + neutres), famille typographique, philosophie UI (épuré/dense, formel/casual). Sert de référence rapide sans devoir relire `DESIGN.md` à chaque fois. Exemple : "Palette : violet `#6855F8` primaire + neutres chauds. Typo Inter (sans-serif). UI épurée, formel mais pas froid, beaucoup de blanc. Voir `DESIGN.md` pour les tokens complets."}
 <!-- /design:summary -->
 
+## Production
+
+<!-- ship:url -->
+{Écrit par `/ship` après le premier déploiement réussi + smoke test ✅. Contient l'URL prod, le type de déploiement, la date de ship, le dernier smoke test. Exemple : "- **URL production** : https://mon-projet.vercel.app — **Type** : webapp — **Shipped le** : 2026-05-15 — **Dernier smoke test** : ✅ 2026-05-15 14:32"}
+<!-- /ship:url -->
+
 ## Création UI (si web app) — division du travail `/design` vs `/frontend-design`
 
 Deux skills travaillent en duo pour l'UI. Ils sont **complémentaires**, pas concurrents :
