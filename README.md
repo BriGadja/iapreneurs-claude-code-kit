@@ -29,7 +29,7 @@ cd iapreneurs-claude-code-kit
 claude
 ```
 
-Au lancement, Claude lit `CLAUDE.md` et a accès aux 5 skills core + 7 skills n8n. Tu peux directement taper :
+Au lancement, Claude lit `CLAUDE.md` et a accès aux 5 skills core + `/challenge` optionnelle + le sous-agent `research-delegate` + 7 skills n8n. Tu peux directement taper :
 
 ```
 /brainstorm une app pour gérer mes recettes de cuisine
@@ -128,7 +128,7 @@ Et au-delà de RLS : valide les inputs côté serveur (jamais juste côté clien
 
 ## Pour aller plus loin
 
-Les 5 skills core de ce kit sont une version pédagogique simplifiée des skills internes Sablia (`/brainstorm`, `/plan`, `/execute`, `/validate` complets, ~250-450 lignes chacun). Ils restent privés.
+Les 5 skills core + `/challenge` de ce kit sont une version pédagogique simplifiée des skills internes Sablia (`/brainstorm`, `/plan`, `/execute`, `/validate`, `/challenge` complets, ~250-450 lignes chacun, plus une dizaine d'autres skills domaine). Le sous-agent `research-delegate` est lui aussi une version simplifiée — Sablia en utilise neuf en production.
 
 Si tu te sens à l'aise avec ce kit et que tu veux la version complète : on en reparle dans la communauté IAPreneurs.
 
