@@ -1,14 +1,34 @@
-node_modules/
+# Secrets — JAMAIS committer (clés API, tokens, credentials)
 .env
 .env.local
 .env.*.local
+.envrc
+
+# Node / build
+node_modules/
 .next/
 out/
 dist/
 build/
 tmp/
-.DS_Store
+*.tsbuildinfo
+
+# Logs
 *.log
+
+# Tests
+coverage/
+
+# Deploy tooling
 .vercel
 .turbo
-coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+
+# IDEs (laisser .claude/ committé — c'est l'AI layer du projet)
+.idea/
+.vscode/
+!.vscode/extensions.json

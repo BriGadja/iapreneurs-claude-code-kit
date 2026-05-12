@@ -6,12 +6,14 @@
 
 Un dossier `.claude/` prêt à l'emploi avec :
 
+- **`/start`** — skill d'onboarding piloté : cadrage projet en 3 questions, sécurisation des credentials (`.env` + `.mcp.json` avec `${VAR}`), vérification de l'outillage (Playwright + n8n MCP + plugin frontend-design), puis routage vers le bon skill suivant.
 - **5 skills core** qui couvrent le cycle complet d'un projet : clarifier une idée → produire un PRD → planifier une phase → exécuter → vérifier.
 - **1 skill optionnelle** `/challenge` — devil's advocate sur le plan avant `/execute` (à activer dans ton workflow quand tu te sens à l'aise).
 - **1 sous-agent** `research-delegate` — invoqué automatiquement par les skills core pour la recherche (codebase + web), garde ta fenêtre de contexte propre.
 - **7 skills n8n officiels** (MIT, czlonkowski) pour t'aider à construire et debugger des workflows n8n sans halluciner les nodes.
-- **Un `CLAUDE.md` template** à adapter à ton projet (5 couches + 4 règles de comportement inspirées de Karpathy).
-- **Un `.mcp.json` vide** prêt à recevoir les MCP recommandés (Playwright, n8n) — commandes d'installation dans `CLAUDE.md`.
+- **`.claude/rules/`** — règles path-scoped auto-chargées (exemple `frontend.md`) pour garder le `CLAUDE.md` court.
+- **Un `CLAUDE.md` template** à adapter à ton projet (5 couches + 4 règles de comportement Karpathy + section "Comment ce CLAUDE.md est entretenu" qui explique le séquencement des skills et la déportation vers `.claude/rules/`).
+- **Un `.mcp.json` vide + `.env.example`** — scaffolding pour ajouter Playwright, n8n MCP, plugin frontend-design avec sécurisation des credentials (`/start` te guide).
 
 Tu forks, tu adaptes, tu codes. C'est la méthode utilisée dans le module Claude Code IAPreneurs.
 
@@ -29,7 +31,13 @@ cd iapreneurs-claude-code-kit
 claude
 ```
 
-Au lancement, Claude lit `CLAUDE.md` et a accès aux 5 skills core + `/challenge` optionnelle + le sous-agent `research-delegate` + 7 skills n8n. Tu peux directement taper :
+Premier réflexe : tape **`/start`**. Le skill te guide en 5 phases (visite kit, 3 questions de cadrage, sécurisation `.env`, vérif MCP/plugin, routage). Sortie : `CLAUDE.md` partiellement rempli + outillage testé + bon prochain skill suggéré.
+
+```
+/start
+```
+
+Tu peux aussi attaquer directement si tu veux :
 
 ```
 /brainstorm une app pour gérer mes recettes de cuisine
@@ -39,12 +47,13 @@ Et c'est parti.
 
 ## Ce qu'il y a dans le kit
 
-### `.claude/skills/` — les 5 skills core (méthode SDD simplifiée) + 1 optionnelle
+### `.claude/skills/` — les 7 skills (entrée `/start` + 5 core + 1 optionnelle)
 
 | Skill | Rôle |
 |-------|------|
+| `/start` | **Point d'entrée**. Visite kit (skippable), 3 questions de cadrage (Identité du `CLAUDE.md`), sécurisation credentials (`.env` + `.gitignore` + `.mcp.json` avec `${VAR}`), vérif outillage (Playwright + n8n MCP + plugin frontend-design), routage vers `/brainstorm` ou `/create-prd`. À invoquer 1x à l'ouverture. |
 | `/brainstorm` | Tu n'as qu'une idée vague. 3 questions et tu repars avec un fichier `brainstorm-{sujet}.md` qui clarifie ce que tu veux. Route 2 délègue à `research-delegate` pour explorer projets similaires. |
-| `/create-prd` | À partir du brainstorm, génère un Product Requirements Document structuré (sommaire / utilisateurs / MVP / phases / stack / critères de succès). |
+| `/create-prd` | À partir du brainstorm, génère un Product Requirements Document structuré (sommaire / utilisateurs / MVP / phases / stack / critères de succès). Écrit la section `## Stack` du `CLAUDE.md`. |
 | `/plan` | Prend une phase du PRD et la découpe en tâches numérotées avec critères "Fait quand" vérifiables. 8 tâches max par phase. Étape 1bis scout le codebase via `research-delegate` pour éviter les doublons. |
 | `/challenge` *(optionnel)* | Passe le plan au crible avant `/execute` : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. À ajouter dans ton workflow quand tu sens que `/plan` seul te laisse partir avec des angles morts. |
 | `/execute` | Exécute les tâches une par une. Coche les cases au fur et à mesure. Marque la phase ✅ Terminée dans le PRD parent. Délègue à `research-delegate` si bloqué par un manque d'info externe. |
@@ -70,17 +79,27 @@ Skills officiels de [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-
 | `n8n-code-javascript` | Code nodes JavaScript. |
 | `n8n-code-python` | Code nodes Python (rare). |
 
+### `.claude/rules/` — règles auto-chargées par chemin
+
+Les fichiers ici ont un frontmatter `paths:` qui définit quand Claude doit les charger. Quand tu ouvres un fichier qui match le pattern (ex: `src/**/*.{ts,tsx}`), Claude charge automatiquement la règle correspondante en plus du `CLAUDE.md` principal.
+
+Ça évite que ton `CLAUDE.md` gonfle à 300 lignes avec des règles front + back + n8n alors que 90 % du temps Claude n'a besoin que d'une dimension à la fois.
+
+Exemple fourni : `frontend.md` (s'applique à tous les `.ts`/`.tsx` dans `src/`). Voir `.claude/rules/README.md` pour le détail du pattern.
+
 ### `CLAUDE.md` — le template à adapter
 
-5 couches : **Identité** / **Stack** / **Conventions** / **Instructions** / **Contexte métier** + **4 règles de comportement** inspirées d'Andrej Karpathy (réfléchir avant de coder / simplicité d'abord / modifications chirurgicales / exécution orientée but).
+5 couches : **Identité** / **Stack** / **Conventions** / **Instructions** / **Contexte métier** + **4 règles de comportement** inspirées d'Andrej Karpathy + une section **"Comment ce CLAUDE.md est entretenu"** qui explique :
+- le séquencement des skills (`/start → /brainstorm? → /create-prd → /plan → /challenge? → /execute → /validate`),
+- qui écrit dans quelle section (ancres HTML `<!-- skill:nom -->` pour `/start` et `/create-prd`),
+- comment déporter vers `.claude/rules/` quand une section dépasse 20 lignes,
+- la **sécurité des credentials** : pattern Anthropic-officiel `${VAR}` dans `.mcp.json`, valeurs réelles dans `.env` (gitignored), `.env.example` committé pour la doc.
 
-Tu copies, tu adaptes les 5 couches à ton projet, tu gardes les 4 règles (elles s'appliquent à n'importe quel projet).
+Tu copies, tu adaptes les 5 couches à ton projet (`/start` rempli déjà Identité et Stack pour toi), tu gardes les 4 règles + la section meta.
 
-Le `CLAUDE.md` documente aussi les **MCP recommandés** (Playwright, n8n) et le **plugin `frontend-design`** d'Anthropic — installations en 1 commande.
+### `.mcp.json` + `.env.example` — scaffolding outillage
 
-### `.mcp.json` — scaffolding MCP
-
-Fichier vide par défaut (`{"mcpServers": {}}`). Tu installes les MCP qui te servent (commandes dans `CLAUDE.md`), `.mcp.json` se remplit tout seul. Tu commit ce fichier dans Git pour que ton équipe ait les mêmes outils.
+`.mcp.json` vide par défaut. `.env.example` documente les variables d'environnement standard (n8n, Anthropic SDK, Supabase, Resend). `/start` te guide pour remplir `.env` (gitignored), ajouter les MCP dans `.mcp.json` avec syntaxe `${VAR}`, et charger `.env` dans ton shell.
 
 ## ⚠️ Sécurité — important
 
@@ -128,7 +147,7 @@ Et au-delà de RLS : valide les inputs côté serveur (jamais juste côté clien
 
 ## Pour aller plus loin
 
-Les 5 skills core + `/challenge` de ce kit sont une version pédagogique simplifiée des skills internes Sablia (`/brainstorm`, `/plan`, `/execute`, `/validate`, `/challenge` complets, ~250-450 lignes chacun, plus une dizaine d'autres skills domaine). Le sous-agent `research-delegate` est lui aussi une version simplifiée — Sablia en utilise neuf en production.
+Les 7 skills + sous-agent de ce kit sont une version pédagogique simplifiée des outils internes Sablia (`/start` ne fait pas partie du workflow Sablia — c'est un wrapper d'onboarding spécifique au kit ; `/brainstorm`, `/plan`, `/execute`, `/validate`, `/challenge` complets côté Sablia font ~250-450 lignes chacun, plus une dizaine d'autres skills domaine). Le sous-agent `research-delegate` est lui aussi une version simplifiée — Sablia en utilise neuf en production.
 
 Si tu te sens à l'aise avec ce kit et que tu veux la version complète : on en reparle dans la communauté IAPreneurs.
 
