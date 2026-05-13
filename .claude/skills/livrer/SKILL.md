@@ -161,21 +161,25 @@ Le risque principal de ce skill est de revenir à du Vercel/Supabase hardcodé "
 - Pour pousser vers GitHub sans deploy prod → c'est `git push`, pas un skill
 - Pour redéployer un changement mineur → commande directe du provider, pas besoin de tout le skill
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "livrer", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
-Fin du skill :
+Affiche à l'utilisateur :
 
-```markdown
-## ✅ Projet livré en production
-
-- **URL** : {URL prod}
-- **Hosting** : {détecté depuis ## Stack}
-- **Type** : {project_type}
-- **Smoke test** : ✅
-- **CLAUDE.md** : URL écrite dans `<!-- ship:url -->`
-
-### Prochaine étape
-- Surveiller la production pendant 24-48h (logs du provider)
-- Quand tu veux ajouter une feature → `/evoluer`
-- Si bug en prod → `/debug` (Claude Code natif) + écrire un test de régression avant de fix
 ```
+✅ Projet livré (URL prod) : CLAUDE.md ## Production
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. (fin ou /evoluer) —
+```
+
+**Prochaine étape** : `/close → /clear → (fin ou /evoluer) —` — voir le rituel dans `docs/KIT.md § STATUS.md & rituel`.

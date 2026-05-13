@@ -28,7 +28,68 @@ C'est court. C'est un rituel, pas un skill de production.
 
 ## Comment procéder
 
+### Étape 0 — Détection du scope (no-op / planning / full)
+
+Avant toute autre action, `/close` détecte automatiquement son mode d'exécution.
+
+**0.1 — Lire la trace `tmp/skill-trace.jsonl`** (si présente). Chaque skill du kit append une ligne JSON à sa fin :
+`{"skill":"plan","artifact":"docs/plans/foo.md","next":"/execute foo","ts":"<ISO8601>"}`
+
+- Si > 10 lignes accumulées → alerter : *"Trop de skills depuis le dernier /close (N lignes) — tu as peut-être oublié de clôturer une étape précédente."* Poursuit avec les **10 dernières lignes**.
+- Si fichier absent ou vide → trace vide (cas projet neuf ou /close juste précédent).
+
+**0.2 — Calculer le diff git** (union pour catch staged + untracked + modified + récent) :
+- `git status --porcelain` (staged, modifié, untracked)
+- `git diff --name-only HEAD~1..HEAD` (commits récents)
+- **Fallback** si `git rev-parse --verify HEAD` échoue (projet sans aucun commit) → traiter comme mode **full** (premier commit). Le no-op n'est pas possible avant le premier commit.
+- **Fallback** si `HEAD~1` inexistant (1 seul commit) → utiliser `git diff --cached --name-only`.
+
+**0.3 — Définir les chemins de planning** (toutes les modifs qui matchent ces patterns = planning-only) :
+```
+plans/, docs/plans/, docs/brainstorms/, research/,
+PRD.md, STATUS.md, memory/daily/
+```
+
+**0.4 — Décider du mode** :
+- Trace vide **ET** diff vide → mode **no-op** → affiche : *"Rien à clôturer. Aucun fichier modifié et aucun skill récent. Tu peux `/clear` directement."* → **fin du skill** (skip toutes les étapes suivantes).
+- Tous les fichiers du diff matchent `planning_paths` → mode **planning** (rapide).
+- Sinon → mode **full** (fin de phase).
+
+**0.5 — Annoncer** : *"Mode détecté : **{mode}**. {explication 1-ligne}"*.
+
+### Étape 0.5 — Update STATUS.md (modes planning ET full)
+
+Cette étape tourne en mode **planning** et **full** (skippée en no-op).
+
+**0.5.1 — Créer STATUS.md si absent** (projet pré-v2.2 migré manuellement) : écrire le template canonique (voir A1 du plan v2.1) avec `{Nom du projet}` laissé tel quel — `/start` le résoudra à la prochaine session si pas déjà fait.
+
+**0.5.2 — Lire trace.jsonl** : la dernière ligne = dernier skill exécuté avant /close. C'est la base de "Dernière étape" et "Prochaine étape recommandée".
+
+**0.5.3 — Lire STATUS.md actuel** pour récupérer l'historique récent (5 dernières lignes max).
+
+**0.5.4 — Réécrire la zone entre `<!-- close:active -->` et `<!-- /close:active -->`** avec :
+- `**Dernière étape**` = dernier skill du trace + son artifact + date du jour
+- `**Prochaine étape recommandée**` = `next` du dernier trace, ou suggestion contextuelle
+- `**Dernier commit reflété**` = `git rev-parse --short HEAD` (sera ensuite mis à jour post-commit avec le nouveau SHA — voir 0.5.6)
+- `## Historique récent` = jusqu'à 5 lignes, la plus récente en haut (drop la plus ancienne si > 5)
+
+Pattern d'écriture : **read fresh + atomic** (écrire tmp puis `mv`).
+
+**0.5.5 — Ordre absolu** :
+1. **Update STATUS.md** (zone active, sans le SHA post-commit encore)
+2. `git add -A` (inclut STATUS.md modifié)
+3. `git commit -m "{message}"`
+4. **Refresh STATUS.md** : ré-écrire le champ `Dernier commit reflété` avec `git rev-parse --short HEAD` (le nouveau SHA), puis `git commit --amend --no-edit` (ou commit séparé `chore: refresh STATUS sha` si amend bloqué par l'utilisateur).
+
+Cet ordre garantit que le commit inclut STATUS.md à jour. Si l'écriture STATUS.md échoue (disque plein, permissions) → **NE PAS commit**. Re-run /close est idempotent.
+
+**0.5.6 — Supprimer `tmp/skill-trace.jsonl`** (consommation). À faire **après** la réussite de l'écriture STATUS.md. Si l'écriture a échoué, NE PAS supprimer (recover possible).
+
 ### Étape 1 — détecter la phase clôturée
+
+> **Note mode planning** : en mode planning, on **skip** Étapes 1, 2, 3 (pas de phase à marquer dans le PRD — la planning artifact est elle-même l'output). On garde Étapes 4-5 (commit). On **skip** Étapes 6.2-6.3 (3 questions harvest — déjà couvertes par les mining markers planning). On écrit un marker `[plan-mining-done:{artifact-slug}]` dans `memory/daily/{today}.md` (créé si absent — convention alignée avec workspace). Étape 7 = annonce + bloc handoff.
+>
+> **Note mode full** : enchaînement actuel intact (Étapes 1-7), avec en plus les Étapes 0 + 0.5 ajoutées en amont.
 
 Lis `PRD.md`. Cherche la dernière phase qui n'est PAS encore marquée ✅ Terminée. Confirme à l'utilisateur :
 
@@ -188,9 +249,34 @@ Si `/validate` n'a pas dit `✅ OK`, la phase n'est pas finie. Marquer ✅ Termi
 - Pour pousser vers GitHub → c'est `git push`, pas un skill (et c'est à l'utilisateur de décider)
 - Pour archiver le projet → c'est manuel (move vers `archive/`, mise à jour README)
 
+## Trace de fin
+
+`/close` est le **consommateur** de `tmp/skill-trace.jsonl` — il lit puis supprime le fichier (voir Étape 0.5.6). Il n'append pas de ligne lui-même : `/close` est le dernier maillon de la chaîne avant `/clear`.
+
 ## Handoff
 
-Fin du skill : SHA du commit + suggestion selon l'état du PRD :
-- Phase suivante existe → `/plan Phase {N+1}`
-- Dernière phase + pas shipped → `/livrer`
-- Dernière phase + déjà shipped → fin de cycle (proposer `/evoluer` pour future feature)
+Trois variantes selon le mode détecté en Étape 0 :
+
+**Mode no-op** :
+> "Rien à clôturer. Tu peux `/clear` directement, ou continuer si tu veux."
+
+**Mode planning** :
+> "Commit fait ({SHA}), STATUS.md à jour. Marker `[plan-mining-done:{artifact-slug}]` écrit dans `memory/daily/{today}.md`.
+>
+> Étapes suivantes pour repartir propre :
+>   1. /clear
+>   2. /{next-skill du trace}"
+
+**Mode full (fin de phase)** :
+> "Phase {N} ✅, commit {SHA} fait, STATUS.md à jour.
+>
+> Étapes suivantes pour repartir propre :
+>   1. /clear
+>   2. /{next-skill}"
+>
+> Suggestion `next-skill` selon l'état du PRD :
+> - Phase suivante existe → `/plan Phase {N+1}`
+> - Dernière phase + pas shipped → `/livrer`
+> - Dernière phase + déjà shipped → fin de cycle (proposer `/evoluer` pour future feature)
+
+**Prochaine étape** : `/clear` puis `/{next-skill}` (voir variante du mode ci-dessus).

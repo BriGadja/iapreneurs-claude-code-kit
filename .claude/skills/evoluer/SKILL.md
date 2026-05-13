@@ -121,18 +121,25 @@ Si le PRD a un format non-standard que ton regex ne match pas, mais que tu insè
 - Refactor majeur qui touche plusieurs phases → relance `/architect` pour repartir d'un PRD étendu
 - Nouvelle feature ÉNORME (3+ phases nécessaires) → `/architect` plutôt que `/evoluer`
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "evoluer", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
-Fin du skill :
+Affiche à l'utilisateur :
 
-```markdown
-## ✅ Phase {N+1} '{nom}' ajoutée au PRD
-
-- **Description** : {description Q2}
-- **Critère de succès** : {critère Q3}
-- **Position** : après Phase {N}, avant `## Stack technique` / `## Hors-MVP`
-
-### Prochaine étape
-- `/plan Phase {N+1}` pour découper en tâches concrètes
-- (Si feature UI et `DESIGN.md` existe) Vérifie au passage que les tokens design couvrent ce qu'il te faut
 ```
+✅ PRD étendu (Phase N+1) : PRD.md
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. /plan Phase N+1
+```
+
+**Prochaine étape** : `/close → /clear → /plan Phase N+1` — voir le rituel dans `docs/KIT.md § STATUS.md & rituel`.

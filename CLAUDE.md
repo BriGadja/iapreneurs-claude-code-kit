@@ -4,7 +4,9 @@
 
 > **À l'ouverture d'une nouvelle session** : tape `/start` — il cadre le projet, sécurise tes credentials, vérifie l'outillage, et te route vers `/brainstorm` ou `/architect`. Si tu reprends une session de travail sur un projet existant (matin, après pause, ou retour J+15), tape `/prime` (couvre aussi la reprise après absence).
 
-> **Rituel par feature (boucle interne PIV)** : `/prime` (recharge contexte) → `/plan` (cadre la feature) → `/execute` (implémente) → `/validate` (vérifie) → `/close` (commit + mémoire). Tape `/start` uniquement à la première session sur un projet neuf.
+> **Rituel par feature (boucle interne PIV)** : `/prime` (recharge contexte depuis `STATUS.md`) → `/plan` (cadre la feature) → `/execute` (implémente) → `/validate` (vérifie) → `/close` (commit + mémoire + `STATUS.md`) → `/clear` (contexte propre) → retour à `/prime` ou `/plan` Phase suivante. Tape `/start` uniquement à la première session sur un projet neuf.
+>
+> **Suivi d'état** : `STATUS.md` à la racine résume où tu en es (Dernière étape, Prochaine étape recommandée, Historique récent). Maintenu UNIQUEMENT par `/close`. À la reprise de session, `/prime` le lit en premier. Voir [`docs/KIT.md § STATUS.md & rituel`](docs/KIT.md#statusmd--rituel-close--clear--next).
 
 ## Glossaire
 

@@ -91,6 +91,25 @@ Si tu sautes les 3 questions et tu écris direct le fichier brainstorm avec tes 
 - L'utilisateur veut juste discuter/explorer sans rien produire → conversation libre, pas de skill
 - Le sujet est énorme (refonte complète d'un produit) → trop large, découper en sous-sujets
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "brainstorm", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
-Fin du skill : message à l'utilisateur avec les 2 options route + le path complet du fichier `docs/brainstorms/{YYYY-MM-DD}-{sujet}.md`.
+Affiche à l'utilisateur :
+
+```
+✅ Brief créé : docs/brainstorms/{YYYY-MM-DD}-{sujet}.md
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. /{plan,architect} {chemin-brief}
+```
+
+**Prochaine étape** : `/close → /clear → /{plan,architect} {chemin-brief}` — voir le rituel dans `docs/KIT.md § STATUS.md & rituel`.

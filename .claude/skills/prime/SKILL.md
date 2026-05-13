@@ -15,6 +15,21 @@ Pas de devinette, pas de relire le PRD à la main. Le skill te ramène dans le c
 
 ## Comment procéder
 
+### Étape 0 — Lecture STATUS.md (accélérateur)
+
+Avant tout, vérifie si `STATUS.md` existe à la racine du projet.
+
+**Si présent** : lis la zone entre `<!-- close:active -->` et `<!-- /close:active -->`. Extrais :
+- `**Dernière étape**`
+- `**Prochaine étape recommandée**`
+- `**Dernier commit reflété**` (champ SHA)
+- Historique récent (5 dernières lignes)
+
+- **Si la zone contient** `(aucune — projet neuf, lance /start)` → projet neuf, redirige vers `/start` et stoppe.
+- **Si STATUS.md riche** : affiche la synthèse extraite + valide rapidement contre le PRD (Étape 1 ci-dessous) en mode "vérification cohérence" (1 ligne). STATUS.md devient ta **source principale**.
+
+**Si STATUS.md absent** (projet pré-v2.1) : annonce *"Pas de STATUS.md détecté — fallback lecture complète."* puis continue Étapes 1-5 actuelles intact (backwards compat).
+
 ### Étape 1 — Lire l'état des phases du PRD
 
 Lis `PRD.md` à la racine.
@@ -96,6 +111,16 @@ Affiche un bloc structuré :
 
 **Règle** : toujours **1 à 3 actions**, pas plus. La première doit être la plus probable. Si l'état est ambigu (ex : Phase 2 ✅ Terminée mais plan Phase 3 absent), explicite : *"Phase 2 est marquée Terminée mais je n'ai pas trouvé `phase-3-plan.md`. Tu veux lancer `/plan Phase 3` ou tu considères le projet terminé (`/livrer`) ?"*
 
+### Étape 5b — Détection STATUS.md stale
+
+Si STATUS.md existe, vérifie qu'il est synchronisé avec le dernier commit via 2 signaux déterministes :
+
+**Signal 1 — SHA divergent** : le champ `**Dernier commit reflété** : {sha-short}` (écrit par /close) ≠ `git rev-parse --short HEAD`. Si différent → STATUS.md non synchro avec le dernier commit → **stale**.
+
+**Signal 2 — Modifs non-clôturées** : `git status --porcelain` retourne des fichiers modifiés ET le `mtime` de STATUS.md est antérieur au dernier commit (`git log -1 --pretty=format:%H STATUS.md` antérieur à HEAD) → un `/close` a été oublié.
+
+Si **stale** détecté : annonce *"⚠️ STATUS.md pas à jour (dernier commit reflété : {old-sha}, HEAD = {new-sha}) — un `/close` a peut-être été oublié à la dernière session. Pense à `/close` quand tu auras fini ta session courante."*
+
 ### Étape 6 — Cas limites
 
 - **Projet livré** (toutes phases ✅ + `<!-- ship:url -->` rempli dans CLAUDE.md OU dernier commit `feat(livrer)`) → suggestion `/evoluer` en priorité. *(Note alpha : si `/evoluer` n'existe pas encore dans la version du kit installée, affiche : "/evoluer arrivera en v2.0.0 GA — d'ici là, édite manuellement ton PRD.md ou relance `/architect` pour repartir d'un PRD étendu".)*
@@ -114,6 +139,16 @@ Tu pourrais dumper le PRD entier, tous les plans, l'historique git complet. **Ne
 - Pour debugger un bug → `/debug` (built-in Claude Code natif) + test de régression avant fix (règle TDD CLAUDE.md)
 - Pour ajouter une feature → `/evoluer` (v2.0 GA)
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "prime", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
 Fin du skill : bloc "## Récap projet" + bloc "### Action suggérée" avec 1-3 actions invocables. Tu ne lances **pas** l'action automatiquement — l'utilisateur décide.
+
+**Prochaine étape** : action proposée dans le bloc "Action suggérée" ci-dessus

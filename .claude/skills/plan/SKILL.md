@@ -140,6 +140,25 @@ Si tu écris "faire la BDD" ou "configurer le backend", c'est trop vague. À `/e
 - Tâche très petite (1 fichier, 5 minutes) → fais-le directement, pas la peine de planifier
 - Plusieurs phases d'un coup → une phase à la fois, c'est non-négociable
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "plan", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
-Fin du skill : path complet du fichier `docs/plans/phase-{N}-plan.md` (ou emplacement legacy si projet pré-v2.1.0 a déjà des plans à la racine ou dans `plans/`) + suggestion `/execute docs/plans/phase-{N}-plan.md`.
+Affiche à l'utilisateur :
+
+```
+✅ Plan créé : docs/plans/phase-{N}-plan.md
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. /execute {chemin-plan}
+```
+
+**Prochaine étape** : `/close → /clear → /execute {chemin-plan}` — voir le rituel dans `docs/KIT.md § STATUS.md & rituel`.

@@ -179,6 +179,25 @@ Tu adaptes les **valeurs**, pas la **structure**. Les 8 sections canoniques sont
 - Question ponctuelle "quelle couleur pour ce bouton" → réponse inline, pas un skill
 - Pas de PRD validé → `/architect` d'abord
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "design", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
-Fin du skill : path `DESIGN.md` + (optionnel) résultat du lint Google + suggestion `/plan` Phase 1.
+Affiche à l'utilisateur :
+
+```
+✅ DESIGN.md créé : DESIGN.md
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. /plan Phase 1
+```
+
+**Prochaine étape** : `/close → /clear → /plan Phase 1` — voir le rituel dans `docs/KIT.md § STATUS.md & rituel`.

@@ -230,6 +230,57 @@ Si tu vois un secret en clair quelque part dans le repo, **stop immédiatement**
 
 ---
 
+## STATUS.md & rituel close → clear → next
+
+Le kit utilise un fichier **`STATUS.md`** à la racine du projet (~15-25 lignes) pour reprendre proprement après chaque session ou interruption. Ce fichier a **un seul écrivain** : `/close`. Tu ne l'édites jamais à la main.
+
+### Le rituel en 3 étapes après chaque skill majeur
+
+Quand un skill produit un artefact (PRD, plan, design, brief, etc.), il affiche un bloc final :
+
+```
+✅ {Résultat} : {chemin/artefact}
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. /{next-skill} {args}
+```
+
+**Pourquoi 3 étapes (pas 1)** :
+- `/close` persiste : commit conventionnel + update STATUS.md (+ harvest learnings si fin de phase). Sans ça, le contexte de ce qui vient d'être fait n'est pas conservé pour la session suivante.
+- `/clear` repart d'une fenêtre vide : pas de bruit accumulé, le skill suivant lit STATUS.md fraîchement.
+- `/{next-skill}` enchaîne sur l'étape suivante. Le skill relit `STATUS.md` + l'artefact mentionné.
+
+### `tmp/skill-trace.jsonl` — la trace mécanique
+
+Chaque skill append une ligne JSON à `tmp/skill-trace.jsonl` à sa fin (le fichier et le dossier `tmp/` sont créés si absents) :
+
+```json
+{"skill": "plan", "artifact": "docs/plans/phase-1-plan.md", "next": "/execute phase-1", "ts": "2026-05-13T14:32:01+02:00"}
+```
+
+`tmp/` est gitignored — la trace est locale. `/close` consolide la trace dans STATUS.md puis **supprime** le fichier (consommation).
+
+### Qui écrit STATUS.md et quand
+
+| Action sur STATUS.md | Qui | Quand |
+|---|---|---|
+| Création initiale | `/start` (template) | À l'onboarding du projet |
+| Mise à jour | `/close` (planning ou full) | À chaque fin de skill majeur |
+| Lecture prioritaire | `/prime` | À chaque reprise de session |
+| Édition manuelle | **Personne** | Jamais (single writer = `/close`) |
+
+### `/close` — 3 modes auto-détectés
+
+`/close` détecte automatiquement le scope du diff git + de la trace :
+
+- **No-op** : trace vide ET aucun fichier modifié → "Rien à clôturer. Tu peux `/clear` directement."
+- **Planning** : seuls les artefacts de planning sont touchés (plans/, PRD.md, STATUS.md, research/, docs/brainstorms/, docs/plans/, memory/daily/) → commit + update STATUS.md + skip les 3 questions harvest.
+- **Full (fin de phase)** : du code est inclus → commit + marque Phase ✅ dans PRD + update STATUS.md + harvest 3 questions opt-in.
+
+---
+
 ## Aller plus loin
 
 - `.claude/rules/README.md` — pattern des règles auto-chargées par chemin (paths-scoped)

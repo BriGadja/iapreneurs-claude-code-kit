@@ -140,6 +140,14 @@ Pas grave. La validation manuelle bien faite vaut mieux qu'un test bidon. L'impo
 - Validation d'un PRD ou plan (relecture qualité) → c'est de la review, pas du `/validate`
 - Test unitaire isolé → c'est `npm test`, pas un skill
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "validate", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
 Fin du skill : verdict + prochaine étape.
@@ -149,3 +157,5 @@ Fin du skill : verdict + prochaine étape.
   - Si c'est la dernière phase ET le projet n'a jamais été livré → suggère `/livrer`
 - **Si ⚠️ Partiel** → demander à l'utilisateur s'il accepte ou veut corriger via `/execute` puis re-`/validate`
 - **Si ❌ KO** → revenir sur `/execute` (ou `/debug` natif Claude Code si bug complexe, avec test de régression obligatoire avant fix) pour fix, puis re-`/validate`. **Pas de `/close` tant que ce n'est pas ✅**.
+
+**Prochaine étape** : `/close` (mandatory si verdict ✅ OK)

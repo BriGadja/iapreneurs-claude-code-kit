@@ -89,6 +89,25 @@ Si tu sors 3 risques bidon (genre "le serveur peut tomber"), tu fais pire que ri
 - Plan ultra-petit (1-2 tâches triviales) → pas la peine, lance direct
 - Tu veux challenger un PRD ou une idée → c'est `/plan` (qui pose les questions de cadrage stack/architecture) ou retour à `/brainstorm`
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "challenge", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
-Fin du skill : verdict + prochaine étape claire (`/execute`, édition du plan, ou retour en amont).
+Affiche à l'utilisateur :
+
+```
+✅ Plan challengé (verdict GO) : {chemin-plan}
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. /execute {chemin-plan}
+```
+
+**Prochaine étape** : `/close → /clear → /execute {chemin-plan}` — voir le rituel dans `docs/KIT.md § STATUS.md & rituel`.

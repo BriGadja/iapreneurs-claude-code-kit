@@ -216,9 +216,25 @@ Annonce finale à l'utilisateur : *"Repo scaffold + credentials provisionnées +
 - **Ajouter une feature à un projet livré (PRD existant + phases ✅ Terminée)** → `/evoluer` (jamais d'édition manuelle du PRD)
 - Projet très petit (1-2 fichiers, fix rapide) → pas besoin de PRD
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "architect", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
-Fin du skill : message avec le path du PRD validé + confirmation scaffold/provisioning.
+Affiche à l'utilisateur :
 
-- **Si `project_type = webapp`** → suggestion `/design` AVANT `/plan Phase 1`. Le `DESIGN.md` produit par `/design` sera lu par le plugin `frontend-design` à chaque création de composant — sans, le plugin réinvente une palette à chaque page.
-- **Si `project_type = site` ou `automation`** → suggestion `/plan Phase 1` direct (pas de design system custom nécessaire).
+```
+✅ PRD créé : PRD.md
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. /{design,plan} (selon project_type) — Phase 1
+```
+
+**Prochaine étape** : `/close → /clear → /{design,plan} (selon project_type) — Phase 1` — voir le rituel dans `docs/KIT.md § STATUS.md & rituel`.

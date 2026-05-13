@@ -83,6 +83,16 @@ L'utilisateur décidera plus tard s'il veut ouvrir un nouveau plan dessus.
 - Tâche unique non planifiée → fais-la directement
 - Le plan a 0 tâche cochable (juste de la doc) → pas un /execute
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "execute", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
 Fin du skill : annonce phase terminée + suggestion `/validate docs/plans/phase-{N}-plan.md` (chemin v2.1.0+, fallback racine ou `plans/` accepté).
+
+**Prochaine étape** : `/validate docs/plans/phase-{N}-plan.md`

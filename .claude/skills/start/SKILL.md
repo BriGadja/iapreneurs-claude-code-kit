@@ -156,6 +156,30 @@ project_type: {webapp | site | automation}
 
 Affiche la diff à l'utilisateur : *"Voici ce que je vais écrire dans `## Identité` (paragraphe + variable `project_type`). OK ou tu veux ajuster ?"* — sauvegarde après validation.
 
+#### 4b — Initialiser STATUS.md depuis le template
+
+Le fichier `STATUS.md` à la racine est créé par le kit (template avec ancres `<!-- close:active -->`). À l'onboarding, fais une **substitution / search-and-replace** :
+
+- Remplace `{Nom du projet}` (en titre `# STATUS — {Nom du projet}`) par le nom du projet validé en Étape 3 Q1.
+- Si `STATUS.md` est **absent** (projet migré manuellement depuis pré-v2.2) → **crée le fichier** en repartant du contenu canonique :
+  ```markdown
+  # STATUS — {Nom du projet}
+
+  > Fichier maintenu UNIQUEMENT par `/close`. Ne pas éditer à la main.
+
+  <!-- close:active -->
+  **Dernière étape** : (aucune — projet neuf, lance `/start`)
+  **Prochaine étape recommandée** : `/start`
+  **Dernier commit reflété** : (aucun — projet neuf)
+
+  ## Historique récent
+  (vide)
+  <!-- /close:active -->
+  ```
+  puis applique la même substitution `{Nom du projet}`.
+
+Tu **n'écris pas** dans la zone `<!-- close:active -->` — c'est `/close` qui la maintient. Substitution titre uniquement.
+
 ### Étape 5 — Vérifier l'outillage (et sécuriser les credentials avant n8n)
 
 Annonce : *"Maintenant l'outillage. Je vérifie 3 trucs : Playwright, n8n MCP, plugin frontend-design. Avant n8n, on sécurise tes credentials proprement."*
@@ -379,6 +403,25 @@ Si l'utilisateur paste sa clé dans la conversation, **ne la répète jamais** d
 - Pour modifier le PRD ou la stack → `/architect` ou édition manuelle
 - Pour ajouter un MCP au milieu d'un projet → utilise `claude mcp add` direct, pas besoin de `/start`
 
+## Trace de fin
+
+Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+
+```json
+{"skill": "start", "artifact": "{chemin produit ou null}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+```
+
 ## Handoff
 
-Fin du skill : bloc "✅ Setup terminé" + suggestion `/brainstorm` ou `/architect`.
+Affiche à l'utilisateur :
+
+```
+✅ Cadrage projet créé : CLAUDE.md ## Identité
+
+Étapes suivantes pour repartir propre :
+  1. /close    → commit + mise à jour STATUS.md
+  2. /clear    → contexte vide
+  3. /{brainstorm,architect} (selon project_type)
+```
+
+**Prochaine étape** : `/close → /clear → /{brainstorm,architect} (selon project_type)` — voir le rituel dans `docs/KIT.md § STATUS.md & rituel`.
