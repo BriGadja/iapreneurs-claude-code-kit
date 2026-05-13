@@ -1,6 +1,6 @@
 ---
 name: execute
-description: Utiliser pour exécuter un fichier `phase-{N}-plan.md` créé par /plan. Coche les tâches au fur et à mesure (`[x]` dans le plan). Ne marque PAS ✅ Terminée dans le PRD — depuis v2.0 c'est `/close` qui le fait (source unique, après `/validate ✅`). Ne PAS utiliser sans plan — créer le plan d'abord avec /plan.
+description: Utiliser pour exécuter un fichier `phase-{N}-plan.md` créé par /plan. Coche les tâches au fur et à mesure (`[x]` dans le plan), fait une auto-évaluation déterministe avant le handoff (Playwright sur localhost pour UI, curl pour API, n8n_test_workflow pour automation — JAMAIS `file://`). Ne marque PAS ✅ Terminée dans le PRD — depuis v2.0 c'est `/close` qui le fait (source unique, après `/validate ✅`). Ne PAS utiliser sans plan — créer le plan d'abord avec /plan.
 ---
 
 # Skill /execute — exécuter un plan tâche par tâche
@@ -40,12 +40,43 @@ Boucle sur les tâches `[ ]` non cochées :
 4. **Si critère vérifié** → cocher `[x]` dans le fichier `phase-{N}-plan.md`
 5. **Si critère non vérifié** → corriger, retenter (max 3 fois). Si échec persistant → arrêter et demander.
 
-### Étape 3 — phase complète (tâches `[x]`, mais ✅ Terminée pas encore écrit)
+### Étape 2.5 — Auto-évaluation AVANT le handoff (non négociable)
 
-Quand toutes les tâches sont `[x]` :
+> **Pourquoi cette étape existe** : cocher `[x]` une tâche prouve que tu as écrit le fichier. Ça ne prouve PAS que le résultat marche pour un utilisateur. Avant de passer la main à `/validate` (qui couvre les critères de phase + AC), tu fais ta propre boucle de vérif déterministe — sinon tu refiles à `/validate` un projet à débugger au lieu d'un projet à signer.
+
+**Anti-patterns explicitement interdits** (vus en prod, à ne JAMAIS faire) :
+- ❌ Annoncer "le site marche" parce que le fichier `.html` existe sur disque
+- ❌ Ouvrir un `.html` en `file://` dans le navigateur pour "tester" — ça n'attrape ni les bugs de fetch, ni de CORS, ni de routing relatif, ni de Tailwind/SSR/build
+- ❌ Skip Playwright parce que "c'est juste un mockup" — le MCP est installé par `/start` justement pour cette étape
+- ❌ Skip `npm test` / `vitest` parce que "j'ai juste touché à du CSS"
+
+**Procédure** : lis la valeur de `project_type` dans `CLAUDE.md ## Identité`, puis applique la ligne correspondante du tableau ci-dessous. Si la phase a touché à plusieurs catégories (UI + API par exemple), tu fais TOUTES les vérifs concernées, pas juste une.
+
+| `project_type` | Modif a touché à... | Vérification obligatoire |
+|----------------|---------------------|--------------------------|
+| `webapp` / `site` | UI (`.tsx`, `.html`, `.css`, page, layout, composant) | (1) Lancer le dev server (`npm run dev` ou équivalent du framework — JAMAIS `file://`) en background ; (2) `browser_navigate` Playwright vers `http://localhost:{port}/{route concernée}` ; (3) `browser_snapshot` (DOM) **et** `browser_take_screenshot` (visuel) → snapshot/screenshot dans `tmp/` ; (4) lire ce que tu vois, raconter en 2-3 lignes ; (5) supprimer les fichiers de `tmp/` après lecture |
+| `webapp` | API / route serveur | `curl -i` sur l'endpoint → status + 5 premières lignes du payload affichés dans la réponse |
+| `webapp` / `site` | BDD (migration, RLS, table) | Query directe (`psql`, Supabase MCP, ou client équivalent) → vérifier structure + une row de test si applicable |
+| `automation` | Workflow n8n | `n8n_test_workflow` via MCP (si trigger webhook/form/chat) OU `curl` sur le webhook → vérifier output + status. Si schedule-only : ajouter temporairement un webhook trigger en parallèle pour smoke-test, ou attendre prochain run scheduled |
+| Tout type | Tests automatisés | `npm test` / `vitest run` → 0 failure, lire le résumé final |
+| Tout type | Build de prod (si livrable) | `npm run build` → 0 erreur (anticipe `/livrer`) |
+
+**Critère de passage** : tu dois pouvoir raconter à l'utilisateur, en 2-3 phrases concrètes, **exactement ce que tu as observé** (URL visitée, status code reçu, screenshot lu, output de test). Si tu te surprends à écrire "ça devrait marcher" ou "le fichier est créé", tu n'as pas auto-évalué — refais.
+
+Si une vérification **échoue** :
+1. Diagnostique la cause racine (pas un patch qui masque)
+2. Corrige
+3. Re-coche la tâche concernée + relance la vérif jusqu'à ce qu'elle passe
+4. Max 3 itérations avant d'arrêter et demander à l'utilisateur
+
+**Si Playwright n'est pas installé** alors que `project_type` est `webapp` / `site` et qu'il y a de l'UI : **stop**. Demande à l'utilisateur de relancer `/start` Étape 5a (qui installe Playwright) avant de continuer. Ne tente pas un fallback `file://` — c'est exactement l'anti-pattern à bloquer.
+
+### Étape 3 — phase complète (tâches `[x]`, auto-éval passée)
+
+Quand toutes les tâches sont `[x]` ET l'Étape 2.5 a passé proprement :
 1. Vérifier le **critère de phase complète** (en bas du plan).
 2. **Ne PAS marquer ✅ Terminée dans le PRD** — c'est le job de `/close` (source unique depuis v2.0, après le verdict de `/validate`).
-3. Annoncer à l'utilisateur : *"Phase {N} : toutes les tâches cochées et critère de phase OK. Passe à `/validate docs/plans/phase-{N}-plan.md` (ou ton emplacement legacy) pour vérifier que ça marche en vrai, puis `/close` marquera ✅ Terminée et fera le commit."*
+3. Annoncer à l'utilisateur : *"Phase {N} : toutes les tâches cochées, auto-évaluation OK ({2-3 lignes qui résument ce que tu as observé}). Passe à `/validate docs/plans/phase-{N}-plan.md` pour vérifier les critères de phase, puis `/close` marquera ✅ Terminée et fera le commit."*
 
 ## Risque #1 — sauter le critère "Fait quand"
 

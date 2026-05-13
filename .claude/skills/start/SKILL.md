@@ -272,31 +272,29 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 `.env.example` est **committé** (sert de doc pour les futurs forkers/collègues). `.env` ne l'est jamais.
 
-**Étape 5b.3 — Choix du mode n8n MCP + demander les valeurs**
+**Étape 5b.3 — Mode n8n MCP (recommandation : API-connected)**
 
-Annonce : *"Le MCP n8n (czlonkowski) a 2 modes. Je te laisse choisir."*
+Le MCP n8n (czlonkowski) a 2 modes. **La recommandation par défaut est Mode B (API-connected)** — il débloque 13 tools de management en plus des 7 docs (création/update workflows, exécutions, audit instance) et c'est ce dont tu auras besoin dès que tu construis un vrai workflow. Mode A (docs-only) n'est un bon choix QUE si tu n'as pas encore d'instance n8n.
 
-> **Mode A — docs-only (7 tools)** : aucune instance n8n requise, marche immédiatement. Tu peux **apprendre n8n**, chercher des nodes, lire la doc, valider des workflows JSON localement. Tu n'as besoin de rien d'autre.
->
-> **Mode B — API-connected (20 tools)** : les 7 du mode A + 13 management (création/update workflows, run executions, audit instance). Nécessite `N8N_API_URL` + `N8N_API_KEY` (Settings → API de ton instance n8n).
->
-> Lequel tu choisis ?
+Pose UNE seule question pour trancher :
 
-**Si Mode A** : skip la demande de credentials. Annonce *"Mode docs-only retenu — tu pourras passer en API-connected plus tard en ajoutant N8N_API_URL + N8N_API_KEY dans `.env`."* Passe direct à 5b.4 (sans bloc N8N_API_*).
+> *"Tu as une instance n8n avec accès API (n8n Cloud, self-hosted, ou autre) ? (oui / pas encore)"*
 
-**Si Mode B (ou "pas sûr, je veux les 2 dispo")** : Annonce *"Je vais te demander 2 valeurs. Elles vont dans `.env` (gitignored, donc privé)."*
+**Si "oui"** → bascule en **Mode B** sans repasser par un menu A/B. Annonce : *"Parfait, on configure le MCP en API-connected (20 tools dispo). Je vais te demander 2 valeurs — elles vont dans `.env` (gitignored, donc privé)."*
 
-Demande `N8N_API_URL` et `N8N_API_KEY`.
+Demande `N8N_API_URL` puis `N8N_API_KEY` (l'utilisateur les récupère dans Settings → API de son instance n8n).
 
-**Si l'utilisateur dit "pas tout de suite" en mode B** : bascule sur Mode A, dis *"OK on reste docs-only. Quand tu auras une instance, édite `.env` direct."*
-
-**Si l'utilisateur donne les valeurs** : crée/édite `.env` à la racine avec :
+Crée/édite `.env` à la racine avec :
 ```
 N8N_API_URL=<valeur fournie>
 N8N_API_KEY=<valeur fournie>
 ```
 
-**JAMAIS** echo, log, ou répète la valeur de `N8N_API_KEY` dans la conversation. Tu confirmes juste *"Clé écrite dans `.env`."*
+**JAMAIS** echo, log, ou répète la valeur de `N8N_API_KEY` dans la conversation. Tu confirmes juste *"Clé écrite dans `.env`."* Passe à 5b.4 en mode B.
+
+**Si "pas encore"** → fallback **Mode A** (docs-only). Annonce : *"OK, on configure en docs-only — tu auras les 7 tools de recherche + validation locale, suffisant pour apprendre n8n. Dès que tu auras une instance, ajoute `N8N_API_URL` + `N8N_API_KEY` dans `.env` et tu passes en mode B sans rien d'autre à toucher."* Passe à 5b.4 en mode A.
+
+**Anti-pattern à éviter** : si l'utilisateur t'a déjà dit qu'il a une instance n8n (par exemple en Étape 3 Q1/Q2 ou plus tôt dans la session), **ne lui repose pas la question** — vas directement Mode B. Et si tu vois des `N8N_API_*` déjà présents dans `.env` ou un `.env` à la racine au démarrage, **mentionne-le** : *"Je vois des credentials n8n dans `.env` — on part en Mode B directement."*
 
 **Étape 5b.4 — Ajouter n8n à `.mcp.json` avec les 3 env vars OBLIGATOIRES**
 
