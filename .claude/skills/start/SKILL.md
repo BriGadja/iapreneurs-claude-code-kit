@@ -1,6 +1,6 @@
 ---
 name: start
-description: Utiliser à l'ouverture d'une nouvelle session sur un projet basé sur ce kit. Visite guidée du kit (skippable), 3 questions de cadrage qui remplissent la section Identité du CLAUDE.md, vérification de l'outillage (Playwright + n8n MCP + plugin frontend-design), puis routage vers /brainstorm (idée floue) ou /architect (idée claire). Ne PAS utiliser au milieu d'une session de travail — c'est un skill d'onboarding.
+description: Utiliser à l'ouverture d'une nouvelle session sur un projet basé sur ce kit. Bootstrap automatique si clone direct du kit détecté (reinit git + remote upstream + commit initial). Visite guidée du kit (skippable), 3 questions de cadrage qui remplissent la section Identité du CLAUDE.md, vérification de l'outillage (Playwright + n8n MCP + plugin frontend-design), puis routage vers /brainstorm (idée floue) ou /architect (idée claire). Ne PAS utiliser au milieu d'une session de travail — c'est un skill d'onboarding.
 ---
 
 # Skill /start — démarrage piloté
@@ -19,6 +19,47 @@ Sortie : un `CLAUDE.md` avec l'Identité remplie + un MCP/plugin stack fonctionn
 **Tu ne modifies que les zones marquées par des ancres HTML** dans le `CLAUDE.md` (`<!-- start:identité -->` ... `<!-- /start:identité -->`). Tout le reste du fichier reste intact, même s'il est encore en mode template — ce sont les autres skills (`/architect`, etc.) ou l'utilisateur qui rempliront le reste plus tard.
 
 ## Comment procéder
+
+### Étape 0 — Détecter un clone direct du kit (5s)
+
+Avant toute autre chose, vérifie si l'utilisateur a cloné directement le repo du kit (au lieu d'utiliser "Use this template" sur GitHub). Dans ce cas, le remote `origin` pointe encore vers le kit lui-même et tout l'historique git du kit est présent — pas adapté pour démarrer un projet personnel.
+
+**Détection** : lance `git remote get-url origin 2>/dev/null` et grep `iapreneurs-claude-code-kit`. Si match ET que `<!-- start:identité -->` contient encore le placeholder par défaut (= projet jamais cadré), tu es dans le cas "fresh clone du kit".
+
+**Si détecté** → propose le bootstrap automatique en UNE seule question :
+
+> *"Je vois que tu as cloné directement le repo du kit (origin = `iapreneurs-claude-code-kit`). Pour que ton projet parte sur un historique git propre, je peux :*
+> *1. Supprimer l'historique du kit (`rm -rf .git && git init`)*
+> *2. Garder le kit comme remote `upstream` (pour tirer les updates futures via `git pull upstream main`)*
+> *3. Faire un premier commit `chore: init from iapreneurs-claude-code-kit v{version}`*
+>
+> *Tu veux que je fasse ça maintenant ? (oui / non)*
+>
+> *💡 Alternative : utiliser le bouton "Use this template" sur GitHub la prochaine fois → tu skipperas cette étape automatiquement."*
+
+**Si l'utilisateur dit oui** :
+```bash
+# Capturer l'URL et la version AVANT de supprimer .git
+KIT_URL=$(git remote get-url origin)
+KIT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v2.1.0")
+
+# Reinit
+rm -rf .git
+git init -b main
+
+# Ajouter le kit comme upstream (pour les updates futures)
+git remote add upstream "$KIT_URL"
+
+# Premier commit propre
+git add -A
+git commit -m "chore: init from iapreneurs-claude-code-kit $KIT_VERSION"
+```
+
+Annonce ensuite : *"✅ Historique git réinitialisé. Le kit est gardé comme `upstream` — `git pull upstream main` pour récupérer les futures versions. Premier commit fait. On continue le cadrage."*
+
+**Si l'utilisateur dit non** → respecte le choix, continue sans toucher au git. Note dans ta tête que ce projet partagera l'historique du kit — ce n'est pas grave, juste un choix.
+
+**Si pas détecté** (utilisateur a "Use this template", ou a déjà fait le bootstrap) → ne dis rien et passe à l'Étape 1.
 
 ### Étape 1 — Détecter l'état du projet (10s)
 

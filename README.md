@@ -49,15 +49,27 @@
 
 ## Démarrage
 
-```bash
-# 1. Fork ce repo (bouton "Fork" sur GitHub)
-# 2. Clone ton fork
-git clone https://github.com/TON-USERNAME/iapreneurs-claude-code-kit.git
-cd iapreneurs-claude-code-kit
+**Recommandé — bouton "Use this template"** (historique git propre dès le départ) :
 
-# 3. Lance Claude Code
+1. Va sur https://github.com/BriGadja/iapreneurs-claude-code-kit
+2. Clique le bouton vert **"Use this template"** → **"Create a new repository"**
+3. Choisis le nom de ton projet → "Create repository"
+4. Clone ton nouveau repo :
+   ```bash
+   git clone https://github.com/TON-USERNAME/TON-PROJET.git
+   cd TON-PROJET
+   claude
+   ```
+
+**Alternative — clone direct du kit** (si tu veux contribuer ou si l'option template n'est pas dispo) :
+
+```bash
+git clone https://github.com/BriGadja/iapreneurs-claude-code-kit.git mon-projet
+cd mon-projet
 claude
 ```
+
+`/start` détectera le clone direct et te proposera automatiquement le bootstrap (reinit `.git` + remote `upstream` pour les futures updates + commit initial) en une seule question oui/non.
 
 Une fois dans Claude, tape :
 
@@ -66,12 +78,13 @@ Une fois dans Claude, tape :
 ```
 
 `/start` te guide :
-1. **Détection projet** — lit MEMORY.md + CLAUDE.md + PRD.md. Si projet existant détecté → bifurque vers `/prime`.
-2. **Visite du kit** (skippable)
-3. **3 questions de cadrage** → remplit la section `## Identité` de ton `CLAUDE.md` + écrit `project_type` ∈ `{webapp, site, automation}`
-4. **Sécurisation des credentials** → `.env` créé et gitignored, `.mcp.json` avec syntaxe `${VAR}`
-5. **Vérification de l'outillage** → Playwright + n8n MCP + plugin frontend-design
-6. **Routage** → `/brainstorm` (idée floue) ou `/architect` (idée claire) ou `/prime` (projet existant)
+1. **Bootstrap** (si clone direct du kit) — reinit historique git + remote `upstream` + commit initial, en une question oui/non
+2. **Détection projet** — lit MEMORY.md + CLAUDE.md + PRD.md. Si projet existant détecté → bifurque vers `/prime`.
+3. **Visite du kit** (skippable)
+4. **3 questions de cadrage** → remplit la section `## Identité` de ton `CLAUDE.md` + écrit `project_type` ∈ `{webapp, site, automation}`
+5. **Sécurisation des credentials** → `.env` créé et gitignored, `.mcp.json` avec syntaxe `${VAR}`
+6. **Vérification de l'outillage** → Playwright + n8n MCP + plugin frontend-design
+7. **Routage** → `/brainstorm` (idée floue) ou `/architect` (idée claire) ou `/prime` (projet existant)
 
 Sortie : projet cadré, outillage testé, prochain skill suggéré.
 
