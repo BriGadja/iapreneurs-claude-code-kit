@@ -5,7 +5,7 @@ description: Utiliser pour exécuter un fichier `phase-{N}-plan.md` créé par /
 
 # Skill /execute — exécuter un plan tâche par tâche
 
-**Invocation** : `/execute phase-{N}-plan.md` (passe le fichier plan en argument).
+**Invocation** : `/execute docs/plans/phase-{N}-plan.md` (priorité v2.1.0+) ou `/execute phase-{N}-plan.md` / `/execute plans/phase-N.md` (fallback compat projets pré-v2.1.0). Le skill cherche le plan dans cet ordre : argument littéral → `docs/plans/{arg}` → `plans/{arg}` → racine.
 
 ## Pour quoi faire
 
@@ -45,7 +45,7 @@ Boucle sur les tâches `[ ]` non cochées :
 Quand toutes les tâches sont `[x]` :
 1. Vérifier le **critère de phase complète** (en bas du plan).
 2. **Ne PAS marquer ✅ Terminée dans le PRD** — c'est le job de `/close` (source unique depuis v2.0, après le verdict de `/validate`).
-3. Annoncer à l'utilisateur : *"Phase {N} : toutes les tâches cochées et critère de phase OK. Passe à `/validate phase-{N}-plan.md` pour vérifier que ça marche en vrai, puis `/close` marquera ✅ Terminée et fera le commit."*
+3. Annoncer à l'utilisateur : *"Phase {N} : toutes les tâches cochées et critère de phase OK. Passe à `/validate docs/plans/phase-{N}-plan.md` (ou ton emplacement legacy) pour vérifier que ça marche en vrai, puis `/close` marquera ✅ Terminée et fera le commit."*
 
 ## Risque #1 — sauter le critère "Fait quand"
 
@@ -85,4 +85,4 @@ L'utilisateur décidera plus tard s'il veut ouvrir un nouveau plan dessus.
 
 ## Handoff
 
-Fin du skill : annonce phase terminée + suggestion `/validate phase-{N}-plan.md`.
+Fin du skill : annonce phase terminée + suggestion `/validate docs/plans/phase-{N}-plan.md` (chemin v2.1.0+, fallback racine ou `plans/` accepté).

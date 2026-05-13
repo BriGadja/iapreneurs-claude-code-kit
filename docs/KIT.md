@@ -8,7 +8,7 @@
 
 | Skill | Pour quoi | Quand | Statut |
 |-------|-----------|-------|--------|
-| `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage. Détecte aussi projet existant et bifurque vers `/recap`. Écrit `project_type` ∈ `{webapp, site, automation}` dans CLAUDE.md `## Identité`. | 1x à l'ouverture d'une nouvelle session | ✅ |
+| `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage. Détecte aussi projet existant et bifurque vers `/prime`. Écrit `project_type` ∈ `{webapp, site, automation}` dans CLAUDE.md `## Identité`. | 1x à l'ouverture d'une nouvelle session | ✅ |
 | `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. | Si l'idée n'est pas claire après `/start` | ✅ |
 | `/architect` | Produire un `PRD.md` structuré (mini-3-sections en LITE, 7 sections en STANDARD/FULL) + **Étape 2b providers favoris** (hosting/BDD/email) + **Étape 6 Provisioning & Scaffold** (scaffold le repo selon `project_type` + retenus + écriture `.env`). Écrit `## Stack` dans CLAUDE.md. | Une fois l'idée claire | ✅ |
 | `/design` *(webapp uniquement)* | Définit le design system au format **DESIGN.md officiel Google** (open-source, spec alpha). Template fourni. **Complémentaire** au plugin Anthropic `frontend-design`. | Après `/architect`, **uniquement si project_type = webapp** | ✅ |
@@ -27,7 +27,7 @@
 
 ### Hors table — built-in & utilitaires
 
-- **`/recap`** — tu reviens après une pause ? Lit `PRD.md` + `phase-*-plan.md` + git log + `MEMORY.md` et propose la suite. `/start` détecte automatiquement les projets existants et bifurque vers `/recap`.
+- **`/prime`** — rituel d'entrée de session sur un projet existant (matin, après pause, reprise J+15). Lit `PRD.md` + `STRUCTURE.md` + plans (`docs/plans/` priorité, fallback `plans/` puis racine) + git log + `MEMORY.md` et propose 1-3 actions concrètes. `/start` détecte automatiquement les projets existants et bifurque vers `/prime`. *(Note : ce `/prime` est custom au kit IAPreneurs — ne pas confondre avec d'autres outils tiers homonymes.)*
 - **`/debug`** (built-in Claude Code natif) — pour debugger un bug. **Règle de comportement** : écris d'abord un test de régression qui reproduit le bug, puis fais-le passer (TDD).
 - **`/start` Phase 4** — propose le niveau Request Classification (LITE / STANDARD / FULL). Stocké dans `CLAUDE.md ## Request Classification`.
 
@@ -77,7 +77,7 @@ Auto-invoqués quand tu touches à n8n. Attribution dans `.claude/skills/n8n/LIC
 ### Parcours 2 — Reprise (tu reviens après quelques jours/semaines)
 
 ```
-/recap              ← lit PRD.md + plans + git log + MEMORY.md → "tu as Phase 1 ✅, Phase 2 en cours, action suggérée : /execute"
+/prime              ← lit PRD.md + plans + git log + MEMORY.md → "tu as Phase 1 ✅, Phase 2 en cours, action suggérée : /execute"
    ↓
 {action proposée}   ← /execute, /plan Phase N+1, /livrer, /evoluer... selon l'état détecté
 ```
@@ -85,7 +85,7 @@ Auto-invoqués quand tu touches à n8n. Attribution dans `.claude/skills/n8n/LIC
 ### Parcours 3 — Évolution (projet livré, tu veux ajouter une feature)
 
 ```
-/recap              ← détecte projet livré → propose /evoluer
+/prime              ← détecte projet livré → propose /evoluer
    ↓
 /evoluer            ← parse PRD existant + 3 questions cadrage feature + insère Phase N+1 sans écraser
    ↓

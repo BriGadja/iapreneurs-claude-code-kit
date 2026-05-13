@@ -35,20 +35,20 @@ Si vide ou inexistant → ne dis rien (pas de bruit).
 **1.1 — Lire CLAUDE.md** + vérifie 4 signaux :
 1. La section `<!-- start:identité -->` contient encore le placeholder par défaut ?
 2. Y a-t-il un `PRD.md` à la racine ?
-3. Y a-t-il des fichiers `plans/phase-*.md` (ou `phase-*-plan.md` à la racine) ?
+3. Y a-t-il des fichiers de plan ? Cherche dans cet ordre : `docs/plans/phase-*-plan.md` (priorité, convention v2.1.0+), puis `plans/phase-*.md`, puis `phase-*-plan.md` à la racine (fallback projets pré-v2.1.0).
 4. La variable `project_type:` est-elle présente dans `<!-- start:identité -->` ?
 
 Branche selon le diagnostic :
 
 **Cas A — Projet neuf** (placeholder identité présent, pas de PRD, pas de plans, pas de `project_type`) → tu déroules les phases 2 à 6 normalement (visite + 3 questions + écriture identité + outillage + routage).
 
-**Cas B — Projet existant en cours** (identité remplie + PRD ou plans présents) → bifurque vers `/recap` :
+**Cas B — Projet existant en cours** (identité remplie + PRD ou plans présents) → bifurque vers `/prime` :
 > *"Projet déjà cadré et en cours ({Nom détecté de l'identité}). Trois options :*
-> *(1) **Reprendre où tu en étais** — je délègue à `/recap` qui lit l'état et te propose la suite [recommandé]*
+> *(1) **Recharger le contexte de session** (continuer ce projet) — je délègue à `/prime` qui lit l'état (PRD + STRUCTURE.md + plans + git log + MEMORY.md) et te propose la suite [recommandé]*
 > *(2) **Cadrer une nouvelle tâche/feature** sur ce projet — on continue en mode visite + routage*
 > *(3) **Ré-onboarder complet** (efface l'identité actuelle et re-fais le cadrage) — confirmation à 3 reprises avant écrasement"*
 > *Tu choisis ?"*
-- Si (1) → annonce *"OK, je passe la main à `/recap`"* et stoppe (l'utilisateur lance `/recap` ou tu peux suggérer en handoff).
+- Si (1) → annonce *"OK, je passe la main à `/prime`"* et stoppe (l'utilisateur lance `/prime` ou tu peux suggérer en handoff).
 - Si (2) → saute à l'Étape 5 (outillage) puis 6 (routage), skip phases 2-4.
 - Si (3) → demande **3 confirmations explicites** avant d'écrire (*"sûr ?" "vraiment sûr ?" "dernière chance, on écrase l'identité actuelle ?"*). Puis dérouler phases 2-6.
 

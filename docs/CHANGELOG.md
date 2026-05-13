@@ -3,6 +3,36 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.1.0 — 2026-05-13
+
+### Renommé
+- `/recap` → `/prime` (description élargie : rituel d'entrée de session, pas seulement post-absence)
+
+### Ajouté
+- **`STRUCTURE.md`** : carte d'architecture du projet, écrite par `/architect` Étape 6.5, lue par `/prime`. Adaptée selon `project_type` (webapp/site/automation). 4 ancres : `<!-- architect:directories -->`, `<!-- architect:patterns -->`, `<!-- architect:tests -->`, `<!-- architect:conventions -->`.
+- **`/architect` Étape 6.5** : génération STRUCTURE.md initial après scaffold, avec templates par `project_type`.
+- **`/prime` Étape 1.5** : lecture STRUCTURE.md si présent (mode dégradé sinon) + section "Architecture" dans la synthèse Étape 5.
+- **STRUCTURE.md dans les 3 examples** du kit (`site-vitrine-coach`, `webapp-saas-freelance-devis`, `automation-n8n-veille-rss`).
+- **Vocabulaire "boucle interne / boucle externe"** dans CLAUDE.md règle 6 et `/close` SKILL.md. Boucle interne = PIV (`/prime → /plan → /execute → /validate → /close`) sur une feature. Boucle externe = corriger le système qui a laissé passer un bug (règle, étape de skill, assertion validate-kit).
+- **Rituel PIV explicite** (`/prime → /plan → /execute → /validate → /close`) dans CLAUDE.md, mis en évidence en haut du template.
+- **Convention `docs/{type}/`** : les outputs des skills (plans, brainstorms) vivent désormais dans `docs/plans/` et `docs/brainstorms/` au lieu de la racine. Documentation dans la nouvelle section `## Où vivent les fichiers` de CLAUDE.md.
+
+### Modifié (layout)
+- `/plan` écrit `docs/plans/phase-N-plan.md` (au lieu de racine), avec `mkdir -p docs/plans` au début.
+- `/brainstorm` écrit `docs/brainstorms/{YYYY-MM-DD}-{sujet}.md` (au lieu de `brainstorm-{sujet}.md` racine), avec `mkdir -p docs/brainstorms` au début. Préfixe date pour tri chronologique.
+- `/prime`, `/execute`, `/validate`, `/challenge`, `/evoluer`, `/close`, `/start` lisent depuis `docs/plans/` avec **fallback compatibilité** vers `plans/` puis racine (projets pré-v2.1.0 continuent à marcher).
+
+### Validation
+- **Scénarios D/E/F/G** ajoutés à `scripts/validate-kit-v2.sh` (>= 55 checks total au lieu de 44). Scénario D mis à jour (prime au lieu de recap), Scénario E = STRUCTURE.md, Scénario F = BONUS pédagogiques (vocab + PIV + anti-leak D9), Scénario G = docs/{type}/ layout.
+
+### Migration depuis v2.0.0
+Aucune action utilisateur requise pour projets pré-v2.1.0 :
+- `/recap` est renommé en `/prime` — anciens projets continuent à fonctionner, juste taper `/prime` au lieu de l'ancien nom.
+- `STRUCTURE.md` est optionnel — `/prime` fonctionne en mode dégradé sans (juste pas de section "Architecture" dans la synthèse).
+- Plans existants à la racine ou dans `plans/` continuent d'être lus (fallback). Pour une organisation propre, déplacer manuellement vers `docs/plans/` (ou laisser tel quel — pas bloquant).
+
+---
+
 ## [v2.0.0] — 2026-05-12
 
 > **Statut** : GA — validation script-driven `scripts/validate-kit-v2.sh` = 44/44 PASS. Voir `docs/VALIDATION-SCENARIOS-V2.md`.
@@ -18,14 +48,14 @@
 ### Ajouté
 
 - **3 nouveaux skills (noms FR pour cohérence communauté IAPreneurs)** :
-  - `/recap` — reprendre un projet existant après absence (lit PRD/plans/git log)
+  - `/prime` — reprendre un projet existant après absence (lit PRD/plans/git log)
   - `/livrer` — déployer en production en lisant `## Stack` du CLAUDE.md (jamais hardcode de provider — Vercel/Netlify/Cloudflare/GitHub Pages/autre détectés depuis stack) + checklist policy d'accès BDD advisory + smoke test
   - `/evoluer` — ajouter une feature à un projet livré sans écraser le PRD
 
 **Skills envisagés puis droppés** (décision D26 mid-execute, "less is more") :
 - `/troubleshoot` → remplacé par `/debug` (built-in Claude Code natif) + règle de comportement TDD dans CLAUDE.md (test de régression avant fix)
 - `/remember` → remplacé par édition manuelle de `memory/topics/{topic}.md` (skill trop léger pour mériter un slot)
-- **Mémoire persistante** : structure `memory/{learnings,topics}/` + `memory/decisions.md` + `MEMORY.md` index à la racine. Le kit apprend du projet au fil des sessions. **Tout est écrit par `/close`** post-commit (auto-récap session dans `learnings/` + 3 questions ciblées opt-in : décision arch ? gotcha ? pattern ? → écrit dans `topics/{domaine}.md` ou `decisions.md`). `/start` et `/recap` lisent `MEMORY.md` au démarrage et affichent le résumé. **L'utilisateur ne touche jamais à la mémoire manuellement.**
+- **Mémoire persistante** : structure `memory/{learnings,topics}/` + `memory/decisions.md` + `MEMORY.md` index à la racine. Le kit apprend du projet au fil des sessions. **Tout est écrit par `/close`** post-commit (auto-récap session dans `learnings/` + 3 questions ciblées opt-in : décision arch ? gotcha ? pattern ? → écrit dans `topics/{domaine}.md` ou `decisions.md`). `/start` et `/prime` lisent `MEMORY.md` au démarrage et affichent le résumé. **L'utilisateur ne touche jamais à la mémoire manuellement.**
 - **3 examples par `project_type`** : `examples/site-vitrine-coach/`, `examples/webapp-saas-freelance-devis/`, `examples/automation-n8n-veille-rss/`.
 - **Request Classification LITE / STANDARD / FULL** dans `CLAUDE.md` template (proposée par `/start` Phase 4).
 - **Règle de comportement #6 — Auto-évaluation** dans CLAUDE.md template : tu ne dis jamais "done" sans avoir vérifié programmatiquement ou visuellement. Pour webapp + modif UI → Playwright MCP (navigate + snapshot/screenshot dans `tmp/`). Pour automation + workflow → exécution réelle via MCP. Pour API → curl. Pour BDD → query directe. Si tu ne peux pas raconter exactement ce que tu as vérifié, tu n'as pas auto-évalué.
@@ -36,7 +66,7 @@
 
 ### Modifié
 
-- `/start` détecte projet existant et bifurque vers `/recap` (au lieu de toujours faire l'onboarding). Migration v1.x → v2.0 transparente.
+- `/start` détecte projet existant et bifurque vers `/prime` (au lieu de toujours faire l'onboarding). Migration v1.x → v2.0 transparente.
 - `/architect` étendu avec **Étape 6 — Provisioning & Scaffold** (scaffold le repo selon `project_type` + provisioning Supabase/Vercel/n8n + écriture `.env`). Décision D25 : fold de l'ancien `/scaffold` envisagé puis dropped — `architect` définit le projet end-to-end, scaffolding est Phase 1 du PRD donc redondant comme skill séparé. Handoff route vers `/design` (si webapp) puis `/plan Phase 1`.
 - `/architect` route aussi vers `/evolve` pour modifications de PRD existant.
 - `/validate` handoff → `/close` (mandatory), plus de skip optionnel.

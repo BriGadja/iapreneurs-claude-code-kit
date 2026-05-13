@@ -1,13 +1,13 @@
 ---
 name: brainstorm
-description: Utiliser quand l'utilisateur a une idée vague ou floue ("j'aimerais une app pour...", "je voudrais automatiser...", "j'ai envie de faire un truc qui..."). Ne PAS utiliser si l'utilisateur a déjà une idée précise — passer direct à /architect. Sortie — fichier `brainstorm-{sujet}.md` clarifié.
+description: Utiliser quand l'utilisateur a une idée vague ou floue ("j'aimerais une app pour...", "je voudrais automatiser...", "j'ai envie de faire un truc qui..."). Ne PAS utiliser si l'utilisateur a déjà une idée précise — passer direct à /architect. Sortie — fichier `docs/brainstorms/{date}-{sujet}.md` clarifié.
 ---
 
 # Skill /brainstorm — clarifier une idée vague
 
 ## Pour quoi faire
 
-L'utilisateur a une idée mais elle n'est pas claire. Tu poses **3 questions max** pour clarifier, puis tu produis un fichier `brainstorm-{sujet}.md` qui résume l'idée en bullet points actionnables. C'est ce fichier qui alimentera `/architect` après.
+L'utilisateur a une idée mais elle n'est pas claire. Tu poses **3 questions max** pour clarifier, puis tu produis un fichier `docs/brainstorms/{YYYY-MM-DD}-{sujet}.md` (convention v2.1.0+ — crée le dossier avec `mkdir -p docs/brainstorms` si absent) qui résume l'idée en bullet points actionnables. C'est ce fichier qui alimentera `/architect` après.
 
 ## Comment procéder
 
@@ -54,7 +54,7 @@ Reprends la main avec la synthèse, ajoute-la à la section "Idée en 1 phrase" 
 
 ### Étape 4 — écrire le fichier
 
-Écrire `brainstorm-{sujet}.md` à la racine du projet. Format :
+Écrire `docs/brainstorms/{YYYY-MM-DD}-{sujet}.md` (faire `mkdir -p docs/brainstorms` si absent). Le préfixe date permet le tri chronologique automatique et évite les collisions de noms. Format :
 
 ```markdown
 # Brainstorm : {sujet}
@@ -78,7 +78,7 @@ Reprends la main avec la synthèse, ajoute-la à la section "Idée en 1 phrase" 
 - {réponse Q5 ou liste explicite}
 
 ## Prochaine étape
-- [ ] /architect brainstorm-{sujet}.md
+- [ ] /architect docs/brainstorms/{YYYY-MM-DD}-{sujet}.md
 ```
 
 ## Risque #1 — partir sans clarification
@@ -93,4 +93,4 @@ Si tu sautes les 3 questions et tu écris direct le fichier brainstorm avec tes 
 
 ## Handoff
 
-Fin du skill : message à l'utilisateur avec les 2 options route + le path du fichier `brainstorm-{sujet}.md`.
+Fin du skill : message à l'utilisateur avec les 2 options route + le path complet du fichier `docs/brainstorms/{YYYY-MM-DD}-{sujet}.md`.

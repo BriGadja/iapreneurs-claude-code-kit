@@ -18,7 +18,7 @@ Après `/validate ✅`, faire la sortie propre :
 4. Suggérer la prochaine étape :
    - Si ce n'est **pas la dernière phase** → `/plan Phase {N+1}`
    - Si c'est la **dernière phase** ET projet **jamais shipped** (pas d'`<!-- ship:url -->` rempli dans CLAUDE.md) → `/livrer`
-   - Sinon → pause projet (et `/recap` pour reprendre plus tard)
+   - Sinon → pause projet (et `/prime` pour reprendre plus tard)
 
 C'est court. C'est un rituel, pas un skill de production.
 
@@ -38,7 +38,9 @@ Si l'utilisateur dit "phase Y" → utilise celle-là. Sinon continue.
 
 ### Étape 2 — vérifier que /validate a tourné
 
-Lis `phase-{N}-plan.md`. Cherche un bloc `## Validation Phase {N}` avec verdict `✅ OK`. Si absent ou si verdict `❌ KO` / `⚠️ Partiel` non résolu :
+Lis le plan de la phase. Cherche d'abord dans `docs/plans/phase-{N}-plan.md` (convention v2.1.0+), puis fallback `plans/phase-{N}.md`, puis `phase-{N}-plan.md` à la racine (projets pré-v2.1.0). Le commit message guidé (Étape 4) référence le path complet `docs/plans/phase-{N}-plan.md` quand le plan est à cet emplacement.
+
+Cherche un bloc `## Validation Phase {N}` avec verdict `✅ OK`. Si absent ou si verdict `❌ KO` / `⚠️ Partiel` non résolu :
 
 > "La Phase {N} n'a pas de verdict `✅ OK` dans son plan. Tu veux lancer `/validate` d'abord, ou tu confirmes que la phase est vraiment finie ?"
 
@@ -101,6 +103,8 @@ Annonce le SHA résultant. **Ne push pas automatiquement** — c'est à l'utilis
 ### Étape 6 — Harvest learnings (mémoire persistante)
 
 Post-commit, **l'utilisateur ne touche pas à la mémoire manuellement** — c'est ce skill qui la maintient. Deux blocs : auto-récap (toujours) + topics opt-in (questions ciblées).
+
+> **Boucle externe (vocabulaire kit v2.1.0)** : tu fais la **boucle externe** ici. La **boucle interne** (PIV : `/prime → /plan → /execute → /validate → /close`) résout la feature courante ; la **boucle externe** cristallise ce que la session t'a appris en mémoire persistante (`memory/topics/`, `memory/decisions.md`, `MEMORY.md`) pour que les futures sessions ne refassent pas les mêmes erreurs.
 
 **6.1 — Auto-récap session (toujours écrit, low-friction)**
 

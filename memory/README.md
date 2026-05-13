@@ -1,6 +1,6 @@
 # `memory/` — mémoire persistante du projet
 
-> Le kit construit progressivement le **cerveau** de ton projet : gotchas, décisions d'arch, patterns réutilisables, learnings par session. À chaque nouvelle session, `/start` et `/recap` chargent `MEMORY.md` (à la racine) → Claude arrive avec le contexte déjà compris.
+> Le kit construit progressivement le **cerveau** de ton projet : gotchas, décisions d'arch, patterns réutilisables, learnings par session. À chaque nouvelle session, `/start` et `/prime` chargent `MEMORY.md` (à la racine) → Claude arrive avec le contexte déjà compris.
 
 ## Règle d'or
 
@@ -10,7 +10,7 @@
 
 | Fichier / dossier | Contient | Écrit par |
 |-------------------|----------|-----------|
-| `MEMORY.md` (racine) | Index 1-ligne par entrée — lu en intro de chaque `/start` et `/recap` | `/close` (à chaque clôture) |
+| `MEMORY.md` (racine) | Index 1-ligne par entrée — lu en intro de chaque `/start` et `/prime` | `/close` (à chaque clôture) |
 | `memory/learnings/{YYYY-MM-DD}.md` | Récap **automatique** par session : commits, fichiers modifiés, durée approx. Pas de question | `/close` (toujours, low-friction) |
 | `memory/topics/{domaine}.md` | Cumul par domaine (auth, n8n, deploy, bugs...). Append-only | `/close` (opt-in via questions harvest) |
 | `memory/decisions.md` | Log des choix d'arch durables (BDD, hosting, framework...) | `/close` (opt-in via la 1ère question harvest) |
@@ -33,7 +33,7 @@
 
 ## Comment c'est lu au démarrage
 
-`/start` et `/recap` lisent `MEMORY.md` (l'index) et affichent : *"📚 Mémoire projet : 3 topics ({liste}), dernière session il y a 4 jours"*. Tu décides si tu plonges (`cat memory/topics/...`) ou continues.
+`/start` et `/prime` lisent `MEMORY.md` (l'index) et affichent : *"📚 Mémoire projet : 3 topics ({liste}), dernière session il y a 4 jours"*. Tu décides si tu plonges (`cat memory/topics/...`) ou continues.
 
 ## Ancres dans MEMORY.md (auto-maintenues)
 

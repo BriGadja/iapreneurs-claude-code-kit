@@ -62,20 +62,21 @@ Sortie : verdict par section + verdict global N/N PASS.
 
 **Verdict v2.0** : 4/4 PASS
 
-## Scénario D — Reprise après absence
+## Scénario D — Reprise (prime)
 
-**Profil débutant** : un IAPreneur revient sur son projet J+15. Il a oublié où il en était.
+**Profil débutant** : un IAPreneur ouvre une session de travail sur son projet existant (matin, après pause, ou retour J+15). Il veut recharger le contexte avant de continuer.
 
-**Friction Round 1** : "je dois relire le PRD à la main pour me souvenir" → résolu par `/recap` qui lit PRD + plans + git log + MEMORY.md et propose 1-3 actions concrètes. `/start` détecte automatiquement les projets existants et bifurque vers `/recap`.
+**Friction Round 1** : "je dois relire le PRD à la main pour me souvenir" → résolu par `/prime` (renommé depuis l'ancien skill *recap* en v2.1.0) qui lit PRD + STRUCTURE.md + plans (`docs/plans/` priorité, fallback `plans/` puis racine) + git log + MEMORY.md et propose 1-3 actions concrètes. `/start` détecte automatiquement les projets existants et bifurque vers `/prime`.
 
-**Checks** (5/5) :
-- /recap existe
-- /recap lit PRD/plans/git log (≥ 3 mentions)
-- /start bifurque vers /recap si projet existant
-- /recap lit MEMORY.md (mémoire persistante)
-- /evoluer existe (pour ajouter feature à projet livré)
+**Checks** (6/6) :
+- /prime existe (ex-recap)
+- l'ancien skill recap n'existe plus (renommé en /prime)
+- /prime lit PRD/plans/git log (≥ 3 mentions)
+- /start bifurque vers /prime si projet existant
+- /prime lit MEMORY.md (mémoire persistante)
+- /prime lit STRUCTURE.md (carte d'architecture v2.1.0)
 
-**Verdict v2.0** : 5/5 PASS
+**Verdict v2.1.0** : 6/6 PASS
 
 ## Anti-régressions Round 1
 

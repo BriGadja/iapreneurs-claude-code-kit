@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# validate-kit-v2.sh — script déterministe de validation du kit v2.0.0
+# validate-kit-v2.sh — script déterministe de validation du kit v2.1.0
 # Vérifie par grep/test la présence des skills, ancres, examples, et l'absence
 # des régressions Round 1 (Dipler, collision /init, RLS hardcoded).
 #
@@ -28,7 +28,7 @@ check() {
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  Validation kit IAPreneurs Claude Code v2.0.0"
+echo "  Validation kit IAPreneurs Claude Code v2.1.0"
 echo "═══════════════════════════════════════════════════════════"
 
 echo ""
@@ -61,12 +61,47 @@ check "/plan adapte questions automation" "grep -qE 'Si.*project_type.*automatio
 check "/livrer supporte automation (workflow n8n)" "grep -qi 'automation' .claude/skills/livrer/SKILL.md"
 
 echo ""
-echo "═══ Scénario D — Reprise (recap) ═══"
-check "/recap existe" "test -f .claude/skills/recap/SKILL.md"
-check "/recap lit PRD/plans/git log" "grep -cE 'PRD\\.md|phase-.*-plan|git log' .claude/skills/recap/SKILL.md | awk '{exit !(\$1>=3)}'"
-check "/start bifurque vers /recap si projet existant" "grep -q '/recap' .claude/skills/start/SKILL.md"
-check "/recap lit MEMORY.md" "grep -q 'MEMORY.md' .claude/skills/recap/SKILL.md"
+echo "═══ Scénario D — Reprise (prime) ═══"
+check "/prime existe (ex-recap)" "test -f .claude/skills/prime/SKILL.md"
+check "ancien skill recap n'existe plus (renommé en prime)" "! test -e .claude/skills/r''ecap"
+check "/prime lit PRD/plans/git log" "grep -cE 'PRD\\.md|phase-.*-plan|git log' .claude/skills/prime/SKILL.md | awk '{exit !(\$1>=3)}'"
+check "/start bifurque vers /prime si projet existant" "grep -q '/prime' .claude/skills/start/SKILL.md"
+check "/prime lit MEMORY.md" "grep -q 'MEMORY.md' .claude/skills/prime/SKILL.md"
+check "/prime lit STRUCTURE.md" "grep -q 'STRUCTURE.md' .claude/skills/prime/SKILL.md"
 check "/evoluer existe (pour projet livré)" "test -f .claude/skills/evoluer/SKILL.md"
+
+echo ""
+echo "═══ Scénario E — STRUCTURE.md (v2.1.0) ═══"
+check "STRUCTURE.md template existe" "test -f STRUCTURE.md"
+check "STRUCTURE.md a 4 ancres architect" "[ \"\$(grep -c '<!-- architect:' STRUCTURE.md)\" -ge 4 ]"
+check "/architect Étape 6.5 écrit STRUCTURE.md" "grep -q '6\\.5' .claude/skills/architect/SKILL.md && grep -q 'STRUCTURE.md' .claude/skills/architect/SKILL.md"
+check "/architect branche STRUCTURE.md par project_type" "[ \"\$(grep -c 'STRUCTURE.md' .claude/skills/architect/SKILL.md)\" -ge 4 ]"
+check "CLAUDE.md pointe vers STRUCTURE.md" "grep -q 'STRUCTURE.md' CLAUDE.md"
+check "Example site a STRUCTURE.md" "test -f examples/site-vitrine-coach/STRUCTURE.md"
+check "Example webapp a STRUCTURE.md" "test -f examples/webapp-saas-freelance-devis/STRUCTURE.md"
+check "Example automation a STRUCTURE.md" "test -f examples/automation-n8n-veille-rss/STRUCTURE.md"
+
+echo ""
+echo "═══ Scénario F — BONUS pédagogiques (v2.1.0) ═══"
+check "CLAUDE.md a vocab boucle interne/externe" "grep -qiE 'boucle interne|boucle externe|inner.?loop|outer.?loop' CLAUDE.md"
+check "/close a vocab boucle externe" "grep -qiE 'boucle externe|outer.?loop' .claude/skills/close/SKILL.md"
+check "CLAUDE.md a rituel PIV explicite" "grep -qE '/prime.*→.*/plan.*→.*/execute' CLAUDE.md"
+check "Aucune mention de l'auteur inspirateur externe dans le kit (anti-leak D9)" "[ \"\$(grep -rEi 'c''ole.?medin|c''oleam00' .claude/ docs/ examples/ memory/ scripts/ CLAUDE.md README.md MEMORY.md STRUCTURE.md 2>/dev/null | wc -l)\" = \"0\" ]"
+
+echo ""
+echo "═══ Scénario G — docs/{type}/ layout (v2.1.0) ═══"
+check "CLAUDE.md a section 'Où vivent les fichiers'" "grep -q '^## Où vivent les fichiers' CLAUDE.md"
+check "CLAUDE.md documente docs/plans/" "grep -q 'docs/plans/' CLAUDE.md"
+check "CLAUDE.md documente docs/brainstorms/" "grep -q 'docs/brainstorms/' CLAUDE.md"
+check "/plan écrit dans docs/plans/" "grep -q 'docs/plans/' .claude/skills/plan/SKILL.md"
+check "/brainstorm écrit dans docs/brainstorms/" "grep -q 'docs/brainstorms/' .claude/skills/brainstorm/SKILL.md"
+check "/prime lit docs/plans/" "grep -q 'docs/plans/' .claude/skills/prime/SKILL.md"
+check "/execute lit docs/plans/" "grep -q 'docs/plans/' .claude/skills/execute/SKILL.md"
+check "/validate lit docs/plans/" "grep -q 'docs/plans/' .claude/skills/validate/SKILL.md"
+check "/challenge lit docs/plans/" "grep -q 'docs/plans/' .claude/skills/challenge/SKILL.md"
+check "/evoluer écrit dans docs/plans/" "grep -q 'docs/plans/' .claude/skills/evoluer/SKILL.md"
+check "/close référence docs/plans/" "grep -q 'docs/plans/' .claude/skills/close/SKILL.md"
+check "/start détecte docs/plans/" "grep -q 'docs/plans/' .claude/skills/start/SKILL.md"
 
 echo ""
 echo "═══ Anti-régressions Round 1 ═══"
@@ -106,6 +141,6 @@ if [ "$FAIL" -gt 0 ]; then
   echo "❌ $FAIL checks ont échoué. Voir détails ci-dessus."
   exit 1
 else
-  echo "✅ Tous les checks passent. Kit v2.0.0 validé."
+  echo "✅ Tous les checks passent. Kit v2.1.0 validé."
   exit 0
 fi

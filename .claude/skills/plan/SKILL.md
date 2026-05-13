@@ -7,7 +7,9 @@ description: Utiliser pour découper UNE phase d'un PRD en tâches numérotées 
 
 ## Pour quoi faire
 
-Prendre **UNE phase** d'un PRD et la découper en tâches numérotées avec des critères "Fait quand" vérifiables. Une tâche = un truc concret à faire (créer un fichier, écrire une fonction, configurer un service). Le fichier produit s'appelle `phase-{N}-plan.md` et il sert de check-list pendant `/execute`.
+Prendre **UNE phase** d'un PRD et la découper en tâches numérotées avec des critères "Fait quand" vérifiables. Une tâche = un truc concret à faire (créer un fichier, écrire une fonction, configurer un service). Le fichier produit s'écrit dans **`docs/plans/phase-{N}-plan.md`** (convention v2.1.0+ — crée le dossier avec `mkdir -p docs/plans` si absent) et il sert de check-list pendant `/execute`.
+
+> **Compat v2.0.x** : les plans existants à la racine ou dans `plans/` continuent d'être lus par `/execute`, `/validate`, `/challenge`, `/prime`, `/close`, `/start` via fallback. La migration manuelle vers `docs/plans/` n'est pas bloquante.
 
 ## Règles strictes
 
@@ -118,8 +120,10 @@ Affiche le brouillon dans le chat. Demande validation. Sauvegarder seulement apr
 
 ## Prochaine étape
 
-`/execute phase-{N}-plan.md`
+`/execute docs/plans/phase-{N}-plan.md`
 ```
+
+> **Écriture** : ce skill fait `mkdir -p docs/plans` puis écrit dans `docs/plans/phase-{N}-plan.md`. Si un fichier `phase-{N}-plan.md` existe déjà à la racine ou dans `plans/` (projet pré-v2.1.0), ne pas l'écraser — alerter l'utilisateur et proposer soit la migration (déplacer dans `docs/plans/`), soit garder l'ancien emplacement et écrire ailleurs.
 
 ## Exemple de tâche bien formulée
 
@@ -138,4 +142,4 @@ Si tu écris "faire la BDD" ou "configurer le backend", c'est trop vague. À `/e
 
 ## Handoff
 
-Fin du skill : path du fichier `phase-{N}-plan.md` + suggestion `/execute phase-{N}-plan.md`.
+Fin du skill : path complet du fichier `docs/plans/phase-{N}-plan.md` (ou emplacement legacy si projet pré-v2.1.0 a déjà des plans à la racine ou dans `plans/`) + suggestion `/execute docs/plans/phase-{N}-plan.md`.

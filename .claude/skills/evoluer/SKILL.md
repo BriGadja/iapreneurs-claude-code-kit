@@ -9,7 +9,9 @@ description: Utiliser quand un projet est livré (toutes phases ✅ Terminée, /
 
 Ton projet est livré (`/livrer` passé, `<!-- ship:url -->` rempli, toutes les phases du PRD `✅ Terminée`). Tu veux ajouter une feature : envoyer un SMS de rappel, ajouter un dashboard analytics, intégrer un nouveau provider.
 
-Tu ne devrais **PAS éditer le PRD à la main** — risque de casser le format que les autres skills (`/recap`, `/plan`, `/close`) parsent. `/evoluer` fait l'insertion proprement :
+Tu ne devrais **PAS éditer le PRD à la main** — risque de casser le format que les autres skills (`/prime`, `/plan`, `/close`) parsent. `/evoluer` fait l'insertion proprement :
+
+> **Note plans** : `/evoluer` écrit les éventuels plans qu'il génère dans `docs/plans/phase-{N+1}-plan.md` (convention v2.1.0+). Les plans existants à la racine ou dans `plans/` (projets pré-v2.1.0) restent compatibles via fallback.
 1. Parse le PRD existant pour trouver le dernier numéro de Phase
 2. Te pose 3 questions de cadrage feature
 3. Insère une nouvelle Phase au bon endroit, sans écraser

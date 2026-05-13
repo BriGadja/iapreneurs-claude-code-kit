@@ -5,7 +5,7 @@ description: Utiliser pour passer un plan (`phase-{N}-plan.md`) au crible d'un d
 
 # Skill /challenge — devil's advocate sur un plan
 
-**Invocation** : `/challenge phase-{N}-plan.md` (passe le fichier plan en argument).
+**Invocation** : `/challenge docs/plans/phase-{N}-plan.md` (priorité v2.1.0+) ou `/challenge phase-{N}-plan.md` / `/challenge plans/phase-N.md` (fallback compat projets pré-v2.1.0). Le skill cherche le plan dans cet ordre : argument littéral → `docs/plans/{arg}` → `plans/{arg}` → racine.
 
 ## Pour quoi faire
 

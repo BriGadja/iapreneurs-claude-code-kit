@@ -29,16 +29,16 @@
 /livrer             ← deploy prod selon ## Stack (Vercel/Netlify/Cloudflare/autre)
 ```
 
-**Parcours 2 — Reprise (tu reviens après une absence)** :
+**Parcours 2 — Reprise (rituel d'entrée de session, après pause ou absence)** :
 ```
-/recap              ← lit PRD + plans + git log + MEMORY.md → propose la suite
+/prime              ← lit PRD + STRUCTURE.md + plans + git log + MEMORY.md → propose la suite
    ↓
 {action proposée}   ← /execute, /plan, /livrer, /evoluer selon l'état détecté
 ```
 
 **Parcours 3 — Évolution (projet livré, tu veux ajouter une feature)** :
 ```
-/recap              ← détecte projet livré → propose /evoluer
+/prime              ← détecte projet livré → propose /evoluer
    ↓
 /evoluer            ← parse PRD + 3 questions cadrage + insère Phase N+1
    ↓
@@ -66,12 +66,12 @@ Une fois dans Claude, tape :
 ```
 
 `/start` te guide :
-1. **Détection projet** — lit MEMORY.md + CLAUDE.md + PRD.md. Si projet existant détecté → bifurque vers `/recap`.
+1. **Détection projet** — lit MEMORY.md + CLAUDE.md + PRD.md. Si projet existant détecté → bifurque vers `/prime`.
 2. **Visite du kit** (skippable)
 3. **3 questions de cadrage** → remplit la section `## Identité` de ton `CLAUDE.md` + écrit `project_type` ∈ `{webapp, site, automation}`
 4. **Sécurisation des credentials** → `.env` créé et gitignored, `.mcp.json` avec syntaxe `${VAR}`
 5. **Vérification de l'outillage** → Playwright + n8n MCP + plugin frontend-design
-6. **Routage** → `/brainstorm` (idée floue) ou `/architect` (idée claire) ou `/recap` (projet existant)
+6. **Routage** → `/brainstorm` (idée floue) ou `/architect` (idée claire) ou `/prime` (projet existant)
 
 Sortie : projet cadré, outillage testé, prochain skill suggéré.
 
@@ -81,7 +81,7 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 
 | Skill | Rôle | Statut |
 |-------|------|--------|
-| `/start` | Onboarding piloté (5 phases + détection projet existant qui bifurque vers `/recap`). À taper 1x à l'ouverture. Écrit la variable `project_type` ∈ {webapp, site, automation}. | ✅ |
+| `/start` | Onboarding piloté (5 phases + détection projet existant qui bifurque vers `/prime`). À taper 1x à l'ouverture. Écrit la variable `project_type` ∈ {webapp, site, automation}. | ✅ |
 | `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. | ✅ |
 | `/architect` | Produire un `PRD.md` structuré + **Étape 2b demande les providers favoris** (hosting/BDD/email) avant de figer la stack + **Étape 6 Provisioning & Scaffold** (scaffold le repo selon `project_type` + providers retenus + écriture `.env`). Écrit la section `## Stack` du `CLAUDE.md`. | ✅ |
 | `/design` *(webapp uniquement)* | **Définit** le design system au format **DESIGN.md officiel Google** (open-source, spec alpha — YAML tokens + 8 sections markdown). Template fourni dans `.claude/skills/design/template.md`. **Complémentaire** au plugin Anthropic `frontend-design` qui lit `DESIGN.md` pour build des composants cohérents. | ✅ |
@@ -99,11 +99,11 @@ Sortie : projet cadré, outillage testé, prochain skill suggéré.
 | `/challenge` | Devil's advocate sur un plan : 3 risques + 3 hypothèses non vérifiées + verdict GO/REWORK/STOP. Systématique en Request Classification FULL. |
 
 **Notes hors table** :
-- Tu reviens après une pause ? Tape `/recap` — lit `PRD.md` + `phase-*-plan.md` + git log + `MEMORY.md` et propose la suite. `/start` détecte automatiquement les projets existants et bifurque vers `/recap`.
+- Tu commences une session sur un projet existant ? Tape `/prime` (couvre aussi la reprise après absence) — lit `PRD.md` + `STRUCTURE.md` + plans (`docs/plans/` priorité, fallback `plans/` puis racine) + git log + `MEMORY.md` et propose 1-3 actions concrètes. `/start` détecte automatiquement les projets existants et bifurque vers `/prime`.
 - Pour debugger un bug → tape `/debug` (built-in Claude Code natif). **Règle de comportement** : écris d'abord un test de régression qui reproduit le bug, puis fais-le passer (TDD).
 - **Mémoire persistante** : `/close` maintient automatiquement `memory/learnings/`, `memory/topics/`, `memory/decisions.md` et `MEMORY.md` (index racine) à chaque clôture de phase, via 3 questions ciblées (décision arch ? gotcha ? pattern ?). **L'utilisateur n'édite jamais ces fichiers à la main.** Détails dans le template `CLAUDE.md` section `## Mémoire persistante`.
 
-Workflow type : `/start` → `/brainstorm`? → `/architect` (PRD + providers + scaffold) → `/design`? → `/plan` Phase 1 → `/execute` → `/validate` → `/close` → `/plan` Phase 2 → ... → `/livrer`. Reprise : `/recap`. Évolution : `/evoluer`.
+Workflow type : `/start` → `/brainstorm`? → `/architect` (PRD + providers + scaffold) → `/design`? → `/plan` Phase 1 → `/execute` → `/validate` → `/close` → `/plan` Phase 2 → ... → `/livrer`. Reprise : `/prime`. Évolution : `/evoluer`.
 
 `/design` est conditionnel — skip si `project_type` ∈ {site, automation}. `/challenge` est optionnel.
 

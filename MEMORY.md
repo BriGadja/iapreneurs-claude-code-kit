@@ -1,6 +1,6 @@
 # Mémoire projet — index
 
-> Ce fichier est l'**index de la mémoire persistante** de ton projet. Il est lu automatiquement par `/start` et `/recap` au démarrage d'une session, pour que Claude arrive avec le contexte projet déjà compris.
+> Ce fichier est l'**index de la mémoire persistante** de ton projet. Il est lu automatiquement par `/start` et `/prime` au démarrage d'une session, pour que Claude arrive avec le contexte projet déjà compris.
 >
 > **Tu n'édites pas ce fichier à la main.** C'est `/close` qui le maintient pendant la phase de harvest learnings post-commit.
 >

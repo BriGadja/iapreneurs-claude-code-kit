@@ -5,7 +5,7 @@ description: Utiliser après /execute pour vérifier qu'une phase fonctionne ré
 
 # Skill /validate — vérifier que ça marche pour de vrai
 
-**Invocation** : `/validate phase-{N}-plan.md` (passe le fichier plan en argument).
+**Invocation** : `/validate docs/plans/phase-{N}-plan.md` (priorité v2.1.0+) ou `/validate phase-{N}-plan.md` / `/validate plans/phase-N.md` (fallback compat projets pré-v2.1.0). Le skill cherche le plan dans cet ordre : argument littéral → `docs/plans/{arg}` → `plans/{arg}` → racine.
 
 ## Pour quoi faire
 

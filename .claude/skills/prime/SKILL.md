@@ -1,17 +1,17 @@
 ---
-name: recap
-description: Utiliser quand tu reviens sur un projet existant après une absence (quelques jours à plusieurs semaines) pour reprendre où tu en étais. Lit PRD.md, les phase-*-plan.md, le git log récent, et MEMORY.md (si présent), puis propose 1-3 actions concrètes. Ne PAS utiliser sur un projet neuf — c'est /start qui détecte ce cas et bifurque automatiquement.
+name: prime
+description: Utiliser à chaque nouvelle session de travail sur un projet existant pour recharger le contexte rapidement (PRD, plans, git log, MEMORY.md, STRUCTURE.md) avant `/plan` ou autre action. Inclut aussi le cas reprise après absence. Ne PAS utiliser sur un projet neuf — c'est `/start` qui détecte ce cas et bifurque automatiquement.
 ---
 
-# Skill /recap — reprendre un projet existant
+# Skill /prime — rituel d'entrée de session sur un projet existant
 
 ## Pour quoi faire
 
-Tu reviens sur un projet J+15 (ou plus tôt, après un week-end occupé) et tu ne te souviens plus exactement où tu en étais. `/recap` lit l'état du projet en quelques secondes et te dit : *"Tu as Phase 1 ✅ Terminée le 2026-04-15, Phase 2 plan créé mais pas exécuté, dernier commit il y a 18 jours. Action suggérée : `/execute phase-2-plan.md`."*
+`/prime` est le **rituel d'entrée de session** : à chaque fois que tu reprends le travail sur un projet existant (le matin, après le déjeuner, après une absence de quelques jours ou plusieurs semaines), tu tapes `/prime` avant tout. En 5-10 secondes il lit l'état du projet et te dit : *"Tu as Phase 1 ✅ Terminée le 2026-04-15, Phase 2 plan créé mais pas exécuté, dernier commit il y a 18 jours. Action suggérée : `/execute docs/plans/phase-2-plan.md`."*
 
-Pas de devinette, pas de relire le PRD à la main. Le skill te ramène dans le contexte en 5-10 secondes.
+Pas de devinette, pas de relire le PRD à la main. Le skill te ramène dans le contexte d'architecture, d'avancement et d'historique récent — peu importe que ta dernière session date d'1 heure ou de 3 semaines.
 
-> **Quand `/start` détecte un projet existant** (CLAUDE.md rempli, PRD.md présent, ou plans dans `plans/`), il bifurque automatiquement vers `/recap` — donc en pratique tu tapes plus souvent `/start` après une absence et tu te retrouves ici par redirection. Tu peux aussi appeler `/recap` directement.
+> **Quand `/start` détecte un projet existant** (CLAUDE.md rempli, PRD.md présent, ou plans dans `docs/plans/`/`plans/`), il bifurque automatiquement vers `/prime` — donc en pratique tu tapes souvent `/start` et tu te retrouves ici par redirection. Tu peux aussi appeler `/prime` directement.
 
 ## Comment procéder
 
@@ -26,9 +26,24 @@ Lis `PRD.md` à la racine.
 
 Si `PRD.md` n'existe pas → annonce *"Pas de PRD.md à la racine. Soit tu n'as pas encore lancé `/architect`, soit tu n'es pas dans un projet basé sur ce kit. Tu veux lancer `/architect` maintenant ?"* et stoppe.
 
+### Étape 1.5 — Lire STRUCTURE.md si présent
+
+Si `STRUCTURE.md` existe à la racine, lis-le rapidement (max 100 lignes — c'est un fichier court par design). Tu en extrais :
+- L'arbo des dossiers principaux (`<!-- architect:directories -->`)
+- 1-2 patterns clés (`<!-- architect:patterns -->`)
+
+Tu n'affiches pas le détail — tu l'utilises en input pour la synthèse finale (Étape 5, section "Architecture"). Si `STRUCTURE.md` n'existe pas (projet pré-v2.1.0 ou pas encore passé par `/architect` Étape 6.5), passe cette étape sans alerter — tu fonctionnes en dégradé sans ce contexte.
+
+> **Pourquoi** : évite que tu redécouvres l'arbo et les patterns à chaque session. STRUCTURE.md est ta carte d'architecture.
+
 ### Étape 2 — Lister les plans de phase
 
-Liste les fichiers matchant `plans/phase-*.md` (ou `phase-*-plan.md` à la racine si pas de `plans/`).
+Cherche les fichiers de plan dans cet ordre (le premier emplacement non-vide gagne) :
+1. **`docs/plans/phase-*-plan.md`** (priorité, convention v2.1.0+)
+2. **`plans/phase-*.md`** (fallback compat projets pré-v2.1.0)
+3. **`phase-*-plan.md` à la racine** (fallback legacy)
+
+Si un seul de ces emplacements contient des fichiers, utilise-le. Si plusieurs en contiennent (cas de transition), affiche un warning court : *"Plans détectés dans plusieurs emplacements (`docs/plans/` + `plans/`). Convention actuelle = `docs/plans/`. Tu peux migrer manuellement quand tu veux."* puis lis tous les plans pour ne rien manquer.
 
 Pour chaque plan, lis-le et compte :
 - Nombre total de tâches `- [ ]` ou `- [x]`
@@ -59,8 +74,11 @@ Affiche un bloc structuré :
 
 ### Avancement
 - **PRD** : {X phases au total, Y ✅ Terminées}
-- **Plans** : {liste des phase-*-plan.md avec état}
+- **Plans** : {liste des phase-*-plan.md avec état, chemin complet `docs/plans/...` ou `plans/...`}
 - **Dernier commit utile** : "{message}" — il y a {N jours}
+
+### Architecture
+{1 ligne tirée de STRUCTURE.md si présent — ex: "Vertical slice par feature, RSC + Server Actions, tests co-located". Si STRUCTURE.md absent, omettre cette section sans alerter.}
 
 ### Mémoire projet
 {ligne 1 sur MEMORY.md si présent, sinon "Pas de MEMORY.md (kit pré-v2.0 ou pas encore enrichi)"}
@@ -70,7 +88,7 @@ Affiche un bloc structuré :
 
 ### Action suggérée
 {1 à 3 actions concrètes, invocables directement} :
-- → `/execute phase-2-plan.md` (la plus probable, à mettre en premier)
+- → `/execute docs/plans/phase-2-plan.md` (la plus probable, à mettre en premier)
 - → `/plan Phase 3` (si Phase 2 finie mais Phase 3 pas planifiée)
 - → `/livrer` (si toutes les phases ✅ et projet jamais déployé)
 - → `/evoluer` (si projet shipped et tu veux ajouter une feature)

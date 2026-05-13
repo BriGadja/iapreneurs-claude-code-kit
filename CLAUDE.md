@@ -2,7 +2,9 @@
 
 > Ce fichier est un **template**. Tu adaptes les sections projet en haut, tu gardes les règles de comportement en bas. La méta-doc complète du kit (skills, parcours, MCP) est dans [`docs/KIT.md`](docs/KIT.md).
 
-> **À l'ouverture d'une nouvelle session** : tape `/start` — il cadre le projet, sécurise tes credentials, vérifie l'outillage, et te route vers `/brainstorm` ou `/architect`. Si tu reviens sur un projet existant après une absence, tape `/recap`.
+> **À l'ouverture d'une nouvelle session** : tape `/start` — il cadre le projet, sécurise tes credentials, vérifie l'outillage, et te route vers `/brainstorm` ou `/architect`. Si tu reprends une session de travail sur un projet existant (matin, après pause, ou retour J+15), tape `/prime` (couvre aussi la reprise après absence).
+
+> **Rituel par feature (boucle interne PIV)** : `/prime` (recharge contexte) → `/plan` (cadre la feature) → `/execute` (implémente) → `/validate` (vérifie) → `/close` (commit + mémoire). Tape `/start` uniquement à la première session sur un projet neuf.
 
 ## Glossaire
 
@@ -132,6 +134,8 @@ Détail complet + flow type "crée-moi un workflow X" : voir `.claude/rules/n8n.
 
 ### 6. Auto-évaluation : tu vérifies AVANT de dire "done"
 
+> **Vocabulaire** : à chaque feature tu fais une **boucle interne** (PIV : `/prime` → `/plan` → `/execute` → `/validate` → `/close`). Quand un bug ship malgré la PIV, tu fais une **boucle externe** : tu corriges le système qui l'a laissé passer (règle dans `.claude/rules/`, étape dans un skill, assertion dans `scripts/validate-kit-v2.sh`).
+
 Ne jamais annoncer "c'est bon", "ça marche", "tâche terminée" sans avoir vérifié programmatiquement ou visuellement le résultat. La vérification dépend du `project_type` :
 
 | project_type | Modif touche... | Vérification obligatoire |
@@ -161,7 +165,7 @@ Pour changer plus tard, édite cette ligne et relance `/architect`.
 
 ## Mémoire persistante
 
-Le kit construit progressivement le **cerveau** de ton projet : gotchas, décisions d'arch, patterns réutilisables, learnings par session. À chaque nouvelle session, `/start` et `/recap` chargent `MEMORY.md` → Claude arrive avec le contexte projet déjà compris.
+Le kit construit progressivement le **cerveau** de ton projet : gotchas, décisions d'arch, patterns réutilisables, learnings par session. À chaque nouvelle session, `/start` et `/prime` chargent `MEMORY.md` → Claude arrive avec le contexte projet déjà compris.
 
 **Tu n'édites jamais `memory/` à la main.** C'est `/close` qui pose 3 questions ciblées en fin de phase (décision arch ? gotcha ? pattern ?) et écrit les réponses dans le bon fichier. Détail : [`memory/README.md`](memory/README.md).
 
@@ -173,7 +177,32 @@ Le kit construit progressivement le **cerveau** de ton projet : gotchas, décisi
 
 ---
 
+## Où vivent les fichiers
+
+Le kit applique une convention simple pour rester rangé :
+
+**À la racine du projet** (fichiers meta + config, peu nombreux) :
+- `PRD.md` (écrit par `/architect`)
+- `CLAUDE.md`, `MEMORY.md`, `STRUCTURE.md` (meta, contiennent des ancres lues par les skills)
+- `DESIGN.md` (écrit par `/design` — reste racine pour compat plugin `frontend-design`)
+- `.env`, `.env.example`, `.gitignore`, `.mcp.json` (config)
+- `README.md`, `LICENSE`
+
+**Sous `docs/{sous-dossier}/`** (outputs des skills, peuvent être nombreux) :
+- `docs/plans/phase-N-plan.md` — écrits par `/plan` et `/evoluer`
+- `docs/brainstorms/{YYYY-MM-DD}-{sujet}.md` — écrits par `/brainstorm`
+
+**Inchangés** (infra Claude Code) :
+- `.claude/skills/`, `.claude/rules/`, `.claude/agents/`
+- `memory/learnings/`, `memory/topics/`, `memory/decisions.md`
+
+> **Compat projets pré-v2.1.0** : si tu as des plans en racine ou dans `plans/`, les skills consommateurs (`/prime`, `/execute`, `/validate`, `/challenge`, `/evoluer`, `/close`, `/start`) les lisent toujours en fallback. La migration manuelle vers `docs/plans/` n'est pas bloquante.
+
+---
+
 ## Comment ce CLAUDE.md est entretenu
+
+> **Note** : pour l'architecture détaillée du projet (arbo, patterns, tests), voir [`STRUCTURE.md`](STRUCTURE.md) — fichier séparé pour garder ce CLAUDE.md slim.
 
 Mini-table des sections automatiquement écrites :
 
@@ -182,6 +211,7 @@ Mini-table des sections automatiquement écrites :
 | `## Identité` (+ `project_type`) | `/start` | À l'onboarding |
 | `## Stack` | `/architect` | Après validation stack |
 | `## Production` | `/livrer` | Après deploy + smoke test |
+| `STRUCTURE.md` (fichier séparé) | `/architect` Étape 6.5 | Après scaffold |
 
 Les sections `## Conventions`, `## Instructions`, `## Contexte métier` sont éditées par toi au fil de l'eau. Quand tu accumules > 20 lignes sur un seul domaine, déporte vers `.claude/rules/{domaine}.md` avec frontmatter `paths:` (voir `.claude/rules/README.md`).
 

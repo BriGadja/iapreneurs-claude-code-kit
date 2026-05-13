@@ -141,7 +141,33 @@ Affiche le bloc commandes complet, **demande confirmation explicite** : *"J'exé
 3. Vérifie que `.gitignore` contient `.env` et `.env.local` et `.env.*.local`. Si absent, ajoute (sans toucher au reste du `.gitignore`).
 4. **Test final** : `git check-ignore .env` doit retourner `.env`. Si non, alerte l'utilisateur — sécurité critique.
 
-Annonce à l'utilisateur : *"Repo scaffold + credentials provisionnées. `.env` est gitignored. Prêt pour `/plan Phase 1`."*
+**6.5 — Écrire STRUCTURE.md (carte d'architecture initiale)** :
+
+Si `STRUCTURE.md` n'existe pas à la racine, le créer en remplissant les 4 ancres `<!-- architect:* -->` selon `project_type`. Si `STRUCTURE.md` existe déjà (utilisateur l'a édité), **ne pas écraser** — append une section `## Modifications post-scaffold` datée si tu détectes des changements d'arbo importants.
+
+**Templates selon `project_type`** :
+
+- **`webapp`** :
+  - `<!-- architect:directories -->` : `src/app/` (routes Next.js App Router), `src/components/ui/` (shadcn), `src/lib/` (helpers), `src/types/` (types globaux), `supabase/` (migrations, config)
+  - `<!-- architect:patterns -->` : RSC pour les pages, Server Actions pour les mutations, `@supabase/ssr` côté serveur, validation Zod aux frontières
+  - `<!-- architect:tests -->` : co-located `*.test.ts` à côté du fichier source, lancement `npm test`
+  - `<!-- architect:conventions -->` : kebab-case pour les fichiers, PascalCase pour les composants React, `use client` uniquement quand nécessaire
+
+- **`site`** :
+  - `<!-- architect:directories -->` : `app/` (pages Next.js), `components/` (UI), `public/` (assets statiques), `content/` (markdown ou MDX si présent)
+  - `<!-- architect:patterns -->` : Static generation par défaut, Server Components partout, formulaire contact via Server Action + Resend
+  - `<!-- architect:tests -->` : tests E2E Playwright pour les parcours critiques (formulaire contact, navigation), pas de tests unitaires sauf utils
+  - `<!-- architect:conventions -->` : kebab-case fichiers, contenu éditable en `content/` si MDX
+
+- **`automation`** :
+  - `<!-- architect:directories -->` : `workflows/` (fichiers `.workflow.json` exportés depuis n8n), `scripts/` (utilitaires CLI), `docs/` (procédures opérationnelles)
+  - `<!-- architect:patterns -->` : 1 fichier `.workflow.json` par workflow n8n, versionnés git, push via MCP `n8n_create_workflow` ou `n8n_update_full_workflow`
+  - `<!-- architect:tests -->` : tests via `n8n_test_workflow` MCP avec payload type, ou exécution manuelle dans l'UI n8n
+  - `<!-- architect:conventions -->` : nommage workflows `[ENV] {scope}-{action}` (ex : `[PROD] rss-veille-quotidienne`)
+
+Après écriture, affiche : *"📐 STRUCTURE.md créé. Sera lu par `/prime` à chaque session pour recharger le contexte d'architecture."*
+
+Annonce finale à l'utilisateur : *"Repo scaffold + credentials provisionnées + STRUCTURE.md initial. `.env` est gitignored. Prêt pour `/plan Phase 1`."*
 
 ## Format du PRD
 
