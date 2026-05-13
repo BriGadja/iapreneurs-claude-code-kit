@@ -6,7 +6,7 @@
 ## v2.1.0 — 2026-05-13
 
 ### Renommé
-- `/recap` → `/prime` (description élargie : rituel d'entrée de session, pas seulement post-absence)
+- L'ancien skill *recap* (v2.0.x) est devenu `/prime` (description élargie : rituel d'entrée de session, pas seulement post-absence)
 
 ### Ajouté
 - **`STRUCTURE.md`** : carte d'architecture du projet, écrite par `/architect` Étape 6.5, lue par `/prime`. Adaptée selon `project_type` (webapp/site/automation). 4 ancres : `<!-- architect:directories -->`, `<!-- architect:patterns -->`, `<!-- architect:tests -->`, `<!-- architect:conventions -->`.
@@ -27,7 +27,7 @@
 
 ### Migration depuis v2.0.0
 Aucune action utilisateur requise pour projets pré-v2.1.0 :
-- `/recap` est renommé en `/prime` — anciens projets continuent à fonctionner, juste taper `/prime` au lieu de l'ancien nom.
+- L'ancien skill *recap* est renommé en `/prime` — anciens projets continuent à fonctionner, juste taper `/prime` au lieu de l'ancien nom.
 - `STRUCTURE.md` est optionnel — `/prime` fonctionne en mode dégradé sans (juste pas de section "Architecture" dans la synthèse).
 - Plans existants à la racine ou dans `plans/` continuent d'être lus (fallback). Pour une organisation propre, déplacer manuellement vers `docs/plans/` (ou laisser tel quel — pas bloquant).
 
