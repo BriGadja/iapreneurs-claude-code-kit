@@ -94,6 +94,29 @@ Chaque tâche doit être :
 - **Indépendante** ou avec dépendance explicite ("après tâche 2")
 - **Vérifiable** par un critère mesurable
 
+### Étape 4.5 — User stories Given/When/Then (option, STANDARD+ uniquement)
+
+Si la phase est classée `Request Classification ≥ STANDARD` ET `project_type == webapp` (parcours utilisateur central), proposer :
+
+> *"Tu veux des user stories Given/When/Then en plus des tâches techniques ? Recommandé pour les features avec parcours utilisateur clair (login, checkout, dashboard). (oui/skip)"*
+
+Si **oui** : générer 1-3 user stories au format Cole `create-stories` (en complément des tâches) :
+
+```
+## US-N {title}
+**As a** {user persona}
+**I want to** {action}
+**So that** {benefit}
+
+### Acceptance Criteria
+- [ ] Given {context}, when {action}, then {result}
+- [ ] Given {edge case}, when {action}, then {result}
+```
+
+Les stories sont insérées dans le plan avant les tâches techniques (section `## User Stories`). Les acceptance criteria deviennent des checkboxes /execute parallèles aux tâches techniques.
+
+Si **LITE** : skip silencieusement (pas de question, juste tâches techniques).
+
 ### Étape 4 — afficher + valider + sauvegarder
 
 Affiche le brouillon dans le chat. Demande validation. Sauvegarder seulement après "oui c'est bon".

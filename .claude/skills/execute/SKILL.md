@@ -29,6 +29,13 @@ Lire `phase-{N}-plan.md` passé en argument. Lire aussi le PRD parent (mentionn�
 
 ### Étape 2 — pour chaque tâche dans l'ordre
 
+> **🔁 Golden rule (validation post-task)** — après CHAQUE tâche, lance la vérif "Fait quand" **immédiatement** (PAS batched à la fin de la phase).
+>
+> **❌ Anti-pattern** : Faire tâche 1 + 2 + 3 puis vérifier toutes les "Fait quand" ensemble.
+> **✅ Pattern** : Tâche 1 → vérifier → cocher → tâche 2 → vérifier → cocher → ...
+>
+> Raison : tester à la fin laisse les bugs s'accumuler. Tester après chaque tâche te dit immédiatement si tu casses quelque chose.
+
 Boucle sur les tâches `[ ]` non cochées :
 
 1. **Annoncer** : "Je commence la tâche {N} : {nom}."
