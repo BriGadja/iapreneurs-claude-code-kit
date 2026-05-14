@@ -1,10 +1,23 @@
 # Décisions d'architecture du projet
 
-> Ce fichier accumule les **choix d'architecture durables** au fil du projet. Écrit par `/close` quand tu valides une décision arch notable pendant le harvest learnings.
+> Ce fichier a deux usages :
 >
-> Format : un bullet par décision, avec date + 1-2 phrases de rationale. Pas de prose, pas de longue justification — la valeur est dans la trace.
+> 1. **ADR fondateurs/architecturaux numérotés** (écrits par `/architect` Étape 6.6 ADR-001 + `/evoluer` Étape 5b si choix significatif). Format strict, idempotent (ne réécrit pas un ADR existant).
+> 2. **Harvest libre** (écrit par `/close` lors du harvest learnings, zone `<!-- close:decisions -->` ci-dessous, format bullet libre).
+>
+> Les deux coexistent : ADR numérotés en tête (rigueur), bullets en bas (rapidité).
 
-## Décisions
+## ADR — Architecture Decision Records
+
+> Format : `ADR-NNN — {Titre court}` puis bloc `Status / Date / Context / Decision / Consequences`. Status ∈ {Accepted, Superseded, Deprecated}. Numérotation strictement incrémentale, jamais réutilisée.
+
+<!-- ADR-NNN entries appended here by /architect (Étape 6.6) and /evoluer (Étape 5b) -->
+
+_(Vide à l'init. Premier ADR posé par `/architect` Étape 6.6 fondateur.)_
+
+---
+
+## Décisions (harvest libre)
 
 <!-- close:decisions -->
 {Vide au démarrage. Premier exemple après quelques sessions :

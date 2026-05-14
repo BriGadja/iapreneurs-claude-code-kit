@@ -82,18 +82,20 @@ project_type: {site | webapp | automation}
 
 Détail (spec Google DESIGN.md alpha, duo `/design` ⇄ plugin `frontend-design`, lint optionnel) : voir `.claude/skills/design/SKILL.md`.
 
-## Travailler avec n8n MCP (si stack inclut n8n)
+<!-- n8n-section -->
+{Décommenté par `.claude/rules/n8n-setup.md` si `/start` Q4 = oui (`project_uses_n8n: true`). Sinon : section absente, le kit n'embarque pas la collection n8n par défaut. Voir `.claude/rules/n8n-setup.md` pour activer.}
+<!-- /n8n-section -->
 
-Le MCP `n8n-mcp` (czlonkowski) est installé par `/start`. Quatre directives système prescrites par l'auteur du MCP, **non-négociables** quand tu manipules n8n :
+## Cycle de vie d'un projet
 
-1. **Silent Execution** — exécute les outils MCP sans commentaire intermédiaire. Pas de "Je vais appeler…" + tool call + "Voici le résultat…" — fais les tool calls puis synthétise à la fin.
-2. **Templates-First** — avant de construire un workflow from scratch, `search_templates` + `get_template` dans les ~2 352 templates disponibles. Tu pars d'un template existant 80 % du temps.
-3. **Validate Before Deploy** — avant `n8n_create_workflow` ou `n8n_update_full_workflow`, **toujours** `validate_workflow` sur le JSON. Fix les warnings avant de déployer.
-4. **Never edit production with AI** — jamais d'édition AI directe sur un workflow `[PROD]`. Édite la copie `[DEV]`, valide, teste — le swap reste manuel.
+Le kit distingue **création** (projet neuf) et **maintenance** (projet livré qui évolue). `/prime` détecte le mode via `count(docs/specs/SPEC-*.md)` :
 
-**Modes du MCP** : sans `N8N_API_URL`/`N8N_API_KEY`, le MCP tourne en mode **docs-only** (7 tools : search nodes/docs/templates, validate JSON local) — suffisant pour apprendre n8n. Avec credentials : mode **API-connected** (20 tools, management complet).
+| Mode | Trigger | Skills clés | Artefacts touchés |
+|------|---------|-------------|-------------------|
+| Création | `count_specs == 0` | `/start` → `/architect` → `/plan` → `/execute` → `/validate` → `/close` → `/livrer` | `PRD.md`, `STRUCTURE.md`, `memory/decisions.md` ADR-001, `docs/plans/` |
+| Maintenance | `count_specs ≥ 1` | `/prime` → `/evoluer` → `/plan` → `/execute` → `/validate` → `/close` | `docs/specs/SPEC-{date}-{slug}.md`, PRD checkbox flip, `decisions.md` ADR append |
 
-Détail complet + flow type "crée-moi un workflow X" : voir `.claude/rules/n8n.md` (auto-chargé sur `.workflow.json`, `.mcp.json`, `.claude/skills/n8n/**`).
+**PRD vivant** : 8 sections, cap 100 lignes, mis à jour par `/evoluer` (déplace checkboxes Hors scope → Scope actuel, append Implementation Phases). Jamais réécrit destructivement.
 
 ---
 

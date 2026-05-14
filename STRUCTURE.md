@@ -27,3 +27,21 @@
 <!-- architect:conventions -->
 {Rempli par /architect Étape 6.5 — règles de naming (kebab-case fichiers, etc.), placement (ex : helpers dans `lib/`, types dans `types/`)}
 <!-- /architect:conventions -->
+
+## Intégrations externes
+
+<!-- structure:integrations -->
+_(Maintenu par /architect Étape 6.5 + /evoluer Étape 5f. Liste des services tiers branchés : APIs, BDD, MCP, webhooks. Vide à l'init.)_
+<!-- /structure:integrations -->
+
+## Fichiers clés
+
+<!-- structure:key-files -->
+_(Maintenu par /architect Étape 6.5 + /evoluer Étape 5f. Pointeurs vers les fichiers critiques pour l'agent : entrées principales, configs, schémas BDD.)_
+<!-- /structure:key-files -->
+
+## Évolutions livrées (résumé)
+
+<!-- structure:evolutions-summary -->
+_(Maintenu par /evoluer après chaque livraison. 1 ligne par évolution livrée, lien vers `docs/specs/SPEC-{date}-{slug}.md`. Vide à l'init.)_
+<!-- /structure:evolutions-summary -->
