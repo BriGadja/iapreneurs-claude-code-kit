@@ -164,6 +164,17 @@ Pose **exactement 3 questions**, une par une (pas en bloc — attendre la répon
 
 Stocke les 3 réponses **et la valeur de `project_type`** correspondante (A→webapp, B→site, C→automation, D→webapp). **Ne propose pas la stack technique maintenant** — c'est `/architect` qui le fera.
 
+#### Q4 — Usage de n8n sur ce projet (booléenne)
+
+Pose une 4e question (sauf si `project_type == automation` → auto-set `true` sans demander) :
+
+> *"Tu vas utiliser n8n sur ce projet ? (oui/non)"*
+
+- Si **oui** ou si `project_type == automation` → `project_uses_n8n: true`. Tu vas devoir installer le MCP n8n + la collection skills czlonkowski via la procédure `.claude/rules/n8n-setup.md` (Étape 5b nouvelle ci-dessous).
+- Si **non** → `project_uses_n8n: false`. Skip toute la section 5b (n8n MCP). Le kit reste slim.
+
+Stocke `project_uses_n8n` (`true` ou `false`) pour les étapes 4 et 5.
+
 ### Étape 4 — Écrire la section Identité du CLAUDE.md
 
 Compose 2-3 phrases à partir des réponses :
@@ -182,9 +193,12 @@ Remplace le contenu entre les deux ancres par **ton paragraphe sur 1 ou plusieur
 
 ```
 project_type: {webapp | site | automation}
+project_uses_n8n: {true | false}
 ```
 
-(la valeur exacte du Q3 stocké en Étape 3). **Garde les ancres**. **Ne touche à aucune autre partie du fichier.**
+(valeurs exactes des Q3 et Q4 stockées en Étape 3). **Garde les ancres**. **Ne touche à aucune autre partie du fichier.**
+
+> **Note** : le placeholder `<!-- n8n-section -->` dans `CLAUDE.md` reste intact à ce stade. Il sera décommenté par `.claude/rules/n8n-setup.md` à l'install (Étape 5b nouvelle), seulement si `project_uses_n8n: true`.
 
 Affiche la diff à l'utilisateur : *"Voici ce que je vais écrire dans `## Identité` (paragraphe + variable `project_type`). OK ou tu veux ajuster ?"* — sauvegarde après validation.
 
@@ -227,7 +241,11 @@ Lance : `claude mcp list`
   ```
   *"Copie-colle dans un autre terminal, dis-moi quand c'est fait."* Attends confirmation. Puis re-`claude mcp list` pour valider.
 
-#### 5b — Sécuriser les credentials AVANT d'installer n8n MCP
+#### 5b — n8n MCP (UNIQUEMENT si `project_uses_n8n: true`)
+
+> **Gate conditionnel** : si `project_uses_n8n: false` (Q4), **skip entièrement** cette sous-section 5b. Le kit reste slim — pas de MCP n8n installé, pas de collection skills czlonkowski. Tu pourras toujours basculer plus tard en relançant la procédure `.claude/rules/n8n-setup.md` à la main.
+>
+> Si `project_uses_n8n: true`, suis les étapes 5b.1 à 5b.5 ci-dessous **PUIS** déclenche la procédure complète d'installation de la collection en exécutant `.claude/rules/n8n-setup.md` (annonce : *"Je lance maintenant l'install n8n complète selon `.claude/rules/n8n-setup.md` — collection skills czlonkowski + rule path-scoped + activation section CLAUDE.md."* puis suis ses 5 étapes).
 
 Le MCP n8n demande une `N8N_API_URL` et une `N8N_API_KEY`. **Règle Anthropic** : ces clés ne doivent JAMAIS finir en clair dans un fichier committé. Pattern recommandé : `${VAR}` dans `.mcp.json` (committé), valeurs réelles dans `.env` (gitignored).
 
