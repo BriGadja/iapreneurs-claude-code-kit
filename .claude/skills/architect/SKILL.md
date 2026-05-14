@@ -9,17 +9,22 @@ description: Utiliser pour transformer un fichier brainstorm (ou une idée clair
 
 Transformer une idée (claire ou issue d'un `/brainstorm`) en **PRD** : un fichier `PRD.md` qui définit l'architecture du projet (stack, frontières techniques, phases) et sert de référence pour toute la suite (`/plan`, `/execute`, `/validate`). Le PRD est lu en début de chaque skill suivant.
 
-## Sections obligatoires du PRD
+## Sections obligatoires du PRD (format v2.2 — 8 sections, vivant)
 
-Pas de PRD complet sans ces 7 sections, dans cet ordre :
+Pas de PRD complet sans ces 8 sections, dans cet ordre. **Cap 100 lignes hard** — au-delà, c'est qu'il y a du contenu à déporter vers `docs/specs/SPEC-*.md` (évolutions) ou `STRUCTURE.md` (arbo) ou `memory/decisions.md` (rationales arch).
 
-1. **Sommaire** — 2-3 phrases : c'est quoi, pour qui, quel résultat
-2. **Utilisateurs cibles** — qui s'en sert, dans quelle situation
-3. **MVP — ce qu'on fait** — la liste minimale de fonctionnalités pour la v1
-4. **Hors-MVP — ce qu'on ne fait PAS** — explicite, pour cadrer le scope
-5. **Phases** — découpage en 3 à 5 phases max (Phase 1 = MVP, Phase 2+ = ajouts)
-6. **Stack technique** — frameworks, services, langages choisis
-7. **Critères de succès** — comment on saura que c'est fini et que ça marche
+1. **Vision** — 1-3 phrases : ce que le projet livre, à qui, pour quel résultat
+2. **Personas** — 1-3 personas courts (rôle / contexte / douleur)
+3. **Scope actuel (V_n)** — checkboxes Core + Technique de la version courante. Mis à jour par `/evoluer` (déplace `[x]` Hors scope → ici)
+4. **Hors scope (différé)** — checkboxes des features volontairement reportées
+5. **Constraints non-négociables** — contraintes métier/légales/perf qui ne bougent pas
+6. **Success Criteria** — critères mesurables au niveau projet entier
+7. **Implementation Phases** — historique chronologique V1, V_n en cours, V_n+1 envisagé. Append-only par `/evoluer` Étape 5d
+8. **Risks & Mitigations** — risques identifiés + mitigations prévues
+
+**Référence template** : `templates/PRD-template.md` à la racine du kit. `/architect` Étape 4 lit ce template puis génère un PRD personnalisé en respectant la structure et le cap 100 lignes.
+
+**Compat ancien format v2.1.x** : si un PRD existant utilise l'ancien format 7 sections (`## Sommaire / ## Phases / ## Stack technique / ...`), `/evoluer` + `/prime` + `/close` détectent et fonctionnent en mode legacy. Pour migrer manuellement : voir `docs/MIGRATION-v2.1-to-v2.2.md`.
 
 ## Comment procéder
 
@@ -81,7 +86,9 @@ Exemple de découpe STANDARD pour une web app :
 
 ### Étape 4 — écrire le brouillon, lire à voix haute
 
-Écris le PRD au format markdown ci-dessous, **affiche-le entier dans le chat** et demande validation **avant** de sauvegarder le fichier.
+Lis `templates/PRD-template.md` (référence du kit), génère un PRD personnalisé en remplissant les 8 sections avec les réponses des Étapes 1-3. **Cap 100 lignes hard** : si tu dépasses, vois ce qui peut être déporté (sections trop longues = candidats `docs/specs/` futurs ou `STRUCTURE.md`).
+
+**Affiche-le entier dans le chat** et demande validation **avant** de sauvegarder le fichier.
 
 > "Voilà le PRD que je propose. Tu valides ou tu veux qu'on change un truc ?"
 
@@ -91,9 +98,23 @@ Itère jusqu'à ce que l'utilisateur dise oui.
 
 Sauvegarder dans `PRD.md` à la racine du projet uniquement après validation explicite.
 
-### Étape 5b — propager la Stack dans CLAUDE.md
+### Étape 5b — propager la Stack dans CLAUDE.md (pattern DISCOVER + ANALYZE → GENERATE)
 
-Une fois `PRD.md` sauvegardé, ouvre `CLAUDE.md` et trouve le bloc :
+**5b.1 — DISCOVER** : si le projet a déjà du code (rare en /architect post-/start, possible si /architect est rejoué sur projet existant), scan les fichiers signaux :
+- `package.json` → identifier dépendances réelles (frameworks, libs, scripts)
+- `next.config.{js,ts}`, `vite.config.*`, `tsconfig.json`, `.mcp.json`, `supabase/config.toml` → configs présentes
+- `pnpm-lock.yaml` / `package-lock.json` / `yarn.lock` → manager de paquets
+- Fichiers `.env.example` → services tiers attendus
+
+**5b.2 — ANALYZE** : si codebase non-vide, extraire les patterns observés :
+- **Naming** : kebab-case fichiers ? camelCase ? PascalCase ?
+- **Errors** : `try/catch` partout ? `Result<T, E>` ? throw remontant ?
+- **Types** : Zod aux frontières ? TypeScript strict ? `any` toléré ?
+- **Tests** : co-located `*.test.ts` ? dossier `__tests__/` ? Vitest ? Jest ?
+
+Si codebase vide (cas standard) : skip 5b.1+5b.2, passer direct à 5b.3 GENERATE.
+
+**5b.3 — GENERATE** : ouvre `CLAUDE.md` et trouve le bloc :
 
 ```
 <!-- architect:stack -->
@@ -143,7 +164,12 @@ Affiche le bloc commandes complet, **demande confirmation explicite** : *"J'exé
 
 **6.5 — Écrire STRUCTURE.md (carte d'architecture initiale)** :
 
-Si `STRUCTURE.md` n'existe pas à la racine, le créer en remplissant les 4 ancres `<!-- architect:* -->` selon `project_type`. Si `STRUCTURE.md` existe déjà (utilisateur l'a édité), **ne pas écraser** — append une section `## Modifications post-scaffold` datée si tu détectes des changements d'arbo importants.
+Si `STRUCTURE.md` n'existe pas à la racine, le créer en remplissant les **7 ancres** : 4 `<!-- architect:* -->` (directories, patterns, tests, conventions) + 3 `<!-- structure:* -->` (integrations, key-files, evolutions-summary). Si `STRUCTURE.md` existe déjà (utilisateur l'a édité), **ne pas écraser** — append une section `## Modifications post-scaffold` datée si tu détectes des changements d'arbo importants.
+
+**Les 3 ancres `structure:*` à initialiser** (peuvent être quasi-vides à l'init, seront enrichies par `/evoluer`) :
+- `<!-- structure:integrations -->` : services tiers branchés (APIs, BDD, MCP, webhooks). À l'init : liste les providers retenus en Étape 2b.
+- `<!-- structure:key-files -->` : fichiers critiques pour l'agent (entrées principales, configs, schémas BDD). À l'init : liste les fichiers scaffoldés en 6.2.
+- `<!-- structure:evolutions-summary -->` : 1 ligne par évolution livrée, lien vers `docs/specs/SPEC-{date}-{slug}.md`. **Vide à l'init** (pas encore d'évolutions). Maintenu par `/evoluer`.
 
 **Templates selon `project_type`** :
 
@@ -167,7 +193,25 @@ Si `STRUCTURE.md` n'existe pas à la racine, le créer en remplissant les 4 ancr
 
 Après écriture, affiche : *"📐 STRUCTURE.md créé. Sera lu par `/prime` à chaque session pour recharger le contexte d'architecture."*
 
-Annonce finale à l'utilisateur : *"Repo scaffold + credentials provisionnées + STRUCTURE.md initial. `.env` est gitignored. Prêt pour `/plan Phase 1`."*
+**6.6 — Initialiser `memory/decisions.md` avec ADR-001 fondateur** :
+
+Lis `memory/decisions.md`. Si la zone ADR (entre la section `## ADR — Architecture Decision Records` et `---`) est vide ou ne contient aucun `ADR-NNN`, append l'ADR fondateur :
+
+```markdown
+### ADR-001 — Stack initiale : {résumé court}
+
+- **Status** : Accepted
+- **Date** : {YYYY-MM-DD}
+- **Context** : {1 ligne — source brainstorm/idée + project_type retenu}
+- **Decision** : {2-3 lignes — providers Q2b retenus + stack Q2c décidée}
+- **Consequences** : {1 ligne — impact futur, ce que ça verrouille / débloque}
+```
+
+**Idempotent** : si un `ADR-NNN` existe déjà dans la zone, **skip entièrement** (pas d'écrasement). C'est `/evoluer` Étape 5b qui appendera les ADR suivants (ADR-002, ADR-003...) au fil des évolutions arch.
+
+Annonce : *"📋 ADR-001 fondateur écrit dans `memory/decisions.md`. Les choix arch initiaux sont tracés. Future Claude saura POURQUOI cette stack a été choisie sans relire le brainstorm."*
+
+Annonce finale à l'utilisateur : *"Repo scaffold + credentials provisionnées + STRUCTURE.md initial + ADR-001 fondateur. `.env` est gitignored. Prêt pour `/plan Phase 1`."*
 
 ## Format du PRD
 

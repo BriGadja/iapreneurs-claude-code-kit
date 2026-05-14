@@ -1,7 +1,6 @@
 <!--
 SPEC pour une évolution. Frozen après /execute. Cap ~80 lignes.
 Créé par /evoluer Étape 5b dans docs/specs/SPEC-{YYYY-MM-DD}-{slug}.md.
-Inspiré du pattern Cole Medin INITIAL.md.
 -->
 
 # SPEC — {Nom de la feature}
