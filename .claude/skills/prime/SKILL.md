@@ -30,16 +30,32 @@ Avant tout, vérifie si `STATUS.md` existe à la racine du projet.
 
 **Si STATUS.md absent** (projet pré-v2.1) : annonce *"Pas de STATUS.md détecté — fallback lecture complète."* puis continue Étapes 1-5 actuelles intact (backwards compat).
 
-### Étape 1 — Lire l'état des phases du PRD
+### Étape 0.5 — Detect mode (création vs maintenance)
 
-Lis `PRD.md` à la racine.
+Avant Étape 1, compte les SPECs livrés :
 
-- Cherche la section `## Phases`.
-- Pour chaque ligne `- **Phase N** — ...` :
-  - Si elle se termine par `— ✅ Terminée` (ou contient ce marker), classe-la **terminée**.
-  - Sinon, classe-la **à faire** ou **en cours**.
+```
+count_specs=$(ls docs/specs/SPEC-*.md 2>/dev/null | wc -l)
+mode = "création" si count_specs == 0 else "maintenance"
+```
 
-Si `PRD.md` n'existe pas → annonce *"Pas de PRD.md à la racine. Soit tu n'as pas encore lancé `/architect`, soit tu n'es pas dans un projet basé sur ce kit. Tu veux lancer `/architect` maintenant ?"* et stoppe.
+Stocke `mode` et `count_specs` en variables session — utilisés par Étapes 1, 1.6, 5.
+
+### Étape 1 — Lire l'état des phases du PRD (adaptateur format)
+
+Lis `PRD.md` à la racine. Détecte le format via les 4 branches (identiques à /evoluer) :
+
+```
+has_new = grep -q "^## 7. Implementation Phases" PRD.md
+has_old = grep -q "^## Phases" PRD.md
+```
+
+| Branche | has_new | has_old | Parser |
+|---------|---------|---------|--------|
+| 1 | ✅ | ❌ | **Nouveau format v2.2** : parser `## 7. Implementation Phases` pour lignes `**V_N (livré le {date}) — ...** / **V_N (en cours) — ...** / **V_N (envisagé) — ...**`. Classer par état. |
+| 2 | ❌ | ✅ | **Ancien format v2.1.x (legacy)** : parser `## Phases` pour lignes `- **Phase N** — ...` ; `— ✅ Terminée` = terminée, sinon à faire/en cours. |
+| 3 | ✅ | ✅ | **État mixte** : warn "PRD en état mixte (ancien + nouveau format). Lecture partielle — pense à migrer via `docs/MIGRATION-v2.1-to-v2.2.md`." Parser nouveau format en priorité. |
+| 4 | ❌ | ❌ | **PRD malformé ou absent** : annonce *"Pas de PRD.md à la racine ou format non reconnu. Soit tu n'as pas encore lancé `/architect`, soit tu n'es pas dans un projet basé sur ce kit. Tu veux lancer `/architect` maintenant ?"* et stoppe. |
 
 ### Étape 1.5 — Lire STRUCTURE.md si présent
 
@@ -50,6 +66,15 @@ Si `STRUCTURE.md` existe à la racine, lis-le rapidement (max 100 lignes — c'e
 Tu n'affiches pas le détail — tu l'utilises en input pour la synthèse finale (Étape 5, section "Architecture"). Si `STRUCTURE.md` n'existe pas (projet pré-v2.1.0 ou pas encore passé par `/architect` Étape 6.5), passe cette étape sans alerter — tu fonctionnes en dégradé sans ce contexte.
 
 > **Pourquoi** : évite que tu redécouvres l'arbo et les patterns à chaque session. STRUCTURE.md est ta carte d'architecture.
+
+### Étape 1.6 — (mode maintenance uniquement) Lire decisions.md + 3 derniers SPECs
+
+Si `mode == "maintenance"` (count_specs > 0) :
+
+- Lis `memory/decisions.md` et extrais les **5 derniers ADR-NNN** (sort par numéro desc) — titre + status + date suffisent.
+- Liste les SPECs triés par date desc : `ls docs/specs/SPEC-*.md 2>/dev/null | sort -r | head -3`. Lis chacun (4 sections : Feature/Examples/Documentation/Considerations).
+
+Ces lectures alimentent la synthèse Étape 5 (section "Évolutions récentes"). Si `mode == "création"` (count_specs == 0) → skip entièrement, pas de bruit.
 
 ### Étape 2 — Lister les plans de phase
 
@@ -86,6 +111,12 @@ Affiche un bloc structuré :
 
 ```markdown
 ## Récap projet — {Nom du projet}
+
+**Mode {création|maintenance} détecté.** {N} évolutions livrées depuis {date V1 du PRD}.
+_(N = count_specs ; date V1 = première mention `V1 (livré le {date})` dans `## 7. Implementation Phases`, ou date du commit initial si format legacy)_
+
+### Évolutions récentes (mode maintenance uniquement)
+{Si mode == maintenance : lister les 3 derniers SPECs (filename + 1-ligne Feature) + 2-3 derniers ADR-NNN (titre). Sinon omettre cette section.}
 
 ### Avancement
 - **PRD** : {X phases au total, Y ✅ Terminées}
