@@ -85,6 +85,34 @@ Cet ordre garantit que le commit inclut STATUS.md à jour. Si l'écriture STATUS
 
 **0.5.6 — Supprimer `tmp/skill-trace.jsonl`** (consommation). À faire **après** la réussite de l'écriture STATUS.md. Si l'écriture a échoué, NE PAS supprimer (recover possible).
 
+### Étape 0.6 — Audit caps (CLAUDE.md, PRD.md)
+
+Entre Étape 0.5 (STATUS.md) et Étape 1 (détection phase). **Ne bloque jamais le commit — juste warn + propose**.
+
+**0.6.1 — Audit CLAUDE.md** :
+```
+N=$(wc -l < CLAUDE.md)
+```
+- Si `N > 200` : warn *"⚠️ CLAUDE.md = {N} lignes (cap recommandé : 200). Sections candidates au déport (top H2 par longueur via awk) : {liste}. Tu veux qu'on les déporte vers `.claude/rules/{topic}.md` path-scoped ? (oui/skip)"*
+
+**0.6.2 — Audit PRD.md** (si PRD existe) :
+```
+N=$(wc -l < PRD.md)
+```
+- Si `N > 100` : warn *"⚠️ PRD.md = {N} lignes (cap recommandé : 100, doit rester court et vivant). Tu veux qu'on identifie ce qui peut sortir vers `docs/specs/` ? (oui/skip)"*
+
+**0.6.3 — Acknowledged flag** (anti-spam re-prompt) :
+
+Stocker l'ack dans `.claude/cache/close-cap-acknowledged.json` :
+```json
+{
+  "CLAUDE.md": {"acked_at_lines": 245, "ts": "2026-05-14T10:00:00Z"},
+  "PRD.md":    {"acked_at_lines": 108, "ts": "2026-05-14T10:00:00Z"}
+}
+```
+
+Re-prompt seulement si lignes courantes **≥ acked_at_lines + 50**. Sinon skip (l'utilisateur a déjà acknowledgé à un seuil proche). Idempotent.
+
 ### Étape 1 — détecter la phase clôturée
 
 > **Note mode planning** : en mode planning, on **skip** Étapes 1, 2, 3 (pas de phase à marquer dans le PRD — la planning artifact est elle-même l'output). On garde Étapes 4-5 (commit). On **skip** Étapes 6.2-6.3 (3 questions harvest — déjà couvertes par les mining markers planning). On écrit un marker `[plan-mining-done:{artifact-slug}]` dans `memory/daily/{today}.md` (créé si absent — convention alignée avec workspace). Étape 7 = annonce + bloc handoff.
@@ -107,19 +135,25 @@ Cherche un bloc `## Validation Phase {N}` avec verdict `✅ OK`. Si absent ou si
 
 Si l'utilisateur confirme malgré tout, continue. Si pas de réponse, stoppe.
 
-### Étape 3 — marquer la phase ✅ Terminée dans le PRD
+### Étape 3 — marquer la phase ✅ Terminée dans le PRD (adaptateur format)
 
-Édite `PRD.md`, section `## Phases`. Remplace la ligne de la phase :
-
-```
-- **Phase {N}** — {nom} : {description}
-```
-
-par :
+Détecte le format via les 4 branches (identiques à /evoluer + /prime) :
 
 ```
-- **Phase {N}** — {nom} : {description} ✅ Terminée le {YYYY-MM-DD}
+has_new = grep -q "^## 7. Implementation Phases" PRD.md
+has_old = grep -q "^## Phases" PRD.md
 ```
+
+**Branche 1 — Nouveau format v2.2** (`## 7. Implementation Phases` présent) :
+- Dans `## 3. Scope actuel (V_n)` (sous-sections `### Core` ou `### Technique`) : cocher la checkbox correspondant à la feature livrée (`- [ ] {feature}` → `- [x] {feature}`).
+- Dans `## 7. Implementation Phases` : remplacer `**V_n (en cours)** — {nom}` par `**V_n (livré le {YYYY-MM-DD})** — {nom}`.
+
+**Branche 2 — Ancien format v2.1.x legacy** (`## Phases` présent) :
+- Section `## Phases`, remplacer `- **Phase {N}** — {nom} : {description}` par `- **Phase {N}** — {nom} : {description} ✅ Terminée le {YYYY-MM-DD}` (comportement legacy intact).
+
+**Branche 3 — État mixte** : warn "PRD en état mixte. Migration recommandée via `docs/MIGRATION-v2.1-to-v2.2.md`." Marquer dans le nouveau format en priorité.
+
+**Branche 4 — PRD malformé** : warn et skip Étape 3 (commit Étape 5 quand même OK).
 
 ### Étape 4 — composer le message de commit
 
@@ -220,6 +254,16 @@ Après écriture(s) en 6.2, met à jour `MEMORY.md` à la racine :
 **Règle d'or** : si l'utilisateur répond "rien" à toutes les questions, tu ne demandes pas de troisième confirmation. Tu skipes 6.2/6.3 et passes à 6.4. Pas de friction.
 
 **6.4 — Annonce courte** : *"Mémoire mise à jour : {N learnings + {M topics si applicable}}. MEMORY.md indexé."*. Pas de dump du contenu écrit.
+
+### Étape 6.4 — SPEC frozen header (post-/evoluer + /execute)
+
+Si `/evoluer` a été le dernier skill significatif avant cette session (présence d'un `docs/specs/SPEC-*.md` créé ou modifié dans le diff git de cette /close), ajouter en tête du SPEC un header informatif :
+
+```
+<!-- frozen: {YYYY-MM-DD} -->
+```
+
+Idempotent : si le header existe déjà, skip. Signal informatif uniquement (pas d'enforcement runtime — sert pour /prime + revue manuelle).
 
 ### Étape 7 — suggestion suivante
 
