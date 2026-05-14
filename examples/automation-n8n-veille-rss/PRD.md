@@ -1,49 +1,68 @@
-# PRD : Veille RSS IA via n8n
+<!--
+PRD vivant discipliné. Cap 100 lignes hard.
+Mis à jour par /evoluer (jamais réécrit destructivement).
+project_type: automation | Request Classification: STANDARD
+-->
 
-> **Niveau Request Classification** : STANDARD
-> **project_type** : automation
+# PRD — Veille RSS IA via n8n
 
-## Sommaire
+## 1. Vision
 
-Workflow n8n qui agrège 10 flux RSS d'IA tech tous les lundis à 7h, classe les nouveaux articles par pertinence via Claude Haiku, et envoie un top-10 résumé sur Slack `#veille-ia`. Pas d'UI utilisateur.
+Workflow n8n qui agrège 10 flux RSS d'IA tech tous les lundis à 7h, classe les nouveaux articles par pertinence via Claude Haiku, et envoie un top-10 résumé sur Slack `#veille-ia`. Pas d'UI utilisateur — l'output Slack EST l'interface.
 
-## Utilisateurs cibles
+## 2. Personas
 
-- Le coach business solo qui veut rester à jour sans passer 2h/jour à scroller Twitter/LinkedIn
-- Lecture passive sur Slack mobile pendant le café du lundi
+- **Coach business solo** — veut rester à jour sans passer 2h/jour à scroller. Lecture passive sur Slack mobile pendant le café du lundi. Douleur : FOMO + saturation flux d'info.
 
-## MVP — ce qu'on fait
+## 3. Scope actuel (V_n)
 
-- Trigger Cron : tous les lundis 7h Europe/Paris
-- 10 flux RSS configurés dans un node "RSS list" (édition facile)
-- Dédup via Supabase `seen_articles` (URL hash)
-- Classement pertinence via Claude Haiku (prompt "intéressant pour entrepreneur IA débutant-intermédiaire")
-- Formatage Markdown du top-10 (titre + 1 phrase + lien)
-- Envoi sur Slack `#veille-ia` via webhook
+> Cochée = livré. Mis à jour par `/evoluer`.
 
-## Hors-MVP — ce qu'on ne fait PAS
+### Core
+- [ ] Trigger Cron : tous les lundis 7h Europe/Paris
+- [ ] 10 flux RSS configurés dans un node "RSS list"
+- [ ] Dédup via Supabase `seen_articles` (URL hash)
+- [ ] Classement pertinence via Claude Haiku
+- [ ] Formatage Markdown top-10 (titre + 1 phrase + lien)
+- [ ] Envoi Slack via webhook `#veille-ia`
 
-- UI de gestion des flux RSS (édition direct dans le workflow n8n suffit)
-- Multi-canal (juste Slack pour l'instant, pas d'email)
-- Statistiques d'utilisation (clics, articles lus)
-- Filtrage par tag (toute la veille IA, pas de catégorisation fine)
+### Technique
+- [ ] n8n self-hosted (ou cloud)
+- [ ] Anthropic Claude Haiku (`claude-haiku-4-5-20251001`)
+- [ ] Supabase Postgres table `seen_articles` (`url_hash` UNIQUE)
+- [ ] Slack incoming webhook
 
-## Phases
+## 4. Hors scope (différé)
 
-- **Phase 1** — Workflow MVP fonctionnel : trigger Cron + 10 flux + dédup Supabase + classement Haiku + envoi Slack en hardcoded sur 1 canal de test
-- **Phase 2** — Production-ready : config flux dans table Supabase (au lieu de hardcode), monitoring échec (alerte si workflow KO), passage du canal test au canal prod
+- [ ] UI de gestion des flux RSS (édition direct dans n8n suffit)
+- [ ] Multi-canal (juste Slack pour l'instant, pas d'email)
+- [ ] Statistiques d'utilisation (clics, articles lus)
+- [ ] Filtrage par tag (toute la veille IA)
+- [ ] Config flux dans table Supabase (au lieu de hardcode)
+- [ ] Monitoring échec (alerte si workflow KO)
 
-## Stack technique
+## 5. Constraints non-négociables
 
-- Automation : n8n self-hosted (ou cloud)
-- IA : Anthropic Claude Haiku (`claude-haiku-4-5-20251001`)
-- Dédup state : Supabase Postgres (table `seen_articles` avec colonne `url_hash` UNIQUE)
-- Destination : Slack incoming webhook
+- Coût Anthropic < 1€/mois
+- Pas de bruit Slack en dehors du lundi 7h
+- Idempotent : 2 runs le même lundi = 0 doublon Slack
 
-## Critères de succès
+## 6. Success Criteria
 
-- [ ] Le workflow tourne le lundi 7h sans intervention humaine (0 erreur sur 4 lundis consécutifs)
-- [ ] La dédup empêche les doublons sur 4 lundis (pas le même article 2x)
-- [ ] Le coût Anthropic mensuel < 1 € (~40 articles × 4 lundis × Haiku pricing)
-- [ ] Top-10 reçu sur Slack en < 5 minutes après le trigger
-- [ ] Si moins de 5 articles pertinents, message "Semaine calme, top 3" envoyé quand même
+- Le workflow tourne le lundi 7h sans intervention humaine (0 erreur sur 4 lundis consécutifs)
+- La dédup empêche les doublons sur 4 lundis
+- Coût Anthropic mensuel < 1€ (~40 articles × 4 lundis × Haiku pricing)
+- Top-10 reçu sur Slack en < 5 minutes après le trigger
+- Si < 5 articles pertinents, message "Semaine calme, top 3" envoyé quand même
+
+## 7. Implementation Phases
+
+**V1 (livré le YYYY-MM-DD)** — Workflow MVP fonctionnel hardcoded canal test.
+
+**V2 (envisagé)** — Production-ready : config flux dans Supabase + monitoring échec + passage prod.
+
+## 8. Risks & Mitigations
+
+- **Risque** : flux RSS down → **Mitigation** : try/catch n8n par flux, skip silent si fail (pas d'erreur globale)
+- **Risque** : Claude rate-limit → **Mitigation** : batch d'articles par appel (10-20 par prompt)
+- **Risque** : Supabase dédup race condition → **Mitigation** : `INSERT ... ON CONFLICT DO NOTHING` sur `url_hash`

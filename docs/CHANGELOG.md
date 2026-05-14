@@ -3,6 +3,59 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.2.0 — 2026-05-14
+
+### Ajouté (3 modifications structurelles bundle)
+
+**1. n8n MCP opt-in**
+
+- Collection `czlonkowski` bundled retirée (`.claude/skills/n8n/` supprimé)
+- Nouveau fichier `.claude/rules/n8n-setup.md` : procédure 5-étapes pour installer le MCP n8n à la demande, lit upstream `github.com/czlonkowski/n8n-mcp/README.md` + embarque le prompt opérationnel (Core Principles, 8-step workflow, validation 4-levels, Top 20 nodes — snapshot 2026-05-14)
+- `/start` Étape 3 : nouvelle Q4 booléenne `project_uses_n8n`. Si oui → exécute `n8n-setup.md`. Si non → skip entièrement.
+- Placeholder `<!-- n8n-section -->` dans CLAUDE.md template, décommenté par n8n-setup.md à l'install.
+
+**2. Structure projet pour évolutions (PRD vivant discipliné)**
+
+- **PRD 8 sections** (Vision / Personas / Scope actuel V_n / Hors scope / Constraints / Success Criteria / Implementation Phases / Risks & Mitigations) cap 100 lignes. Templates dans `templates/PRD-template.md` + `templates/SPEC-template.md`.
+- **`docs/specs/SPEC-{date}-{slug}.md`** : un SPEC par évolution post-livraison. Format 4 sections inspiré Cole Medin INITIAL.md (Feature / Examples / Documentation / Considerations). Frozen post-/execute via header `<!-- frozen: {date} -->`.
+- **`memory/decisions.md` format ADR numéroté** : ADR-NNN avec Status / Date / Context / Decision / Consequences. `/architect` init ADR-001 fondateur. `/evoluer` append ADR à chaque choix architectural significatif.
+- **`/evoluer` cérémonie distincte** : lit PRD + STRUCTURE + decisions + 3 derniers SPECs + STATUS. Crée SPEC daté + déplace checkbox Hors scope → Scope actuel + append Implementation Phases V_n+1 + gate `/validate` obligatoire AVANT handoff. Atomicité git via checkpoint après création SPEC.
+- **`/prime` adaptatif maintenance/création** : Étape 0.5 détecte `mode` via `count(docs/specs/SPEC-*.md)`. Maintenance → lit aussi decisions + 3 derniers SPECs. Affiche le mode dans la synthèse Étape 5.
+- **`/close` Étape 0.6 audit caps** : warn (pas bloquer) si CLAUDE.md > 200L ou PRD.md > 100L. Acknowledged flag `.claude/cache/close-cap-acknowledged.json` anti-spam re-prompt.
+- **`/architect` Étape DISCOVER + ANALYZE** (pattern Cole `create-rules`) : si codebase non-vide, scan stack/patterns existants et enrichit `<!-- architect:stack -->` + `<!-- architect:patterns -->`.
+- **STRUCTURE.md +3 ancres** : `<!-- structure:integrations -->`, `<!-- structure:key-files -->`, `<!-- structure:evolutions-summary -->` (maintenues par /architect + /evoluer).
+- **`/plan` Étape 4.5 option G/W/T** : si Request Classification ≥ STANDARD ET project_type == webapp, propose user stories Given/When/Then en plus des tâches techniques.
+- **`/execute` Étape 2 Golden rule** : validation post-task obligatoire (PAS batched), formalisée comme règle stricte.
+
+**3. Vidéos pédagogie**
+
+- Sommaire IAPreneurs v5 et plan Hub Documents séquencés pour défer n8n à 5.2 et intégrer `/design` dans 5.1 (modification externe, hors repo kit).
+
+### Modifié (layout)
+
+- `examples/webapp-saas-freelance-devis/phase-1-plan.md` → `docs/plans/phase-1-plan.md` (correction incohérence convention `docs/plans/` v2.1.0).
+- Les 3 PRD examples migrés au nouveau format 8 sections (cap 100L).
+- Nouveau SPEC simulé `examples/webapp-saas-freelance-devis/docs/specs/SPEC-2026-08-12-export-pdf-devis.md` (montre le pattern évolution post-livraison).
+
+### Breaking change
+
+- **Format PRD 7 → 8 sections** : ancien `## Phases` remplacé par `## 7. Implementation Phases` + ajout `## 3. Scope actuel (V_n)` + `## 4. Hors scope (différé)`.
+- **Mitigation** : adaptateur format legacy v2.1.x dans `/evoluer` + `/prime` + `/close` (4 branches déterministes : nouveau / ancien / mixte (safe abort) / malformé (safe abort)).
+- **Migration guide** : voir `docs/MIGRATION-v2.1-to-v2.2.md` (~30 lignes).
+
+### Nouveaux fichiers
+
+- `templates/PRD-template.md` (8 sections)
+- `templates/SPEC-template.md` (4 sections)
+- `.claude/rules/n8n-setup.md` (procédure install à la demande + prompt opérationnel czlonkowski embarqué)
+- `docs/MIGRATION-v2.1-to-v2.2.md` (guide migration format PRD)
+
+### Validation
+
+- `scripts/validate-kit-v2.sh` Scénario I ajouté (~17 nouveaux checks). Total ≥ 90 checks.
+
+---
+
 ## v2.1.0 — 2026-05-13
 
 ### Renommé

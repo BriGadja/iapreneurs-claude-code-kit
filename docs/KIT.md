@@ -281,6 +281,56 @@ Chaque skill append une ligne JSON à `tmp/skill-trace.jsonl` à sa fin (le fich
 
 ---
 
+## Cycle de vie d'un projet
+
+Un projet kit a deux modes de vie : **création** (de zéro jusqu'à livraison) puis **maintenance** (évolutions post-livraison). Les skills sont pensés pour ces 2 modes distincts.
+
+### Mode création (V1 du projet)
+
+```
+/start → /architect → /plan → /execute → /validate → /close → /livrer
+```
+
+- **`/start`** — onboarding (Q1-Q4 dont `project_uses_n8n`), génère squelette CLAUDE.md + STATUS.md
+- **`/architect`** — PRD fondateur (8 sections, cap 100L) + STRUCTURE.md + decisions.md ADR-001
+- **`/plan`** — découpe Phase 1 (option G/W/T si STANDARD+ webapp)
+- **`/execute`** — exécute tâche par tâche (golden rule = vérif post-task immédiate)
+- **`/validate`** — Karpathy regression check
+- **`/close`** — commit + harvest + STATUS.md (+ audit caps si applicable)
+- **`/livrer`** — déploiement prod stack-aware
+
+### Mode maintenance (V2, V3, ...)
+
+```
+/prime (mode maintenance) → /evoluer → /plan → /execute → /validate → /close
+```
+
+- **`/prime`** — détecte `mode` via `count(docs/specs/SPEC-*.md)` : si > 0 → maintenance, lit decisions + 3 derniers SPECs
+- **`/evoluer`** — cérémonie distincte : lit PRD/STRUCTURE/decisions/3 SPECs, crée `docs/specs/SPEC-{date}-{slug}.md`, déplace checkbox Hors scope → Scope actuel, append Implementation Phases V_n+1, append ADR si choix archi, gate /validate avant merge
+- **`/plan`** prend le SPEC en input (pas le PRD entier)
+- **`/execute`** + **`/validate`** + **`/close`** identiques (mode full)
+
+### Qui écrit quoi
+
+| Skill | Lit | Écrit | Mute |
+|-------|-----|-------|------|
+| `/start` | — | CLAUDE.md, STATUS.md, .mcp.json | — |
+| `/architect` | CLAUDE.md | PRD.md (8 sections), STRUCTURE.md, memory/decisions.md ADR-001 | — |
+| `/plan` | PRD, STRUCTURE, codebase | docs/plans/phase-N-plan.md | — |
+| `/execute` | plan, PRD | code + tests | plan checkboxes |
+| `/validate` | plan, tests | tmp/validate-report.md | — |
+| `/close` | trace, git diff | STATUS.md, memory/learnings/, memory/topics/, memory/decisions.md | PRD checkbox + Implementation Phases date |
+| `/evoluer` | PRD, STRUCTURE, decisions, 3 SPECs, STATUS | docs/specs/SPEC-{date}-{slug}.md, STRUCTURE, decisions.md ADR | PRD checkbox Hors scope→Scope, append Phases V_n+1 |
+| `/prime` | STATUS, PRD, plans, git, decisions, SPECs | — (lecture pure) | — |
+
+**Règle d'or** : le **PRD est vivant discipliné** (cap 100L). Mis à jour uniquement par `/evoluer` (déplace checkboxes) et `/close` (cocher + dater). **Jamais réécrit destructivement.**
+
+### Convention collision SPEC
+
+Si deux évolutions le même jour ont le même slug : `SPEC-{date}-{slug}-02.md`, `-03.md`, etc. `/evoluer` Étape 5b détecte et incrémente automatiquement.
+
+---
+
 ## Aller plus loin
 
 - `.claude/rules/README.md` — pattern des règles auto-chargées par chemin (paths-scoped)
