@@ -17,12 +17,12 @@
 **2. Structure projet pour évolutions (PRD vivant discipliné)**
 
 - **PRD 8 sections** (Vision / Personas / Scope actuel V_n / Hors scope / Constraints / Success Criteria / Implementation Phases / Risks & Mitigations) cap 100 lignes. Templates dans `templates/PRD-template.md` + `templates/SPEC-template.md`.
-- **`docs/specs/SPEC-{date}-{slug}.md`** : un SPEC par évolution post-livraison. Format 4 sections inspiré Cole Medin INITIAL.md (Feature / Examples / Documentation / Considerations). Frozen post-/execute via header `<!-- frozen: {date} -->`.
+- **`docs/specs/SPEC-{date}-{slug}.md`** : un SPEC par évolution post-livraison. Format 4 sections (Feature / Examples / Documentation / Considerations). Frozen post-/execute via header `<!-- frozen: {date} -->`.
 - **`memory/decisions.md` format ADR numéroté** : ADR-NNN avec Status / Date / Context / Decision / Consequences. `/architect` init ADR-001 fondateur. `/evoluer` append ADR à chaque choix architectural significatif.
 - **`/evoluer` cérémonie distincte** : lit PRD + STRUCTURE + decisions + 3 derniers SPECs + STATUS. Crée SPEC daté + déplace checkbox Hors scope → Scope actuel + append Implementation Phases V_n+1 + gate `/validate` obligatoire AVANT handoff. Atomicité git via checkpoint après création SPEC.
 - **`/prime` adaptatif maintenance/création** : Étape 0.5 détecte `mode` via `count(docs/specs/SPEC-*.md)`. Maintenance → lit aussi decisions + 3 derniers SPECs. Affiche le mode dans la synthèse Étape 5.
 - **`/close` Étape 0.6 audit caps** : warn (pas bloquer) si CLAUDE.md > 200L ou PRD.md > 100L. Acknowledged flag `.claude/cache/close-cap-acknowledged.json` anti-spam re-prompt.
-- **`/architect` Étape DISCOVER + ANALYZE** (pattern Cole `create-rules`) : si codebase non-vide, scan stack/patterns existants et enrichit `<!-- architect:stack -->` + `<!-- architect:patterns -->`.
+- **`/architect` Étape DISCOVER + ANALYZE** (pattern DISCOVER+ANALYZE) : si codebase non-vide, scan stack/patterns existants et enrichit `<!-- architect:stack -->` + `<!-- architect:patterns -->`.
 - **STRUCTURE.md +3 ancres** : `<!-- structure:integrations -->`, `<!-- structure:key-files -->`, `<!-- structure:evolutions-summary -->` (maintenues par /architect + /evoluer).
 - **`/plan` Étape 4.5 option G/W/T** : si Request Classification ≥ STANDARD ET project_type == webapp, propose user stories Given/When/Then en plus des tâches techniques.
 - **`/execute` Étape 2 Golden rule** : validation post-task obligatoire (PAS batched), formalisée comme règle stricte.

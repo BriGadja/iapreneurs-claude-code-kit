@@ -100,7 +100,7 @@ Si la phase est classée `Request Classification ≥ STANDARD` ET `project_type 
 
 > *"Tu veux des user stories Given/When/Then en plus des tâches techniques ? Recommandé pour les features avec parcours utilisateur clair (login, checkout, dashboard). (oui/skip)"*
 
-Si **oui** : générer 1-3 user stories au format Cole `create-stories` (en complément des tâches) :
+Si **oui** : générer 1-3 user stories au format Given/When/Then standard (en complément des tâches) :
 
 ```
 ## US-N {title}

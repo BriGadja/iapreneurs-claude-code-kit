@@ -93,7 +93,8 @@ mkdir -p docs/specs/
 
 Idempotent.
 
-### 5b — Créer le SPEC
+### Étape 5b — Créer le SPEC
+**Atomicité : checkpoint git commit immédiatement après création SPEC** (voir 5h pour la commande). Le SPEC créé est le point de retour stable du checkpoint.
 
 Slug = kebab-case du nom feature (Q1). Path : `docs/specs/SPEC-{YYYY-MM-DD}-{slug}.md`.
 
@@ -176,7 +177,7 @@ Ne JAMAIS faire handoff vers `/plan` si /validate échoue — c'est une régress
 
 ## Étape 7 — Handoff
 
-Passer le SPEC (pas le PRD entier) comme input du /plan suivant :
+Passer le SPEC (pas le PRD entier) comme input du /plan suivant. Le /plan suivant écrira son output dans `docs/plans/phase-V_{n+1}-plan.md` (convention v2.1.0+).
 
 ```
 ✅ Évolution préparée :
@@ -185,10 +186,10 @@ Passer le SPEC (pas le PRD entier) comme input du /plan suivant :
    - memory/decisions.md : ADR-{NNN} (si applicable)
    - STRUCTURE.md mis à jour (si applicable)
 
-Étapes suivantes :
+Étapes suivantes pour repartir propre :
   1. /close   → commit + STATUS.md
   2. /clear   → contexte vide
-  3. /plan docs/specs/SPEC-{date}-{slug}.md   → découper en tâches
+  3. /plan docs/specs/SPEC-{date}-{slug}.md   → découper en tâches (output: docs/plans/phase-V_{n+1}-plan.md)
   4. /execute → implémenter
 ```
 
