@@ -265,6 +265,69 @@ Si `/evoluer` a été le dernier skill significatif avant cette session (présen
 
 Idempotent : si le header existe déjà, skip. Signal informatif uniquement (pas d'enforcement runtime — sert pour /prime + revue manuelle).
 
+### Étape 6.5 — Gate déploiement (conditionnelle, Vercel uniquement)
+
+**Insérée entre l'Étape 6 (harvest) et l'Étape 7 (suggestion)**. Cette étape propose un push contextuel quand le projet est lié à Vercel et qu'il reste des commits non-pushés. Sinon elle se skip silencieusement (zero friction).
+
+**6.5.1 — Conditions de déclenchement** (TOUTES doivent être vraies, sinon skip direct vers Étape 7) :
+
+```bash
+# C1 — Vercel lié au projet ?
+COND_VERCEL=0 ; test -f .vercel/project.json && COND_VERCEL=1
+
+# C2 — commits non-pushés OU changements non-commités sur main ?
+COND_UNPUSHED=0
+if git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1 ; then
+  AHEAD=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0)
+  [ "$AHEAD" -gt 0 ] && COND_UNPUSHED=1
+fi
+# OU il n'y a pas encore d'upstream (cas premier deploy avec branche locale)
+git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1 || COND_UNPUSHED=1
+
+# C3 — project_type ∈ {webapp, site} ?
+PT=$(grep -oE 'project_type:\s*(webapp|site|automation)' CLAUDE.md 2>/dev/null | sed -E 's/.*:\s*//')
+COND_TYPE=0
+case "$PT" in webapp|site) COND_TYPE=1 ;; esac
+# Fallback : si project_type non détectable (regex échoue, ancre absente) → skip 6.5 silencieusement, pas d'erreur
+[ -z "$PT" ] && { echo "Étape 6.5 skipped (project_type non détectable)" ; SKIP_65=1 ; }
+```
+
+Si `COND_VERCEL == 1 && COND_UNPUSHED == 1 && COND_TYPE == 1 && SKIP_65 != 1` → continue 6.5.2. Sinon → skip silencieux vers Étape 7.
+
+**6.5.2 — AskUserQuestion : 3 options**
+
+> "Le projet est lié à Vercel et tu as des commits non-pushés. Tu veux quoi maintenant ?"
+>
+> Options :
+> 1. **Commit only** — comportement actuel /close, pas de push (push différé à plus tard)
+> 2. **Push main = deploy prod auto** — `git push origin main` puis affichage URL prod (lue depuis `<!-- ship:url -->`) + délai 90s annoncé pour le build Vercel
+> 3. **Push sur branche feature = preview Vercel** — propose un nom de branche slugifié (ex : `feat/{topic-court}`), crée la branche, push, affiche l'URL preview attendue (pattern générique `https://{slug}-git-{branche}-{team}.vercel.app`)
+
+**6.5.3 — Exécution selon l'option choisie**
+
+- **Option 1 (commit only)** : ne rien faire de plus, passe à 6.5.4.
+- **Option 2 (push main)** :
+  ```bash
+  git push origin main
+  ```
+  Affiche : *"Push effectué sur main. Vercel build en cours, ~1-2 min. URL prod : {URL_PROD lue depuis ship:url}. Le smoke test n'est pas relancé ici — c'est `/livrer` qui s'en charge si tu veux vérifier."*
+- **Option 3 (push branche feature)** :
+  ```bash
+  BRANCH_NAME="feat/{slug-suggéré}"
+  git checkout -b "$BRANCH_NAME"
+  git push -u origin "$BRANCH_NAME"
+  ```
+  Affiche : *"Branche `{BRANCH_NAME}` créée et pushée. Vercel crée un déploiement preview. URL attendue (pattern générique) : `https://{slug}-git-{branche-slugifiée}-{team}.vercel.app` — visible dans le PR si tu en ouvres un, ou dans le dashboard Vercel onglet Deployments."*
+
+**6.5.4 — Trace enrichie**
+
+Append à `tmp/skill-trace.jsonl` (en plus de la trace standard de close) :
+```json
+{"skill":"close","deploy_action":"commit_only|push_main|push_feature","ts":"<ISO8601>"}
+```
+
+Si 6.5 a été skip (conditions non remplies ou fallback `project_type` indétectable) → `deploy_action: null`.
+
 ### Étape 7 — suggestion suivante
 
 Lis `PRD.md ## Phases`. Identifie la phase suivante (première sans ✅ Terminée).
