@@ -3,6 +3,27 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.3.0 — 2026-05-18
+
+### Ajouté
+
+- `/livrer` route Vercel refondue : flow par défaut **GitHub→Vercel auto-deploy** (push = deploy)
+- `/livrer` détecte 3 marqueurs d'état (remote github, repo existe sur GitHub, `.vercel/project.json`) pour router automatiquement entre onboarding guidé et fast path push
+- `/close` Étape 6.5 conditionnelle : propose gate déploiement (`commit only` / `push main = deploy prod` / `push branche = preview`) si Vercel lié + commits non-pushés + `project_type` ∈ {webapp, site}
+- Warning Vercel Hobby = non-commercial affiché **AVANT** tout setup (anti-piège pour prestations clients €1500+)
+- `scripts/validate-kit-v2.sh` : Scénario J (9 checks couvrant la nouvelle logique /livrer + /close)
+
+### Modifié
+
+- `/livrer` ne présente plus `vercel --prod` CLI par défaut (conservé en commentaire HTML `<!-- power-users-fallback -->` pour utilisateurs avancés)
+- Check auth GitHub via `gh api user` au lieu de `gh auth status` (régression connue sur certaines versions retournant exit 0 même en échec)
+- Étape 4 (smoke test) : retry HTTP 60s × 2 si build Vercel pas encore terminé (502/504/404 transient)
+
+### Inchangé (intentionnel)
+
+- Routes Netlify, Cloudflare Pages, GitHub Pages, n8n automation strictement inchangées
+- Template `CLAUDE.md`, ancres, 3 examples — aucun breaking change pour projets v2.0.0+
+
 ## v2.2.0 — 2026-05-14
 
 ### Ajouté (3 modifications structurelles bundle)

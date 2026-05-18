@@ -1,5 +1,7 @@
 # Kit IAPreneurs Claude Code — doc de référence
 
+> **Version actuelle : v2.3.0** (2026-05-18). Changelog : [`docs/CHANGELOG.md`](CHANGELOG.md).
+
 > Doc de référence complète du kit. **Lue à la demande, pas à chaque session.** Pour démarrer un projet : tape `/start`. Le `CLAUDE.md` à la racine ne contient que ce qui sert à *chaque* session — tout le reste vit ici.
 
 ## Skills du kit
@@ -15,8 +17,8 @@
 | `/plan` | Découper UNE phase du PRD en tâches numérotées avec critères "Fait quand". Adapte ses questions selon `project_type`. | Avant d'exécuter une phase | ✅ |
 | `/execute` | Exécuter le plan tâche par tâche, coche les `[x]` au fil de l'eau. Délègue à `research-delegate` si bloqué par une doc API externe. | Après `/plan` (et éventuellement `/challenge`) | ✅ |
 | `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / curl / **audit policy d'accès BDD** si données clients). Jamais "ça devrait marcher". | Après `/execute` | ✅ |
-| `/close` | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + harvest learnings (3 questions ciblées) + suggestion next. | **Mandatory** après `/validate ✅` | ✅ |
-| `/livrer` | Déployer en production selon `## Stack` (hosting/BDD/email **détectés depuis CLAUDE.md, jamais hardcode** — Vercel/Netlify/Cloudflare/GitHub Pages/autre) + checklist policy d'accès advisory + smoke test. | Quand la dernière phase est `/close` | ✅ |
+| `/close` | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + harvest learnings (3 questions ciblées) + suggestion next. **Étape 6.5** propose un gate déploiement (commit only / push main = deploy prod / push branche = preview) si projet Vercel-lié avec commits non-pushés. | **Mandatory** après `/validate ✅` | ✅ |
+| `/livrer` | Déployer en production via **GitHub→Vercel auto-deploy** par défaut (push = deploy), ou selon `## Stack` (Netlify/Cloudflare/GitHub Pages/autre) — toujours **détecté depuis CLAUDE.md, jamais hardcode**. Inclut onboarding guidé au premier deploy + checklist policy d'accès advisory + smoke test. | Quand la dernière phase est `/close` | ✅ |
 | `/evoluer` | Ajouter une nouvelle feature à un projet livré : insère Phase N+1 dans PRD existant sans écraser (regex parse + 3 questions + idempotent). | Sur projet livré, quand tu veux scaler | ✅ |
 
 ### Skills optionnels avancés
@@ -112,6 +114,45 @@ Auto-invoqués quand tu touches à n8n. Attribution dans `.claude/skills/n8n/LIC
 **Règle d'or** : les ancres `<!-- skill:nom -->` ... `<!-- /skill:nom -->` délimitent les zones d'écriture des skills. **Ne les supprime pas.** Si tu veux retirer le contenu sans casser le skill, laisse les ancres vides.
 
 Le fichier `DESIGN.md` (produit par `/design` si webapp) vit à part, à la racine, et est lu automatiquement par Claude pour toute création UI (voir CLAUDE.md `## Création UI`).
+
+---
+
+## Premier déploiement — flow GitHub → Vercel auto-deploy (v2.3.0)
+
+Depuis v2.3.0, `/livrer` pour `hosting = vercel` adopte le pattern moderne **GitHub → Vercel auto-deploy** : tu pousses sur GitHub, Vercel détecte le commit et build automatiquement. Plus besoin de `vercel --prod` à chaque release (conservé en fallback "power users" pour cas spécifiques).
+
+### Prérequis (vérifiés par `/livrer` au premier deploy)
+
+- Compte **GitHub** (le skill propose le lien signup si tu n'en as pas)
+- Compte **Vercel** (gratuit) + **Vercel GitHub App** installée sur ton compte (scope `Only select repositories` recommandé pour la sécurité)
+- Variables d'environnement (`.env.local`) ajoutées dans **Vercel dashboard AVANT le premier push** — sinon build OK mais runtime crash silencieux
+
+### 3 marqueurs d'état (détection automatique)
+
+`/livrer` détermine si tu es au premier deploy ou en mode "push fast path" en checkant 3 marqueurs :
+
+1. `git remote get-url origin` pointe vers GitHub ?
+2. Le repo distant existe sur GitHub (vérifié via `gh repo view`) ?
+3. `.vercel/project.json` présent (= Vercel link déjà fait) ?
+
+- **3/3** → fast path : juste `git push` + smoke test
+- **< 3/3** → onboarding guidé pas-à-pas (warning Hobby plan, auth GitHub, création/lien repo, install Vercel GitHub App, env vars dashboard, `vercel link`, premier push)
+
+### ⚠️ Vercel Hobby plan = non-commercial
+
+**Vercel Hobby = usage personnel uniquement** (TOS). Si tu vends ton projet comme prestation à un client (€1500+), tu DOIS upgrade Vercel Pro (~$20/mo) avant le push. `/livrer` t'affiche ce warning **avant** tout setup.
+
+**Alternative sans cette restriction** : **Netlify** est gratuit même pour usage commercial. Change `## Stack` de ton CLAUDE.md (hosting: Netlify) et relance `/livrer` — la route Netlify est conservée intacte par v2.3.0.
+
+### Gate déploiement dans `/close` (v2.3.0)
+
+Quand `/close` détecte que ton projet est Vercel-lié + qu'il reste des commits non-pushés + que `project_type` est `webapp` ou `site`, il propose **Étape 6.5 — gate déploiement** avec 3 options :
+
+- **Commit only** : comportement actuel (push différé)
+- **Push main = deploy prod** : push immédiat, Vercel build prod
+- **Push branche feature = preview** : crée une branche, push, Vercel build preview (URL pattern `https://{slug}-git-{branche}-{team}.vercel.app`)
+
+Si tu n'es pas sur Vercel, ou si tu n'as pas de commit non-pushé, cette étape est skip silencieuse.
 
 ---
 
