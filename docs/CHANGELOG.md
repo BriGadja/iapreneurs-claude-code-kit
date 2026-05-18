@@ -3,6 +3,23 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.5.1 — 2026-05-18
+
+### Corrigé
+
+- `/livrer` route Vercel onboarding : **suppression de l'étape standalone "Install Vercel GitHub App"** (https://vercel.com/integrations/github). Cette étape était une friction inutile et présentait l'install comme une démarche "third-party" alors que c'est la connexion OAuth classique GitHub ↔ Vercel.
+- Refonte UX : la connexion GitHub ↔ Vercel se fait désormais **inline pendant l'import du projet** sur `https://vercel.com/new` :
+  - 1ère fois : Vercel propose "Continue with GitHub" ou "Configure GitHub App" dans la même page d'import (écran OAuth GitHub standard)
+  - Sessions suivantes : repos directement listés
+  - Si un repo manque dans la liste : lien **"Adjust GitHub App Permissions"** disponible inline (toujours dans la page d'import, pas de détour)
+- Renumérotation : étapes 5-9 deviennent étapes 5-8 (passage 9 étapes → 8 étapes onboarding)
+
+### Inchangé
+
+- Tous les autres aspects v2.5.0 (règle Dashboard vs CLI, marqueurs `git ls-remote` + `ship:url`, env vars 2 options, etc.) sont préservés
+- Routes Netlify / Cloudflare / GitHub Pages / n8n : strictement inchangées
+- Étape 3.5 (Domaine custom) : inchangée
+
 ## v2.5.0 — 2026-05-18
 
 ### Ajouté

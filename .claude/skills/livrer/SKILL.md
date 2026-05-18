@@ -142,42 +142,34 @@ Pas-à-pas guidé, AskUserQuestion à chaque checkpoint. **Création de comptes 
    > ```bash
    > git remote add origin "$REPO_URL"
    > git branch -M main
-   > # push différé après installation Vercel GitHub App + env vars (étapes 5-7)
+   > # push différé après création compte Vercel + import projet + env vars (étapes 5-7)
    > # pour que le 1er build trigger Vercel quand tout est en place
    > ```
    >
    > **Cas re-clone** (repo déjà créé sur GitHub avant `/livrer`) : skip la création, demande juste `REPO_URL` et fait le `git remote add origin`.
 
-5. **AskUserQuestion : install Vercel GitHub App** (Dashboard, intégration plateforme) :
-   > Va sur **https://vercel.com/integrations/github** :
-   > 1. Clique **Install** (ou **Configure** si déjà installée pour d'autres repos)
-   > 2. Au choix du scope : **coche "Only select repositories"** et sélectionne uniquement `{REPO_NAME}` (sécurité — évite que Vercel ait accès à tous tes repos)
-   > 3. Clique **Install / Save**
-   >
-   > Options :
-   > - "C'est installé"
-   > - "Explique-moi quoi cliquer" → re-détaille pas-à-pas
-   > - "Skip pour l'instant" → stoppe le skill, demande de relancer après install
+5. **AskUserQuestion : compte Vercel ?** (création de compte = Dashboard) — options :
+   - "Oui, j'ai un compte"
+   - "Non" → affiche **https://vercel.com/signup** → clique **"Continue with GitHub"** (connexion OAuth classique — Vercel utilise ton identité GitHub, pas de nouveau mot de passe, pas de "third-party app" à installer séparément)
 
-6. **AskUserQuestion : compte Vercel ?** (création de compte = Dashboard) — options :
-   - "Oui, j'ai un compte" (souvent créé à l'étape précédente en installant la GitHub App)
-   - "Non" → affiche **https://vercel.com/signup** (bouton "Continue with GitHub" — réutilise l'identité GitHub, pas de nouveau mot de passe)
-
-7. **Création/import du projet Vercel = Dashboard web** *(non-négociable : visuel/pédagogique, PAS de import via CLI)* :
+6. **Création/import du projet Vercel = Dashboard web** *(non-négociable : visuel/pédagogique, PAS d'import via CLI)*. **La connexion GitHub ↔ Vercel se fait inline pendant l'import**, pas via une étape séparée "install Vercel GitHub App" — Vercel gère ça transparent dès le 1er Import :
    > Va sur **https://vercel.com/new** :
-   > 1. Section **"Import Git Repository"** → tu vois la liste de tes repos GitHub (filtrés par la GitHub App installée à l'étape 5)
+   > 1. Section **"Import Git Repository"** :
+   >    - **1ère fois** : Vercel affiche un bouton **"Continue with GitHub"** ou **"Configure GitHub App"** — clique, autorise l'accès à tes repos. Tu peux choisir **"Only select repositories"** et cocher uniquement `{REPO_NAME}` (sécurité). Ça reste **dans le flow Vercel**, c'est juste l'écran OAuth classique GitHub qui s'ouvre — c'est pas une démarche "third-party" séparée.
+   >    - **Sessions suivantes** : tes repos sont déjà listés, tu vois `{REPO_NAME}` directement.
    > 2. Clique **Import** à côté de `{REPO_NAME}`
    > 3. **Configure Project** :
    >    - Framework Preset : auto-détecté (Next.js, Vite, etc.)
    >    - Root Directory : `./` (laisse par défaut sauf monorepo)
    >    - Build Command / Output Directory : auto-détectés
-   > 4. **NE CLIQUE PAS ENCORE "Deploy"** — il faut d'abord ajouter les env vars (étape 8).
+   > 4. **NE CLIQUE PAS ENCORE "Deploy"** — il faut d'abord ajouter les env vars (étape 7).
    >
    > AskUserQuestion : *"Tu es sur la page Configure Project (avant Deploy) ?"* — options :
    > - "Oui, prêt pour les env vars"
    > - "J'ai déjà cliqué Deploy" → continue, on ajoutera les env vars après et on relancera un deploy
+   > - "Vercel ne voit pas mon repo `{REPO_NAME}`" → clique **"Adjust GitHub App Permissions"** dans la même page d'import, sélectionne `{REPO_NAME}` dans la liste GitHub, valide, retour à l'import — toujours inline, pas de détour
 
-8. **Env vars AVANT premier deploy (sequencing critique)** — détecte les clés présentes dans `.env.local` (ou `.env`) :
+7. **Env vars AVANT premier deploy (sequencing critique)** — détecte les clés présentes dans `.env.local` (ou `.env`) :
 
    **Option A — Dashboard** (recommandé pour la 1ère fois, visuel) :
    > Sur la page Vercel **Configure Project** (avant le clic Deploy) :
@@ -188,22 +180,22 @@ Pas-à-pas guidé, AskUserQuestion à chaque checkpoint. **Création de comptes 
    **Option B — CLI `vercel env add` ou `vercel env pull`** (automation, après que le projet est créé via Dashboard) :
    > Si tu préfères automatiser, après que le projet existe sur Vercel :
    > ```bash
-   > vercel link --yes          # associe le repo local au projet Vercel créé en étape 7
+   > vercel link --yes          # associe le repo local au projet Vercel créé en étape 6
    > # puis pour chaque var :
    > vercel env add OPENAI_API_KEY production   # interactif : Vercel demande la valeur
    > # OU push depuis .env.local en batch :
    > vercel env pull .env.vercel-check          # pull les vars actuelles pour comparaison
    > ```
 
-   **Si tu as déjà cliqué Deploy à l'étape 7** : pas grave, va dans **Project Settings → Environment Variables**, ajoute tes clés, puis **Deployments → ⋯ → Redeploy**.
+   **Si tu as déjà cliqué Deploy à l'étape 6** : pas grave, va dans **Project Settings → Environment Variables**, ajoute tes clés, puis **Deployments → ⋯ → Redeploy**.
 
    AskUserQuestion : *"J'ai ajouté toutes les variables"* — options :
    - "Oui, toutes ajoutées"
    - "Pas de variables d'env (site statique sans backend)"
    - "Je m'en occupe après (build prod va crash mais OK pour test visuel)"
 
-9. **Premier deploy** :
-   > Sur la page Vercel **Configure Project** : clique **Deploy** (Dashboard) — OU si tu as déjà cliqué Deploy en étape 7, le push de l'étape suivante re-trigger automatiquement.
+8. **Premier deploy** :
+   > Sur la page Vercel **Configure Project** : clique **Deploy** (Dashboard) — OU si tu as déjà cliqué Deploy en étape 6, le push de l'étape suivante re-trigger automatiquement.
    >
    > **Push GitHub pour build** (git automation) — si pas encore fait :
    > ```bash
