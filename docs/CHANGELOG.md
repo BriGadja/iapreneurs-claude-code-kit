@@ -3,6 +3,30 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.5.0 — 2026-05-18
+
+### Ajouté
+
+- `/livrer` route Vercel — **règle explicite Dashboard vs CLI** ajoutée en tête de section :
+  - **Dashboard web obligatoire** : création de compte (GitHub, Vercel), création du repo GitHub (github.com/new), création/import du projet Vercel (vercel.com/new) — raisons pédagogiques (l'utilisateur voit où se passent les choses)
+  - **CLI OK pour l'automatisation non-interactive** : `gh api user` (auth check), `gh auth login --web`, `git remote add` / `git push`, `vercel link` (linker projet déjà créé via Dashboard), `vercel env add`, etc.
+  - **CLI interdite** pour : `gh repo create` (visuel sur github.com/new) et l'import projet Vercel (visuel sur vercel.com/new)
+
+### Modifié (route Vercel onboarding refondée — 9 étapes au lieu de 9 dans la v2.3.0, mais structure différente)
+
+- **Étape 4 (création repo GitHub)** : remplace `gh repo create --source . --push` par flow Dashboard github.com/new + paste URL HTTPS + `git remote add origin` + `git push` (git natif uniquement)
+- **Étape 7 (création projet Vercel)** : remplace `vercel link --yes` par flow Dashboard vercel.com/new → Import Git Repository → Configure Project. L'auto-deploy se fait ensuite via GitHub App webhook au prochain `git push`
+- **Étape 8 (env vars)** : présente 2 options — Option A Dashboard (recommandé 1ère fois, visuel) / Option B CLI `vercel env add` / `vercel env pull` (automation possible une fois le projet créé)
+- **Étape 2 (check auth GitHub)** : conservé via `gh api user` (automation OK)
+- **Détection 3 marqueurs (Étape 3.V.0)** : marqueur #2 utilise désormais `git ls-remote origin HEAD` (git natif) au lieu de `gh repo view` ; marqueur #3 utilise `<!-- ship:url -->` rempli dans CLAUDE.md (au lieu de `.vercel/project.json` qui n'existe qu'avec `vercel link`)
+- **Power-users fallback HTML** : clarifie que la CLI Vercel est *entièrement optionnelle* — le flow par défaut suit la règle Dashboard/CLI ci-dessus
+
+### Inchangé (intentionnel)
+
+- Étape 3.V.2 fast path (`route_vercel_push`) : toujours pur `git push` — aucun changement
+- Étape 3.5 (Domaine custom v2.4.0) : flow Dashboard Vercel + DNS registrar préservé, mention `vercel domains add` reformulée comme automation OK (post-création projet)
+- Routes Netlify / Cloudflare / GitHub Pages / n8n : strictement inchangées
+
 ## v2.4.0 — 2026-05-18
 
 ### Ajouté

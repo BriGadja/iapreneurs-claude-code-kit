@@ -1,6 +1,6 @@
 # Kit IAPreneurs Claude Code — doc de référence
 
-> **Version actuelle : v2.4.0** (2026-05-18). Changelog : [`docs/CHANGELOG.md`](CHANGELOG.md).
+> **Version actuelle : v2.5.0** (2026-05-18). Changelog : [`docs/CHANGELOG.md`](CHANGELOG.md).
 
 > Doc de référence complète du kit. **Lue à la demande, pas à chaque session.** Pour démarrer un projet : tape `/start`. Le `CLAUDE.md` à la racine ne contient que ce qui sert à *chaque* session — tout le reste vit ici.
 
@@ -120,6 +120,14 @@ Le fichier `DESIGN.md` (produit par `/design` si webapp) vit à part, à la raci
 ## Premier déploiement — flow GitHub → Vercel auto-deploy (v2.3.0)
 
 Depuis v2.3.0, `/livrer` pour `hosting = vercel` adopte le pattern moderne **GitHub → Vercel auto-deploy** : tu pousses sur GitHub, Vercel détecte le commit et build automatiquement. Plus besoin de `vercel --prod` à chaque release (conservé en fallback "power users" pour cas spécifiques).
+
+### Règle Dashboard vs CLI (v2.5.0)
+
+`/livrer` respecte une **séparation explicite** :
+
+- **Dashboard web obligatoire** (visuel/pédagogique) : création de compte GitHub/Vercel, création du repo sur github.com/new, import du projet sur vercel.com/new.
+- **CLI OK pour l'automatisation** : `gh api user`, `gh auth login --web`, `git remote add` / `git push`, `vercel link` (linker projet existant), `vercel env add`, `vercel domains add`, etc.
+- **CLI interdite** pour : `gh repo create` (l'utilisateur doit voir où il crée son repo) et l'import projet Vercel (idem).
 
 ### Prérequis (vérifiés par `/livrer` au premier deploy)
 
