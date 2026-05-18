@@ -66,12 +66,146 @@ Si la stack est ambiguë ou incomplète → demande à l'utilisateur les valeurs
 
 Selon hosting détecté en 1.2 :
 
-**Hosting = Vercel** :
+**Hosting = Vercel** — pattern moderne **GitHub → Vercel auto-deploy** (push = deploy). Le CLI `vercel --prod` est conservé en fallback "power users" (voir commentaire HTML en fin de section), mais le flow par défaut passe par GitHub.
+
+**Étape 3.V.0 — Détection 3 marqueurs d'état** (déterministe, pas d'AskUserQuestion ici) :
+
 ```bash
-vercel link              # si pas déjà fait
-vercel env add {VAR_NAME} production    # pour chaque variable de .env
-vercel --prod
+# Marqueur 1 — remote GitHub déjà configuré ?
+MARK_REMOTE=0 ; git remote get-url origin 2>/dev/null | grep -qE 'github.com[:/]' && MARK_REMOTE=1
+
+# Marqueur 2 — repo distant existe vraiment sur GitHub ?
+MARK_REMOTE_EXISTS=0
+if [ "$MARK_REMOTE" = "1" ]; then
+  ORIGIN=$(git remote get-url origin | sed -E 's#.*github.com[:/]([^/]+/[^/]+)(\.git)?$#\1#')
+  gh repo view "$ORIGIN" >/dev/null 2>&1 && MARK_REMOTE_EXISTS=1
+fi
+
+# Marqueur 3 — projet déjà lié à Vercel ?
+MARK_VERCEL=0 ; test -f .vercel/project.json && MARK_VERCEL=1
+
+# Score
+SCORE=$((MARK_REMOTE + MARK_REMOTE_EXISTS + MARK_VERCEL))
 ```
+
+- Si `SCORE == 3` → route **`route_vercel_push`** (fast path) — passe directement à l'Étape 3.V.2 ci-dessous.
+- Sinon → route **`route_vercel_onboarding`** (premier deploy, guidé) — passe à l'Étape 3.V.1.
+
+**Étape 3.V.1 — `route_vercel_onboarding`** (déclenchée si < 3/3 marqueurs)
+
+Pas-à-pas guidé, AskUserQuestion à chaque checkpoint non-automatisable. Ordre strict :
+
+1. **Warning Vercel Hobby (EN PREMIER, avant tout setup)** — affiche :
+   > ⚠️ **Vercel Hobby plan = usage personnel non-commercial uniquement.** Si tu vends cet outil comme prestation à un client (€1500+), tu DOIS upgrade vers Vercel Pro (~$20/mo) **avant** de pousser, sinon TOS violation. Alternative sans cette restriction : **Netlify** (gratuit, commercial OK) — relance `/livrer` après avoir changé `## Stack` dans CLAUDE.md si tu préfères.
+   >
+   > AskUserQuestion : *"Tu continues en Hobby (perso, non-commercial) ?"* — options :
+   > - "Oui, Hobby OK (usage perso)"
+   > - "Oui, je suis déjà sur Vercel Pro"
+   > - "Stop, je vais upgrade avant" → stoppe le skill ici
+
+2. **Check auth GitHub CLI** — utilise `gh api user >/dev/null 2>&1` (plus fiable que `gh auth status` qui a une régression connue sur certaines versions retournant exit 0 même en échec) :
+   ```bash
+   gh api user >/dev/null 2>&1 || AUTH_KO=1
+   ```
+   Si KO → affiche les deux chemins d'auth :
+   - **Device flow (recommandé débutant)** : `BROWSER= gh auth login --web` (Claude affiche le code device, l'utilisateur l'entre sur github.com/login/device dans son navigateur)
+   - **Personal Access Token (si déjà un PAT)** : `export GH_TOKEN=ghp_xxxxx && gh api user` (vérification)
+
+   Attends que l'utilisateur confirme avant de continuer.
+
+3. **AskUserQuestion : compte GitHub existant ?** — options :
+   - "Oui, j'ai un compte"
+   - "Non, je n'en ai pas" → affiche https://github.com/signup, attends signup, puis relance check auth (étape 2)
+
+4. **Création/lien du repo distant** — vérifie d'abord si le repo existe déjà (cas re-clone ou repo créé via web UI) :
+   ```bash
+   # Détecte nom du projet depuis le dossier courant
+   REPO_NAME=$(basename "$PWD")
+   GH_USER=$(gh api user --jq .login)
+   if gh repo view "$GH_USER/$REPO_NAME" >/dev/null 2>&1 ; then
+     # Le repo distant existe déjà
+     git remote get-url origin 2>/dev/null || git remote add origin "git@github.com:$GH_USER/$REPO_NAME.git"
+     git push -u origin main
+   else
+     # Création — défaut public (philosophie communauté), opt-out vers privé
+     # AskUserQuestion : "Repo public ou privé ?" (Public recommandé / Privé / Annuler)
+     gh repo create "$REPO_NAME" --public --source . --push
+     # Si réponse "Privé" → remplacer --public par --private
+   fi
+   ```
+
+5. **AskUserQuestion : install Vercel GitHub App** — affiche :
+   > "Va installer la Vercel GitHub App ici : https://vercel.com/integrations/github
+   >
+   > Au moment du choix de scope, **choisis 'Only select repositories' et coche uniquement `{REPO_NAME}`** (sécurité — évite que Vercel ait accès à tous tes repos GitHub). Quand c'est fait :"
+   >
+   > Options :
+   > - "C'est installé"
+   > - "Explique-moi quoi cliquer" → détaille pas-à-pas
+   > - "Skip pour l'instant" → stoppe le skill, demande de relancer après install
+
+6. **Env vars AVANT push (sequencing critique)** — détecte les clés présentes dans `.env.local` (ou `.env` selon convention projet) et affiche une **checklist advisory** :
+   > "⚠️ **Ces variables doivent être dans Vercel AVANT le premier push**, sinon ton app build mais crash au runtime (Supabase, OpenAI, etc. sont undefined).
+   >
+   > Variables détectées dans `.env.local` :
+   > {liste des KEY=... avec les valeurs masquées en `***`}
+   >
+   > Étapes (le CLI `vercel env add` est interactif, donc on passe par le dashboard web) :
+   > 1. Ouvre https://vercel.com/dashboard
+   > 2. Sélectionne ton projet `{REPO_NAME}` (apparaîtra dès que tu auras `vercel link` à l'étape suivante)
+   > 3. Settings → Environment Variables → ajoute chaque clé pour `Production` (et `Preview` si tu utilises les déploiements preview)"
+   >
+   > AskUserQuestion : *"J'ai ajouté toutes les variables dans Vercel"* — options :
+   > - "Oui, toutes ajoutées"
+   > - "Pas de variables d'env (site statique sans backend)"
+   > - "Je m'en occupe après (build prod va crash mais OK pour test)"
+
+7. **Auth Vercel CLI check** — `vercel link --yes` skip les prompts de config projet, **PAS l'auth**. Vérifie d'abord :
+   ```bash
+   vercel whoami >/dev/null 2>&1 || VERCEL_AUTH_KO=1
+   ```
+   Si KO → guidance :
+   > "Vercel CLI n'est pas loggué. Deux options :
+   > - `vercel login` (Vercel ouvre un browser ou device flow)
+   > - `export VERCEL_TOKEN=...` puis re-test (récupère un token sur https://vercel.com/account/tokens)"
+   >
+   > AskUserQuestion : *"Auth Vercel CLI OK ?"* — options : "Oui" / "Besoin d'aide" / "Skip (je passe par le dashboard uniquement)"
+
+8. **Link projet** :
+   ```bash
+   vercel link --yes
+   ```
+   Vérifie que `.vercel/project.json` est créé (contient `orgId` + `projectId`). Si non → stoppe et alerte.
+
+9. **Premier push = premier deploy auto** :
+   ```bash
+   git push origin main
+   ```
+   Annonce :
+   > "Push effectué. Vercel détecte le commit et déclenche un build automatique. URL prod attendue (composée depuis le nom du projet) : `https://{REPO_NAME}.vercel.app` ou `https://{REPO_NAME}-{org}.vercel.app`. Build typique = 1-2 min (jusqu'à 3 min pour grosse app). J'attends 90s avant de tenter le smoke test (Étape 4)."
+
+**Étape 3.V.2 — `route_vercel_push`** (déclenchée si 3/3 marqueurs, fast path)
+
+```bash
+CUR_BRANCH=$(git branch --show-current)
+git push origin "$CUR_BRANCH"
+```
+
+Affiche selon la branche :
+- **Push sur `main`** = **deploy prod auto** :
+  > "Push sur main. Deploy prod déclenché. URL prod (lue depuis `<!-- ship:url -->` de CLAUDE.md) : `{URL_PROD}`. Build en cours, ~1-2 min (jusqu'à 3 min si grosse app). J'attends 90s avant smoke test."
+- **Push sur une branche feature** = **preview Vercel** :
+  > "Push sur `{CUR_BRANCH}`. Vercel va créer un déploiement preview. URL attendue (pattern générique) : `https://{slug}-git-{branche-slugifiee}-{team}.vercel.app` (l'URL exacte apparaît dans le PR GitHub si tu en ouvres un, ou dans le dashboard Vercel onglet Deployments). J'attends 90s avant smoke test."
+
+Le smoke test (Étape 4) fait HTTP GET avec retry à 60s × 2 max si la première tentative renvoie 502/504 (build pas fini).
+
+<!-- power-users-fallback:
+Si tu préfères skipper GitHub et pousser directement via CLI (déconseillé pour le flow par défaut — on perd preview deploys + PR integration) :
+  vercel --prod
+Conservé uniquement pour les utilisateurs avancés qui ont une raison spécifique d'éviter GitHub.
+-->
+
+
 
 **Hosting = Netlify** :
 ```bash
@@ -110,8 +244,9 @@ Une fois le deploy passé (URL prod reçue) :
 
 **`project_type = webapp` ou `site`** :
 1. Récupère l'URL prod (de la sortie deploy).
-2. Lance via Playwright MCP : `mcp__playwright__browser_navigate({ url: "https://..." })` + `mcp__playwright__browser_snapshot()`. Si tu prends un screenshot, enregistre-le dans `tmp/smoke-test-{date}.png` (le dossier `tmp/` est gitignored), supprime après vérification.
-3. Vérifie : (a) la page charge sans 5xx, (b) contenu principal visible (pas page blanche), (c) pas d'erreur console critique.
+2. **Si tu sors de `route_vercel_push` ou `route_vercel_onboarding` (sous-routes GitHub→Vercel)** : attends 90s avant la 1ère tentative (build Vercel typique). Si la 1ère requête HTTP renvoie 502/504/404 (build pas encore terminé), retry à 60s × 2 max avant de considérer le deploy en échec.
+3. Lance via Playwright MCP : `mcp__playwright__browser_navigate({ url: "https://..." })` + `mcp__playwright__browser_snapshot()`. Si tu prends un screenshot, enregistre-le dans `tmp/smoke-test-{date}.png` (le dossier `tmp/` est gitignored), supprime après vérification.
+4. Vérifie : (a) la page charge sans 5xx, (b) contenu principal visible (pas page blanche), (c) pas d'erreur console critique.
 
 **`project_type = automation`** :
 1. Récupère l'URL du webhook.
