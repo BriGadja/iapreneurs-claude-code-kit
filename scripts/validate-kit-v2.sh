@@ -28,7 +28,7 @@ check() {
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  Validation kit IAPreneurs Claude Code v2.3.0"
+echo "  Validation kit IAPreneurs Claude Code v2.4.0"
 echo "═══════════════════════════════════════════════════════════"
 
 echo ""
@@ -181,7 +181,7 @@ check "I docs/CHANGELOG.md v2.2.0" "grep -qE 'v2.2.0|## v2.2' docs/CHANGELOG.md"
 check "I docs/MIGRATION existe" "test -f docs/MIGRATION-v2.1-to-v2.2.md"
 
 echo ""
-echo "═══ Scénario J : v2.3.0 (livrer GitHub→Vercel auto-deploy + close gate) ═══"
+echo "═══ Scénario J : v2.4.0 (livrer GitHub→Vercel auto-deploy + close gate) ═══"
 check "J /livrer 3 marqueurs détection présents" "[ \$(grep -cE 'git remote get-url|gh repo view|\\.vercel/project\\.json' .claude/skills/livrer/SKILL.md) -ge 3 ]"
 check "J /livrer route_vercel_onboarding présente" "grep -q 'route_vercel_onboarding' .claude/skills/livrer/SKILL.md"
 check "J /livrer route_vercel_push présente" "grep -q 'route_vercel_push' .claude/skills/livrer/SKILL.md"
@@ -190,7 +190,19 @@ check "J /livrer fallback power-users en commentaire HTML" "grep -q 'power-users
 check "J /close Étape 6.5 présente avec 3 options" "grep -q 'Étape 6.5' .claude/skills/close/SKILL.md && [ \$(grep -cE 'Commit only|Push main|Push.*branche|preview Vercel' .claude/skills/close/SKILL.md) -ge 3 ]"
 check "J /close condition .vercel/project.json énoncée" "grep -q '.vercel/project.json' .claude/skills/close/SKILL.md"
 check "J docs/KIT.md mention Netlify alternative non-commerciale" "grep -qE 'Netlify.*commercial|commercial.*Netlify' docs/KIT.md"
-check "J docs/KIT.md version v2.3.0 + docs/CHANGELOG.md entrée v2.3.0" "grep -q 'v2.3.0' docs/KIT.md && grep -qE '^## v2.3.0' docs/CHANGELOG.md"
+check "J docs/KIT.md version v2.4.0 + docs/CHANGELOG.md entrée v2.4.0" "grep -q 'v2.4.0' docs/KIT.md && grep -qE '^## v2.4.0' docs/CHANGELOG.md"
+
+echo ""
+echo "═══ Scénario K : v2.4.0 (livrer Étape 3.5 domaine custom registrar-aware) ═══"
+check "K /livrer Étape 3.5 Domaine custom présente" "grep -qE 'Étape 3\\.5.*Domaine custom|Étape 3\\.5 — Domaine' .claude/skills/livrer/SKILL.md"
+check "K /livrer 4 registrars couverts (OVH/Gandi/Cloudflare/Hostinger)" "[ \$(grep -cE 'OVH|Gandi|Cloudflare|Hostinger' .claude/skills/livrer/SKILL.md) -ge 4 ]"
+check "K /livrer gotcha OVH point final CNAME" "grep -qE 'point final|cname\\.vercel-dns\\.com\\.' .claude/skills/livrer/SKILL.md"
+check "K /livrer gotcha Cloudflare DNS only (nuage gris)" "grep -qE 'DNS only|nuage gris|orange cloud' .claude/skills/livrer/SKILL.md"
+check "K /livrer distinction sous-domaine vs apex" "grep -qE 'apex|sous-domaine' .claude/skills/livrer/SKILL.md && grep -qE 'ALIAS|ANAME|records A' .claude/skills/livrer/SKILL.md"
+check "K /livrer Étape 5 Cas A/B (URL custom vs default)" "grep -qE 'Cas A|Cas B|URL_CIBLE|URL_DEFAUT' .claude/skills/livrer/SKILL.md"
+check "K /livrer frontmatter mention domaine custom" "head -10 .claude/skills/livrer/SKILL.md | grep -qiE 'domaine custom|sous-domaine custom'"
+check "K docs/KIT.md section Domaine custom" "grep -qE 'Domaine custom \\(v2\\.4\\.0|Domaine custom .*opt-out' docs/KIT.md"
+check "K docs/CHANGELOG.md entrée v2.4.0" "grep -qE '^## v2\\.4\\.0' docs/CHANGELOG.md"
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
@@ -202,6 +214,6 @@ if [ "$FAIL" -gt 0 ]; then
   echo "❌ $FAIL checks ont échoué. Voir détails ci-dessus."
   exit 1
 else
-  echo "✅ Tous les checks passent. Kit v2.3.0 validé."
+  echo "✅ Tous les checks passent. Kit v2.4.0 validé."
   exit 0
 fi

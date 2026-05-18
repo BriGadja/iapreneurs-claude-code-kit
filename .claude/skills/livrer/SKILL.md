@@ -1,6 +1,6 @@
 ---
 name: livrer
-description: Utiliser pour déployer le projet en production une fois la dernière phase /close. Lit la section ## Stack du CLAUDE.md (jamais hardcode de provider) pour s'adapter aux choix faits dans /architect — hosting (Vercel/Netlify/Cloudflare/GitHub Pages/autre), BDD (Supabase/Neon/autre), email (Resend/Postmark/autre). Inclut une checklist d'accès BDD advisory (jamais auto-exécutée), un smoke test post-deploy et l'écriture de l'URL prod dans CLAUDE.md. Ne PAS utiliser au milieu d'une phase ou si /validate ❌ KO.
+description: Utiliser pour déployer le projet en production une fois la dernière phase /close. Lit la section ## Stack du CLAUDE.md (jamais hardcode de provider) pour s'adapter aux choix faits dans /architect — hosting (Vercel/Netlify/Cloudflare/GitHub Pages/autre), BDD (Supabase/Neon/autre), email (Resend/Postmark/autre). Inclut une checklist d'accès BDD advisory (jamais auto-exécutée), **configuration d'un domaine ou sous-domaine custom optionnelle** (Étape 3.5, registrar-aware : OVH/Gandi/Cloudflare/Hostinger/autre), un smoke test post-deploy et l'écriture de l'URL prod dans CLAUDE.md. Ne PAS utiliser au milieu d'une phase ou si /validate ❌ KO.
 ---
 
 # Skill /livrer — déployer en production (stack-aware)
@@ -238,13 +238,118 @@ git push origin main     # workflow .github/workflows/deploy.yml gère le push g
 
 Pour chaque commande : affiche, demande *"J'exécute ? (oui / modifie / skip)"*, attends réponse.
 
+### Étape 3.5 — Domaine custom (advisory, opt-out)
+
+**S'applique si Étape 3 a produit une URL hosting par défaut** (ex: `discoverly-xi.vercel.app`, `cool-app.netlify.app`, `proj.pages.dev`) et que `project_type` ∈ `{webapp, site}`. Skip silencieux pour `automation` (n8n webhook, pas d'URL marketing).
+
+**Philosophie** : cette étape est **opt-out**. Une seule question d'entrée : si l'utilisateur répond "Non", on file directement à Étape 4 sans le ralentir. Si "Oui", on guide pas-à-pas car le DNS varie selon le registrar (et c'est typiquement là qu'un kit a sa valeur ajoutée).
+
+**Étape 3.5.1 — Question d'entrée**
+
+AskUserQuestion :
+
+> "Tu veux configurer une URL custom (ex: `app.monsite.fr` ou `monsite.fr`) au lieu de garder `{URL_DEFAUT}` ?"
+
+Options :
+- **"Oui, un sous-domaine d'un domaine que je possède déjà"** (ex: `app.monsite.fr`, `discoverly.sablia.fr`) → continue 3.5.2 — c'est le cas le plus simple (CNAME)
+- **"Oui, un domaine racine que je viens d'acheter"** (ex: `monsite.fr`) → continue 3.5.2 — apex (A records, plus complexe)
+- **"Non, je garde l'URL par défaut"** (suffisant pour MVP, interne, démo) → skip direct vers Étape 4
+
+**Étape 3.5.2 — Demander l'URL cible et le registrar**
+
+AskUserQuestion (input texte) : *"Quelle est l'URL exacte que tu veux ?"* → stocke dans `URL_CIBLE` (ex: `discoverly.sablia.fr` ou `monsite.fr`).
+
+AskUserQuestion (choix) : *"Quel registrar gère le domaine `{domaine-parent}` ?"* — options :
+1. **OVH** *(recommandé dans le module Claude Code IAPreneurs)*
+2. **Gandi**
+3. **Cloudflare**
+4. **Hostinger**
+5. **Autre** *(le skill demandera le nom et proposera un pattern générique CNAME/A)*
+
+Si l'utilisateur ne sait pas → mention : "Si tu n'as pas encore de domaine, **OVH est le registrar par défaut suggéré dans le module Claude Code** (interface FR, support FR, ~7€/an pour un .fr). Achète ton domaine sur ovh.com puis relance `/livrer`."
+
+**Étape 3.5.3 — Côté hosting : ajouter le domaine (V1 = Vercel détaillé)**
+
+**Hosting = Vercel** :
+
+1. Affiche :
+   > "Va dans **Vercel Dashboard → ton projet → Settings → Domains → Add**. Entre `{URL_CIBLE}` et clique Add.
+   >
+   > Vercel va t'afficher la **valeur DNS exacte à configurer chez {registrar}** (généralement un CNAME pour sous-domaine, des A records pour apex). **Colle-moi cette valeur ici avant qu'on touche au DNS** — selon ton cas tu verras soit :
+   > - `CNAME` → `cname.vercel-dns.com` (sous-domaine)
+   > - `A` → `76.76.21.21` (et parfois d'autres IPs, apex)"
+2. AskUserQuestion (input texte) : *"Colle la valeur DNS que Vercel demande"* → stocke dans `DNS_TARGET` (et type `DNS_TYPE` ∈ {CNAME, A}).
+3. Le CLI `vercel domains add {URL_CIBLE}` existe en équivalent, mais le dashboard est plus visuel et te donne la valeur DNS exacte à colle.
+
+**Hosting = Netlify / Cloudflare Pages / GitHub Pages / autre** :
+- TODO documenter le flow équivalent (à remplir au fil des livraisons réelles sur d'autres hostings). Pour l'instant, le skill affiche : *"Va dans le dashboard {hosting} → section Domains/Custom domain → ajoute `{URL_CIBLE}` → note la valeur DNS demandée et colle-la moi."* Puis continue avec 3.5.4.
+
+**Étape 3.5.4 — Côté DNS (registrar-aware)**
+
+Selon `{registrar}` et type d'URL (`sous-domaine` si `URL_CIBLE` contient au moins 2 points pour `.fr`/`.com`, sinon apex) :
+
+**OVH + sous-domaine (cas le plus fréquent — Discoverly, IAPreneurs)** :
+> 1. Va sur **www.ovh.com/manager → Web Cloud → Domaines → `{domaine-parent}` → Zone DNS**
+> 2. Clique **"Ajouter une entrée"** → choisis type **CNAME**
+> 3. **Sous-domaine** : `{sous-domaine}` (ex: `discoverly` pour `discoverly.sablia.fr`) — **PAS l'URL complète**
+> 4. **Cible** : `{DNS_TARGET}.` ⚠️ **AVEC LE POINT FINAL** ← gotcha classique OVH, sans le point l'entrée est mal interprétée
+> 5. TTL : laisse la valeur par défaut (3600s = 1h)
+> 6. Valide. La propagation prend généralement 5-15 min chez OVH.
+
+**OVH + apex (domaine racine)** :
+> ⚠️ OVH ne supporte PAS ALIAS/ANAME pour apex. Tu dois utiliser des **records A** vers les IPs Vercel.
+> 1. Manager OVH → Zone DNS → **modifier le record A par défaut** (sous-domaine = laisse vide) → cible `{DNS_TARGET}` (IP Vercel)
+> 2. Si Vercel demande plusieurs IPs, ajoute autant de records A que nécessaire
+> 3. Doc Vercel à jour pour les IPs : https://vercel.com/docs/projects/domains/working-with-domains#dns-records
+
+**Gandi + sous-domaine** :
+> Gandi LiveDNS → ton domaine → **Records → Add Record** → Type CNAME → Name `{sous-domaine}` → Hostname `{DNS_TARGET}.` (avec point final aussi) → TTL 1800.
+
+**Cloudflare + sous-domaine** :
+> ⚠️ Cloudflare DNS proxy + Vercel SSL = SSL cassé (Vercel reçoit du HTTPS Cloudflare au lieu du HTTP origin, l'issu Let's Encrypt échoue).
+> 1. Dashboard Cloudflare → ton domaine → **DNS → Records → Add record** → Type CNAME → Name `{sous-domaine}` → Target `{DNS_TARGET}`
+> 2. **Proxy status : "DNS only" (nuage GRIS, PAS orange)** ← non-négociable pour Vercel
+> 3. Save.
+
+**Hostinger + sous-domaine** :
+> hPanel → ton domaine → **DNS / Nameservers → DNS Zone Editor → Add Record** → Type CNAME → Name `{sous-domaine}` → Points to `{DNS_TARGET}` → TTL 14400. Pas de point final requis chez Hostinger (auto-ajouté).
+
+**Autre registrar** (réponse "Autre" en 3.5.2) :
+> Pattern générique : crée un record **{DNS_TYPE}** avec name=`{sous-domaine ou @}` et target/value=`{DNS_TARGET}`. Doc Vercel "Add a domain" : https://vercel.com/docs/projects/domains/add-a-domain — section "Configure DNS" couvre les cas par registrar.
+
+**Étape 3.5.5 — Attente propagation**
+
+AskUserQuestion :
+
+> "DNS configuré ! Propagation typique : 5 min à 1h (parfois jusqu'à 24h selon TTL ancien). Tu veux quoi maintenant ?"
+
+Options :
+- **"Attente active (max 10 min)"** → le skill poll `dig +short {URL_CIBLE}` (ou `nslookup {URL_CIBLE}`) toutes les 30s. Continue dès que la réponse contient `{DNS_TARGET}` ou une IP Vercel. Si > 10 min, propose : "Continuer en mode pending ou retenter ?"
+- **"Skip — je vérifierai moi-même"** → smoke test Étape 4 sur l'URL **fallback hosting** (`{URL_DEFAUT}`), marquer `⏳ DNS pending` dans `## Production` à Étape 5. Le skill propose : *"Re-lance `/livrer` quand le DNS aura propagé pour faire le smoke test final sur ton URL custom."*
+
+**Étape 3.5.6 — SSL Let's Encrypt (info)**
+
+Affiche :
+> "🔒 **SSL** : Vercel émet automatiquement un certificat Let's Encrypt dès qu'il détecte la propagation DNS (généralement < 1 min après). Pas d'action de ta part. Tu peux vérifier dans Vercel Dashboard → Domains → état devient ✅ Valid Configuration + 🔒 Active."
+
+**Étape 3.5.7 — Stockage des valeurs pour Étapes 4 et 5**
+
+Garde en mémoire pour la suite :
+- `URL_CIBLE` (URL custom configurée) — utilisée par Étape 4 (smoke test cible custom) et Étape 5 (## Production)
+- `URL_DEFAUT` (URL hosting fallback) — toujours écrite en backup dans `## Production`
+- `DNS_TYPE`, `DNS_TARGET`, `registrar` — écrits dans `## Production` pour audit futur
+- `dns_propagated` (booléen) — `true` si attente active validée, `false` si mode skip
+
 ### Étape 4 — Smoke test post-deploy
 
 Une fois le deploy passé (URL prod reçue) :
 
 **`project_type = webapp` ou `site`** :
-1. Récupère l'URL prod (de la sortie deploy).
-2. **Si tu sors de `route_vercel_push` ou `route_vercel_onboarding` (sous-routes GitHub→Vercel)** : attends 90s avant la 1ère tentative (build Vercel typique). Si la 1ère requête HTTP renvoie 502/504/404 (build pas encore terminé), retry à 60s × 2 max avant de considérer le deploy en échec.
+1. **Choix de l'URL cible** :
+   - Si Étape 3.5 a configuré une URL custom ET `dns_propagated == true` → smoke test sur `https://{URL_CIBLE}`
+   - Si Étape 3.5 a configuré une URL custom MAIS `dns_propagated == false` (mode skip) → smoke test sur `https://{URL_DEFAUT}` (fallback hosting) + affiche warning : *"⏳ DNS pending sur {URL_CIBLE}. Smoke test fait sur fallback. Re-lance `/livrer` quand le DNS aura propagé."*
+   - Si Étape 3.5 skip (utilisateur a dit "Non") → smoke test sur `https://{URL_DEFAUT}`
+2. **Si tu sors de `route_vercel_push` ou `route_vercel_onboarding` (sous-routes GitHub→Vercel)** : attends 90s avant la 1ère tentative (build Vercel typique). Si la 1ère requête HTTP renvoie 502/504/404 (build pas encore terminé, OU DNS pas encore résolu pour URL custom), retry à 60s × 2 max avant de considérer le deploy en échec.
 3. Lance via Playwright MCP : `mcp__playwright__browser_navigate({ url: "https://..." })` + `mcp__playwright__browser_snapshot()`. Si tu prends un screenshot, enregistre-le dans `tmp/smoke-test-{date}.png` (le dossier `tmp/` est gitignored), supprime après vérification.
 4. Vérifie : (a) la page charge sans 5xx, (b) contenu principal visible (pas page blanche), (c) pas d'erreur console critique.
 
@@ -269,13 +374,29 @@ Une fois le smoke test ✅, ouvre `CLAUDE.md` et trouve le bloc :
 
 Remplace le contenu entre les ancres par :
 
+**Cas A — sans domaine custom** (Étape 3.5 skip ou non-applicable) :
 ```
-- **URL production** : {URL récupérée}
+- **URL production** : {URL_DEFAUT}
 - **Hosting** : {nom détecté en 1.2}
 - **Type** : {webapp | site | automation}
 - **Livré le** : {YYYY-MM-DD}
 - **Dernier smoke test** : ✅ {YYYY-MM-DD HH:MM}
 ```
+
+**Cas B — avec domaine custom configuré** (Étape 3.5 a tourné) :
+```
+- **URL production** : https://{URL_CIBLE}{statut DNS si applicable}
+- **URL fallback hosting** : https://{URL_DEFAUT}
+- **DNS** : {DNS_TYPE} chez {registrar} → {DNS_TARGET}
+- **Hosting** : {nom détecté en 1.2}
+- **Type** : {webapp | site | automation}
+- **Livré le** : {YYYY-MM-DD}
+- **Dernier smoke test** : ✅ {YYYY-MM-DD HH:MM} (sur {URL_CIBLE | URL_DEFAUT fallback si pending})
+```
+
+Où `{statut DNS si applicable}` =
+- ` ✅ Propagé` si `dns_propagated == true`
+- ` ⏳ DNS pending (propagation en cours, re-lance \`/livrer\` quand résolu)` si `dns_propagated == false`
 
 ## Risque #1 — livrer sans audit policy BDD (webapp)
 

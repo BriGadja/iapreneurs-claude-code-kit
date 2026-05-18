@@ -1,6 +1,6 @@
 # Kit IAPreneurs Claude Code — doc de référence
 
-> **Version actuelle : v2.3.0** (2026-05-18). Changelog : [`docs/CHANGELOG.md`](CHANGELOG.md).
+> **Version actuelle : v2.4.0** (2026-05-18). Changelog : [`docs/CHANGELOG.md`](CHANGELOG.md).
 
 > Doc de référence complète du kit. **Lue à la demande, pas à chaque session.** Pour démarrer un projet : tape `/start`. Le `CLAUDE.md` à la racine ne contient que ce qui sert à *chaque* session — tout le reste vit ici.
 
@@ -18,7 +18,7 @@
 | `/execute` | Exécuter le plan tâche par tâche, coche les `[x]` au fil de l'eau. Délègue à `research-delegate` si bloqué par une doc API externe. | Après `/plan` (et éventuellement `/challenge`) | ✅ |
 | `/validate` | Vérifier que la phase marche pour de vrai (Playwright / n8n / curl / **audit policy d'accès BDD** si données clients). Jamais "ça devrait marcher". | Après `/execute` | ✅ |
 | `/close` | Clôturer la phase : ✅ Terminée dans PRD + commit conventionnel + harvest learnings (3 questions ciblées) + suggestion next. **Étape 6.5** propose un gate déploiement (commit only / push main = deploy prod / push branche = preview) si projet Vercel-lié avec commits non-pushés. | **Mandatory** après `/validate ✅` | ✅ |
-| `/livrer` | Déployer en production via **GitHub→Vercel auto-deploy** par défaut (push = deploy), ou selon `## Stack` (Netlify/Cloudflare/GitHub Pages/autre) — toujours **détecté depuis CLAUDE.md, jamais hardcode**. Inclut onboarding guidé au premier deploy + checklist policy d'accès advisory + smoke test. | Quand la dernière phase est `/close` | ✅ |
+| `/livrer` | Déployer en production via **GitHub→Vercel auto-deploy** par défaut (push = deploy), ou selon `## Stack` (Netlify/Cloudflare/GitHub Pages/autre) — toujours **détecté depuis CLAUDE.md, jamais hardcode**. Inclut onboarding guidé au premier deploy + checklist policy d'accès advisory + **configuration domaine/sous-domaine custom registrar-aware** (OVH/Gandi/Cloudflare/Hostinger, Étape 3.5 opt-out) + smoke test. | Quand la dernière phase est `/close` | ✅ |
 | `/evoluer` | Ajouter une nouvelle feature à un projet livré : insère Phase N+1 dans PRD existant sans écraser (regex parse + 3 questions + idempotent). | Sur projet livré, quand tu veux scaler | ✅ |
 
 ### Skills optionnels avancés
@@ -143,6 +143,22 @@ Depuis v2.3.0, `/livrer` pour `hosting = vercel` adopte le pattern moderne **Git
 **Vercel Hobby = usage personnel uniquement** (TOS). Si tu vends ton projet comme prestation à un client (€1500+), tu DOIS upgrade Vercel Pro (~$20/mo) avant le push. `/livrer` t'affiche ce warning **avant** tout setup.
 
 **Alternative sans cette restriction** : **Netlify** est gratuit même pour usage commercial. Change `## Stack` de ton CLAUDE.md (hosting: Netlify) et relance `/livrer` — la route Netlify est conservée intacte par v2.3.0.
+
+### Domaine custom (v2.4.0, opt-out)
+
+Entre Étape 3 (deploy) et Étape 4 (smoke test), `/livrer` propose **Étape 3.5 — Domaine custom**. Une seule question d'entrée : *"Tu veux configurer une URL custom au lieu de garder `{URL_DEFAUT}` ?"*. Si "Non" → skip direct, aucun ralentissement. Si "Oui" → flow guidé pas-à-pas.
+
+**Registrars couverts** (avec instructions précises) :
+- **OVH** *(recommandé dans le module Claude Code IAPreneurs — interface FR, support FR, ~7€/an .fr)*
+- **Gandi**, **Cloudflare**, **Hostinger**
+- **Autre** : pattern générique CNAME/A + lien doc Vercel
+
+**Gotchas explicités** :
+- **OVH CNAME** : point final obligatoire sur la cible (`cname.vercel-dns.com.` PAS `cname.vercel-dns.com`)
+- **Cloudflare** : Proxy status "DNS only" (nuage gris, PAS orange) — sinon SSL Vercel cassé
+- **OVH apex** : pas d'ALIAS/ANAME → records A vers IPs Vercel
+
+**Si DNS pas encore propagé** : marquer `⏳ DNS pending` dans `## Production`, smoke test sur fallback hosting, re-lancer `/livrer` après propagation.
 
 ### Gate déploiement dans `/close` (v2.3.0)
 

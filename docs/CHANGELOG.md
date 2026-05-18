@@ -3,6 +3,33 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.4.0 — 2026-05-18
+
+### Ajouté
+
+- `/livrer` **Étape 3.5 — Domaine custom (advisory, opt-out)** entre Étape 3 (deploy) et Étape 4 (smoke test) :
+  - Question d'entrée 3 options : sous-domaine d'un domaine existant / domaine racine fraîchement acheté / garder URL hosting par défaut (skip direct)
+  - Registrar-aware : **OVH** (recommandé module Claude Code IAPreneurs), **Gandi**, **Cloudflare**, **Hostinger**, **Autre** (pattern générique)
+  - Distinction sous-domaine (CNAME, simple) vs apex (A records, plus complexe — OVH ne supporte pas ALIAS/ANAME)
+  - Gotcha OVH "point final obligatoire sur la cible CNAME" explicité
+  - Gotcha Cloudflare "Proxy DNS only (nuage gris, pas orange)" explicité (sinon SSL Vercel pète)
+  - Mode attente active : `dig +short` poll 30s × max 10 min jusqu'à résolution DNS détectée
+  - Mode skip : marquer `⏳ DNS pending` dans `## Production`, smoke test sur fallback hosting
+  - SSL Let's Encrypt automatique mentionné (Vercel émet dès propagation DNS)
+- `/livrer` Étape 4 (smoke test) : choix URL cible automatique (custom si propagée, fallback sinon) + warning DNS pending
+- `/livrer` Étape 5 (## Production) : bloc enrichi en cas de domaine custom (URL prod custom + URL fallback hosting + ligne DNS détaillée registrar/type/target)
+- `scripts/validate-kit-v2.sh` : Scénario K (6 checks couvrant Étape 3.5 + Étapes 4/5 adaptées)
+
+### Modifié
+
+- `/livrer` frontmatter `description:` : mention de la nouvelle config domaine custom registrar-aware
+
+### Inchangé (intentionnel)
+
+- Étape 3 (deploy) inchangée — l'Étape 3.5 vient strictement après le deploy réussi
+- Routes hosting non-Vercel (Netlify/Cloudflare/GitHub Pages) : flow par défaut intact, le bloc 3.5.3 documente un placeholder "TODO" pour le hosting-side (à remplir au fil des livraisons réelles)
+- Pas de breaking change : projets v2.3.0 conservent leur ## Production existant (Cas A reste compatible)
+
 ## v2.3.0 — 2026-05-18
 
 ### Ajouté
