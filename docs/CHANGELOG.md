@@ -3,6 +3,28 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.5.2 — 2026-05-18
+
+### Ajouté
+
+- `/livrer` **Étape 1.3 — Confirmation stack (recommandation, JAMAIS imposition)** ajoutée en tête de skill (avant Étape 2 pré-checks) :
+  - Énonce explicitement la stack recommandée par défaut module Claude Code IAPreneurs : **GitHub** (code) + **Vercel** (hosting) + **OVH** (registrar) — avec justifications (FR, retours communauté)
+  - 4 options en Cas A (stack vide/ambiguë) : tout accepter / changer hosting / changer registrar / tout changer
+  - Cas B (stack déjà renseignée) : confirmation rapide 1 question avec défaut "garder"
+  - Routing déterministe : la stack confirmée détermine quelle branche d'Étape 3 (Vercel/Netlify/Cloudflare) et d'Étape 3.5 (OVH/Gandi/Cloudflare/Hostinger) sera déroulée ensuite
+  - Test du miroir renforcé : le skill ne peut pas proposer une commande Vercel sans avoir explicitement obtenu confirmation de l'utilisateur en 1.3
+- Étape 1.2 : ligne **Registrar domaine** ajoutée dans les éléments à extraire de `## Stack` (au même titre que hosting/BDD/email)
+
+### Pourquoi
+
+Retour utilisateur : "Vercel semblait imposé par le skill, je voudrais que ce soit recommandé pas imposé". Le skill lisait bien `## Stack` mais ne re-confirmait pas explicitement avant de plonger dans le flow Vercel — donnait l'impression d'un défaut imposé. v2.5.2 ajoute une question explicite "OK avec la stack recommandée ?" en tête de skill, qui peut router vers n'importe quel autre hosting/registrar choisi par l'utilisateur.
+
+### Inchangé
+
+- Toutes les autres étapes (3.V.x onboarding, 3.5 domaine custom, 4 smoke test, 5 ## Production) sont préservées
+- Routes Netlify / Cloudflare / GitHub Pages / n8n : strictement inchangées
+- Règle Dashboard vs CLI (v2.5.0) et fix OAuth inline (v2.5.1) préservés
+
 ## v2.5.1 — 2026-05-18
 
 ### Corrigé

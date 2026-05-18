@@ -1,6 +1,6 @@
 # Kit IAPreneurs Claude Code — doc de référence
 
-> **Version actuelle : v2.5.1** (2026-05-18). Changelog : [`docs/CHANGELOG.md`](CHANGELOG.md).
+> **Version actuelle : v2.5.2** (2026-05-18). Changelog : [`docs/CHANGELOG.md`](CHANGELOG.md).
 
 > Doc de référence complète du kit. **Lue à la demande, pas à chaque session.** Pour démarrer un projet : tape `/start`. Le `CLAUDE.md` à la racine ne contient que ce qui sert à *chaque* session — tout le reste vit ici.
 

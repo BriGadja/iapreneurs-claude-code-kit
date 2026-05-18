@@ -28,7 +28,7 @@ check() {
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  Validation kit IAPreneurs Claude Code v2.5.1"
+echo "  Validation kit IAPreneurs Claude Code v2.5.2"
 echo "═══════════════════════════════════════════════════════════"
 
 echo ""
@@ -216,9 +216,13 @@ check "L /livrer auth check via gh api user conservé (automation)" "grep -q 'gh
 check "L /livrer env vars Option A Dashboard + Option B CLI" "grep -qE 'Option A.*Dashboard|Option B.*CLI' .claude/skills/livrer/SKILL.md"
 check "L docs/KIT.md section Règle Dashboard vs CLI" "grep -qE 'Règle Dashboard vs CLI|Dashboard web obligatoire' docs/KIT.md"
 check "L docs/CHANGELOG.md entrée v2.5.0" "grep -qE '^## v2\\.5\\.0' docs/CHANGELOG.md"
-check "L /livrer PAS d'étape standalone Install Vercel GitHub App (v2.5.1 fix)" "! grep -qE 'vercel\\.com/integrations/github' .claude/skills/livrer/SKILL.md"
-check "L /livrer connexion GitHub-Vercel inline pendant import (v2.5.1)" "grep -qE 'inline pendant l.import' .claude/skills/livrer/SKILL.md"
-check "L docs/CHANGELOG.md entrée v2.5.1 (fix UX)" "grep -qE '^## v2\\.5\\.1' docs/CHANGELOG.md"
+check "L /livrer PAS d'étape standalone Install Vercel GitHub App (v2.5.2 fix)" "! grep -qE 'vercel\\.com/integrations/github' .claude/skills/livrer/SKILL.md"
+check "L /livrer connexion GitHub-Vercel inline pendant import (v2.5.2)" "grep -qE 'inline pendant l.import' .claude/skills/livrer/SKILL.md"
+check "L docs/CHANGELOG.md entrée v2.5.1 (fix UX OAuth inline)" "grep -qE '^## v2\\.5\\.1' docs/CHANGELOG.md"
+check "L /livrer Étape 1.3 confirmation stack (v2.5.2)" "grep -qE 'Étape 1\\.3 — Confirmation stack|recommandation, JAMAIS imposition' .claude/skills/livrer/SKILL.md"
+check "L /livrer mention stack recommandée GitHub+Vercel+OVH (v2.5.2)" "grep -qE 'GitHub.*Vercel.*OVH|stack recommandée' .claude/skills/livrer/SKILL.md"
+check "L /livrer Étape 1.2 inclut Registrar domaine (v2.5.2)" "awk '/1\\.2 — .## Stack./,/1\\.3/' .claude/skills/livrer/SKILL.md | grep -qE 'Registrar domaine'"
+check "L docs/CHANGELOG.md entrée v2.5.2 (stack recommandée non imposée)" "grep -qE '^## v2\\.5\\.2' docs/CHANGELOG.md"
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
@@ -230,6 +234,6 @@ if [ "$FAIL" -gt 0 ]; then
   echo "❌ $FAIL checks ont échoué. Voir détails ci-dessus."
   exit 1
 else
-  echo "✅ Tous les checks passent. Kit v2.5.1 validé."
+  echo "✅ Tous les checks passent. Kit v2.5.2 validé."
   exit 0
 fi

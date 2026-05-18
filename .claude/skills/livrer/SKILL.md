@@ -27,13 +27,50 @@ Pas d'auto-déploiement silencieux : chaque commande affichée, validée explici
 
 **1.2 — `## Stack`** : lis le bloc `<!-- architect:stack -->` (ou la section `## Stack`). Extrais :
 - **Hosting** : Vercel / Netlify / Cloudflare Pages / GitHub Pages / Render / Fly.io / Hostinger / autre
+- **Registrar domaine** (si applicable) : OVH / Gandi / Cloudflare / Hostinger / Namecheap / autre
 - **BDD** (si webapp) : Supabase / Neon / PlanetScale / Turso / autre
 - **Email** (si applicable) : Resend / Postmark / SendGrid / autre
 - **Automation runtime** (si automation) : n8n cloud / n8n self-hosted
 
-Si la stack est ambiguë ou incomplète → demande à l'utilisateur les valeurs manquantes + **propose de les écrire dans `## Stack`** pour les prochains `/livrer`.
+**1.3 — Confirmation stack (recommandation, JAMAIS imposition)** — **étape ajoutée v2.5.2, non-négociable pour respecter le principe stack-agnostic du skill** :
 
-> *"Détection stack : hosting = {X}, BDD = {Y}. C'est correct ? Si tu utilises autre chose, dis-le et je l'ajoute à `## Stack` du CLAUDE.md."*
+Avant toute action deploy, le skill DOIT confirmer explicitement la stack avec l'utilisateur — Vercel/Supabase/OVH ne sont **recommandés** (défauts module Claude Code IAPreneurs), pas **imposés**. Cette confirmation tourne **en première position dans le skill** (avant Étape 2 pré-checks).
+
+**Cas A — `## Stack` vide ou ambiguë** (typique 1ère livraison, projet sans /architect Étape 2b complète) :
+
+AskUserQuestion :
+
+> "Avant de livrer, je confirme la stack qu'on va utiliser. La **stack recommandée par défaut** dans le module Claude Code IAPreneurs (interface FR, support FR, retours communauté positifs) est :
+> - **GitHub** pour stocker le code (gratuit, standard de fait)
+> - **Vercel** pour héberger le projet (hosting + CI/CD intégré, Hobby gratuit non-commercial / Pro ~$20/mo pour usage commercial)
+> - **OVH** pour le registrar de domaine (~7€/an .fr, interface + support FR)
+>
+> Tu veux quoi ?"
+
+Options :
+1. **"OK, j'utilise la stack recommandée (GitHub + Vercel + OVH)"** → écris dans `## Stack` du CLAUDE.md : `hosting: Vercel` + `registrar: OVH` (+ git: GitHub implicite). Continue Étape 2.
+2. **"Je veux changer l'hosting"** → AskUserQuestion choix : Netlify / Cloudflare Pages / GitHub Pages / Render / Fly.io / Hostinger / autre (input texte). Écris dans `## Stack`. Continue Étape 2.
+3. **"Je veux changer le registrar"** → AskUserQuestion choix : Gandi / Cloudflare / Hostinger / Namecheap / autre (input texte). Écris dans `## Stack`. Continue Étape 2.
+4. **"Je veux tout changer / pas d'avis encore"** → demande tool par tool (hosting puis registrar) en input texte. Écris dans `## Stack`. Continue Étape 2.
+
+**Cas B — `## Stack` déjà renseignée** (livraison N+1, ou /architect a déjà fixé la stack) :
+
+AskUserQuestion **de confirmation rapide** (1 question, défaut "garder") :
+
+> "Détection stack depuis CLAUDE.md ## Stack :
+> - **Hosting** : {hosting_detecté}
+> - **Registrar** : {registrar_detecté ou "non renseigné"}
+> - **BDD** : {bdd_detecté si webapp}
+>
+> C'est toujours bon ?"
+
+Options :
+- **"Oui, garde cette stack"** → Continue Étape 2 (cas fast path).
+- **"Je veux changer quelque chose"** → bascule sur le flow Cas A pour identifier ce qui change, MAJ `## Stack` en conséquence.
+
+**Règle stricte** : le skill **ne déroule jamais** le flow Vercel (Étape 3.V.x) si l'hosting confirmé n'est pas Vercel. Même règle pour le flow registrar (Étape 3.5) : si registrar = Cloudflare, on suit la branche Cloudflare, pas OVH. La stack confirmée ici **route déterministiquement** toutes les sous-étapes ci-dessous.
+
+> **Test du miroir** (cf. Risque #3 ci-dessous) : tu dois pouvoir citer la réponse de l'utilisateur à cette confirmation 1.3 avant de proposer une commande Vercel/Netlify/Cloudflare. Si tu ne l'as pas demandée, tu es hors process — recommence à Étape 1.3.
 
 ### Étape 2 — Checklist pré-deploy (ADVISORY, jamais auto-exécutée)
 
