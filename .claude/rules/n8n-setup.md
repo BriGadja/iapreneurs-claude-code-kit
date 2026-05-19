@@ -14,12 +14,70 @@ paths: []
 
 ## Procédure (5 étapes, one-shot)
 
-### 1. Lis le README upstream et installe le MCP
+### 1. Lis le README upstream et installe le MCP — **mode API-connected par défaut**
 
-Va lire le README de <https://github.com/czlonkowski/n8n-mcp> et suis les étapes actuelles d'installation MCP :
-- `npm install` (ou `npx` direct selon la version courante du README)
-- Configuration `.mcp.json` (ajout de l'entrée `n8n-mcp` avec les credentials env vars `N8N_API_URL` + `N8N_API_KEY` si tu veux le mode API-connected, sinon docs-only)
-- Vérification : `mcp__n8n-mcp__n8n_health_check` doit répondre OK
+> **Règle non-négociable** : on installe TOUJOURS en mode **API-connected** (20+ tools, capable de créer/modifier/tester des workflows réels). Le mode docs-only (7 tools, lecture seule) est un fallback d'urgence — pas le défaut. Sans API-connected, `/execute` ne peut PAS déployer un workflow n8n, ce qui casse le cas d'usage `project_type: automation`.
+
+#### 1.a Récupère `N8N_API_URL` + `N8N_API_KEY`
+
+Tu as besoin de **deux valeurs** avant d'éditer `.mcp.json` :
+
+| Variable | Valeur | Où la trouver |
+|----------|--------|---------------|
+| `N8N_API_URL` | URL de base de ton instance n8n + `/api/v1` | Self-host : `https://n8n.tondomaine.com/api/v1`. n8n Cloud : `https://{workspace}.app.n8n.cloud/api/v1`. **Inclus toujours `/api/v1`** — sans ça, tous les appels MCP renvoient 404. |
+| `N8N_API_KEY` | JWT généré dans n8n | Connecte-toi à ton instance → menu utilisateur (en bas à gauche) → **Settings** → **n8n API** → **Create an API key** → copie le token (visible une seule fois). |
+
+Si tu n'as pas d'instance n8n :
+- **Self-host rapide** : `docker run -it --rm -p 5678:5678 n8nio/n8n` puis ouvre `http://localhost:5678` et crée ton compte. URL = `http://localhost:5678/api/v1`.
+- **n8n Cloud** : <https://n8n.io/cloud/> (14 jours gratuits).
+
+#### 1.b Installe le MCP — **valeurs en clair dans `.mcp.json` (gitignoré)**
+
+> **Pourquoi pas `${VAR}` + `.env` ?** Parce que Claude Code ne source pas `.env` tout seul : il lit `${VAR}` depuis l'environnement du **shell parent** qui a lancé `claude`. Si tu viens d'éditer `.env`, le shell parent n'a pas encore ces variables → il faut `source .env && exec $SHELL && claude` pour les charger. Sur Code Server c'est encore plus piégeux. **On évite ce problème en mettant les valeurs réelles directement dans `.mcp.json` et en gitignorant le fichier.**
+
+Va lire le README de <https://github.com/czlonkowski/n8n-mcp> pour la commande d'install courante (généralement `npx -y n8n-mcp`). Ajoute l'entrée dans `.mcp.json` à la racine — **avec les vraies valeurs, pas `${VAR}`** :
+
+```json
+{
+  "mcpServers": {
+    "n8n-mcp": {
+      "command": "npx",
+      "args": ["-y", "n8n-mcp"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "N8N_API_URL": "https://n8n.tondomaine.com/api/v1",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIs..."
+      }
+    }
+  }
+}
+```
+
+Puis sécurise le fichier :
+
+```bash
+# Gitignore .mcp.json (il contient ta clé)
+grep -q '^\.mcp\.json$' .gitignore || echo '.mcp.json' >> .gitignore
+
+# Commit un exemple propre pour tes coéquipiers
+cp .mcp.json .mcp.json.example
+# Édite .mcp.json.example pour remplacer la clé par "REPLACE_ME"
+# Puis git add .mcp.json.example .gitignore
+```
+
+Aucune commande de shell magique à faire ensuite. **Juste redémarrer Claude Code** (sortir avec `Ctrl+C` ou `exit`, puis relancer `claude`) pour qu'il relise `.mcp.json`.
+
+#### 1.c Vérifie le mode API-connected
+
+Après la relance de Claude Code :
+
+```
+mcp__n8n-mcp__n8n_health_check
+```
+
+Le retour DOIT contenir `"apiConfigured": true` (ou équivalent — vérifie le shape courant via `mcp__n8n-mcp__tools_documentation`). Si tu vois `"apiConfigured": false` ou seulement 7 tools listés (`search_nodes`, `get_node`, `validate_node`, `validate_workflow`, `search_templates`, `get_template`, `tools_documentation`), tu es resté en docs-only : recommence depuis 1.a.
+
+**Sanity check** : `mcp__n8n-mcp__n8n_list_workflows` doit retourner la liste réelle (même vide `[]`) sans erreur d'authentification. Une 401/403 = clé invalide. Une 404 = `N8N_API_URL` mal formée (oublié `/api/v1` ?).
 
 ### 2. Récupère la collection de skills opérationnels
 
@@ -68,14 +126,14 @@ Remplace-le par :
 Le MCP `n8n-mcp` est installé. Détail opérationnel + flow type "crée-moi un workflow X" : voir `.claude/rules/n8n.md` (auto-chargé sur fichiers n8n).
 ```
 
-### 5. Vérifie l'install
+### 5. Vérifie l'install bout-en-bout
 
-```bash
-# Vérifier MCP répond
-# (commande variable selon ton client MCP — check le README upstream)
+```
+mcp__n8n-mcp__n8n_health_check        # doit montrer apiConfigured: true
+mcp__n8n-mcp__n8n_list_workflows      # doit retourner [] ou la liste réelle sans 401/404
 ```
 
-Test concret : demande à Claude `/n8n-list-workflows` ou équivalent. Si la réponse arrive sans erreur, install OK.
+Si ces deux retours sont OK, install API-connected validée. Sinon : retour Étape 1.a (clé) ou 1.b (URL/`.mcp.json`).
 
 ---
 
@@ -194,10 +252,10 @@ LangChain nodes use `@n8n/n8n-nodes-langchain.` prefix. Core nodes use `n8n-node
 
 ## Modes du MCP
 
-- **docs-only** (sans `N8N_API_URL`/`N8N_API_KEY`) : 7 tools — `search_nodes`, `get_node`, `validate_node`, `validate_workflow`, `search_templates`, `get_template`, `tools_documentation`. Suffisant pour apprendre n8n et builder offline.
-- **API-connected** (avec credentials) : 20+ tools, management complet (`n8n_create_workflow`, `n8n_update_partial_workflow`, `n8n_executions`, `n8n_test_workflow`, etc.).
+- **API-connected** (défaut du kit, avec `N8N_API_URL` + `N8N_API_KEY`) : 20+ tools, management complet (`n8n_create_workflow`, `n8n_update_partial_workflow`, `n8n_executions`, `n8n_test_workflow`, etc.). **Obligatoire** pour `/execute` sur `project_type: automation` — sans ce mode, le skill ne peut pas déployer.
+- **docs-only** (fallback, sans credentials) : 7 tools en lecture seule (`search_nodes`, `get_node`, `validate_node`, `validate_workflow`, `search_templates`, `get_template`, `tools_documentation`). Utile uniquement pour apprendre n8n offline ou builder un JSON à coller à la main. **Ne pas rester ici** sur un vrai projet.
 
-Le mode est détecté automatiquement au démarrage du MCP. Pour passer de docs-only → API-connected : ajoute les env vars dans `.mcp.json` et redémarre.
+Le mode est détecté automatiquement au démarrage du MCP. Si tu te retrouves accidentellement en docs-only, retourne à l'Étape 1.a, ajoute les env vars dans `.env` + `.mcp.json`, puis redémarre Claude Code.
 
 ## Crédit
 

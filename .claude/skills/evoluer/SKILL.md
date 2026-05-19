@@ -82,57 +82,92 @@ next_v = max_v + 1
 
 Si aucun `**V_N` matché : `next_v = 2` (le PRD initial = V1 implicite).
 
-## Étape 4bis — Détection capacités techniques nouvelles (MCP / setup)
+## Étape 4bis — Détection + installation + **gate de validation live** des capacités techniques
 
-Avant toute écriture, vérifier si la feature introduit une **capacité technique qui n'est pas encore installée** sur le projet. Sans cette détection, le SPEC + le plan suivant vont référencer des outils absents → `/execute` plante.
+Avant toute écriture, vérifier si la feature introduit une **capacité technique qui n'est pas encore installée** sur le projet. Sans cette détection ET sa validation live, le SPEC + le plan suivant référenceront des outils absents → `/execute` plante au premier appel MCP.
+
+> **Règle non-négociable** : `/evoluer` ne sort PAS de cette étape tant que chaque MCP requis n'a pas été validé par un appel live (health check + au moins un read réel). On ne fait pas confiance au `grep .mcp.json` pour conclure "c'est installé" — on confirme avec l'outil. Si la validation échoue, on boucle (reconfig + relance) jusqu'à PASS ou abandon explicite de l'utilisateur.
 
 ### Heuristiques de détection (analyse LLM sur Q1+Q2+Q3)
 
 Mots-clés / patterns qui doivent **déclencher une question explicite** :
 
-| Capacité | Signaux dans la description feature | Procédure si absente |
-|----------|-------------------------------------|----------------------|
+| Capacité | Signaux dans la description feature | Procédure d'install si absente |
+|----------|-------------------------------------|--------------------------------|
 | **n8n** | "workflow", "automatisation async", "webhook + traitement long", "PDF + email + storage chaîné", "intégrations multiples" (Drive + Resend + Slack + ...), "retry / monitoring externe" | `.claude/rules/n8n-setup.md` |
-| **Google Drive** | "archive perso", "dossier client", "stockage docs personnels freelance" | Ajout MCP `@modelcontextprotocol/server-gdrive` dans `.mcp.json` + OAuth credential |
+| **Google Drive / Sheets / Docs** | "archive perso", "dossier client", "stockage docs personnels freelance", "spreadsheet", "Google Sheet", "Google Doc" | Ajout MCP Google Workspace officiel (`@google/workspace-mcp` ou équivalent courant — vérifier upstream au moment de l'install) dans `.mcp.json` + OAuth credential |
+| **Gmail** | "envoi email perso depuis Gmail", "lecture inbox", "filtre mail" | Même MCP Google Workspace que ci-dessus (scope Gmail à activer) |
 | **Stripe** | "paiement", "abonnement", "facture en ligne" | Doc upstream Stripe MCP (s'il existe) ou SDK direct |
-| **Email transactionnel** | "envoi email", "notification client" | Resend / SendGrid — clé API dans `.env` |
+| **Email transactionnel** | "envoi email client à grande échelle", "notification automatisée" | Resend / SendGrid — clé API dans `.mcp.json` ou `.env` du provider |
 
 ### Procédure de détection (séquence)
 
 1. **LLM analyse Q1+Q2+Q3** vs la Stack courante (`CLAUDE.md ## Stack` + `.mcp.json` actuel) → liste les capacités potentiellement nécessaires.
-2. **Pour chaque capacité détectée**, vérifier déterministiquement si déjà installée :
-   - n8n : `grep -q "n8n-mcp" .mcp.json && grep -q "## n8n" CLAUDE.md`
-   - Google Drive MCP : `grep -q "server-gdrive\|google-drive" .mcp.json`
-   - Stripe / Resend / autre : `grep -q "{var}" .env.example` (clé API attendue)
-3. **Si une capacité est requise ET absente**, poser à l'utilisateur :
 
-   > "Cette feature semble nécessiter `{capacité}`. Je n'ai pas trouvé l'install correspondante (`.mcp.json` / `.env.example` / `CLAUDE.md`). Confirmes-tu qu'il faut l'installer maintenant ?
-   > - **oui, installer** → je lance la procédure {référence procédure}
-   > - **non, déjà installé ailleurs** → je continue, à toi de garantir l'accès au moment de `/execute`
+2. **Pour chaque capacité détectée**, vérifier en deux passes :
+
+   **Passe statique** (fichier seul, n'est PAS une preuve d'install fonctionnelle) :
+   - n8n : `grep -q "n8n-mcp" .mcp.json`
+   - Google Workspace : `grep -qE "google-workspace|workspace-mcp|server-gdrive" .mcp.json`
+   - Stripe / Resend / autre : `grep -q "{var}" .mcp.json` ou `.env.example`
+
+   **Passe live (la vraie vérité)** : voir § 4bis-validation ci-dessous. C'est ce check qui décide.
+
+3. **Si la passe statique est négative**, poser à l'utilisateur :
+
+   > "Cette feature semble nécessiter `{capacité}`. Je ne vois pas l'install correspondante dans `.mcp.json`. Confirmes-tu qu'il faut l'installer maintenant ?
+   > - **oui, installer** → je lance la procédure {référence}, puis je valide l'install live avant de continuer
+   > - **non, déjà installé ailleurs / global** → je tente quand même la validation live (le MCP peut être chargé via `~/.claude/mcp.json` global)
    > - **non, finalement pas besoin** → reformule la feature, je relance l'Étape 2"
 
-4. **Si "oui, installer" + capacité n8n** → lire et exécuter `.claude/rules/n8n-setup.md` (5 étapes : install MCP + copie 7 skills czlonkowski + crée `.claude/rules/n8n.md` + active `## n8n` dans `CLAUDE.md` + vérification health_check). À la fin, **noter dans le SPEC (section Documentation)** la commit SHA des skills copiés + version du MCP installée.
+4. **Si "oui, installer" + capacité n8n** → lire et exécuter `.claude/rules/n8n-setup.md` (1.a→1.c + Étapes 2-5). À la fin, **noter dans le SPEC (section Documentation)** la version du MCP installée + l'URL n8n cible (sans la clé).
 
-5. **Si "oui, installer" + autre capacité** (Drive / Stripe / Resend) → ajout `.mcp.json` ou `.env.example` selon le pattern documenté (syntaxe `${VAR}`, jamais de secret en clair), puis demander à l'utilisateur de remplir le `.env` local (commande imprimée à l'écran).
+5. **Si "oui, installer" + capacité Google Workspace** → ajout dans `.mcp.json` avec valeurs réelles (gitignoré, voir pattern `n8n-setup.md` § 1.b). Imprimer à l'utilisateur la commande OAuth à lancer (depuis le README upstream du MCP Google choisi). Attendre sa confirmation "OAuth fait" avant de passer à la validation live.
 
-6. **Si "non, déjà installé ailleurs"** → continuer sans installation, mais **flag dans le SPEC** (section Considerations) : *"Prérequis externe non installé par /evoluer : {capacité}. À garantir avant /execute."*
+6. **Si "oui, installer" + autre capacité** (Stripe / Resend / ...) → même pattern (valeurs en clair dans `.mcp.json` gitignoré, ou clé dans le `.env` du provider selon ce que demande le MCP).
 
-7. **Commit intermédiaire** après installation réussie (avant Étape 5b) :
+7. **Commit intermédiaire** après installation réussie ET validation live PASS (voir § 4bis-validation) :
 
-   ```
-   git add .mcp.json .env.example CLAUDE.md .claude/rules/ .claude/skills/n8n/
+   ```bash
+   git add .mcp.json.example .gitignore CLAUDE.md .claude/rules/
    git commit -m "chore(/evoluer): install {capacité} prérequis pour feature {nom}"
    ```
 
-   Sépare logiquement l'install des changes feature → rollback granulaire si besoin.
+   On ne commit JAMAIS `.mcp.json` lui-même (gitignoré car il contient des clés).
+
+### § 4bis-validation — Gate live (BLOQUANTE)
+
+**Cette gate empêche `/evoluer` de sortir tant que les MCPs annoncés ne répondent pas.** C'est la version Étape 4bis du principe Karpathy "le test EST la métrique".
+
+Pour CHAQUE capacité MCP requise (n8n + Google le cas échéant + autres), exécuter le check correspondant **dans la session Claude Code courante**. Si Claude Code vient d'être redémarré, ces tools sont disponibles immédiatement après la relance.
+
+| Capacité | Check 1 — health | Check 2 — read réel | PASS si |
+|----------|------------------|---------------------|---------|
+| **n8n MCP** | `mcp__n8n-mcp__n8n_health_check` | `mcp__n8n-mcp__n8n_list_workflows` | Health renvoie `apiConfigured: true` ET list_workflows retourne `[]` ou liste réelle sans 401/404 |
+| **Google Workspace MCP** | Lister les tools `mcp__google-workspace__*` (vérif présence) | `mcp__google-workspace__list_calendars` ou `list_drive_items` (root) | Au moins un read renvoie une réponse non vide / non-erreur |
+| **Stripe MCP** | Lister `mcp__stripe__*` | `mcp__stripe__list_customers` (limit 1) | Réponse sans erreur d'auth |
+| **Resend (HTTP, pas MCP)** | `curl -s -H "Authorization: Bearer ${RESEND_API_KEY}" https://api.resend.com/domains` | Idem | HTTP 200 ou 401 explicite (pas timeout) |
+
+**Si un check échoue** :
+1. Imprimer le message d'erreur exact à l'utilisateur.
+2. Diagnostiquer : 401/403 → clé invalide. 404 → URL malformée (oublié `/api/v1` ?). `command not found` côté MCP → Claude Code pas redémarré après edit `.mcp.json`. Tool absent → MCP pas dans `.mcp.json`.
+3. Proposer la correction concrète, attendre que l'utilisateur la fasse + relance Claude Code si nécessaire.
+4. **Relancer la gate**. Pas de bypass possible.
+
+**Si l'utilisateur veut abandonner** : seul moyen de sortir sans PASS est l'abandon explicite (`"non, finalement pas besoin"`) → on retourne à l'Étape 2 pour reformuler la feature sans cette capacité. Sinon on boucle.
 
 ### Idempotence
 
-L'Étape 4bis est idempotente : si la capacité est déjà installée, **skip silencieux** (juste log "{capacité} déjà installée, OK"). Pas de re-confirmation, pas de doublon `.mcp.json`.
+L'Étape 4bis est idempotente : si la passe statique ET la passe live passent du premier coup pour une capacité, **skip silencieux** (log "{capacité} déjà opérationnelle, validation live OK"). Pas de re-confirmation, pas de doublon `.mcp.json`.
 
-### Pourquoi cette étape existe
+### Pourquoi cette gate existe
 
-Le scénario typique : projet `site` ou `webapp` démarré sans n8n (`/start` Q4 = non). Plus tard, le membre veut greffer un workflow async (envoi propale PDF + archive Drive + email). Sans cette étape, `/evoluer` écrit le SPEC, `/plan` planifie l'appel n8n, `/execute` crash dès la 1re commande `mcp__n8n-mcp__*` parce que le MCP n'est pas dans `.mcp.json`. L'Étape 4bis ramène le projet dans un état cohérent **avant** que le SPEC ne référence ces capacités.
+Scénario typique du tournage IAPreneurs : projet `site` ou `webapp` démarré sans n8n. Plus tard, le membre veut greffer un workflow async. Sans cette gate, `/evoluer` écrit le SPEC, `/plan` planifie l'appel n8n, `/execute` crash dès la 1re commande `mcp__n8n-mcp__*` parce que :
+- soit le MCP n'est pas dans `.mcp.json`,
+- soit `.mcp.json` est bien là mais Claude Code n'a pas été redémarré (silently docs-only mode),
+- soit la clé `N8N_API_KEY` est mauvaise et le MCP démarre en mode docs-only sans le dire (les 7 tools docs-only sont disponibles, le membre croit que ça marche jusqu'au premier `n8n_create_workflow` qui n'existe pas).
+
+La gate live attrape les trois cas avant que le SPEC ne s'écrive.
 
 ## Étape 5 — écriture atomique (séquence 5a-5h)
 
