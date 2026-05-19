@@ -15,9 +15,10 @@ Ton projet est livré (`/livrer` passé, `<!-- ship:url -->` rempli). Tu veux aj
 1. Lit le contexte existant (PRD, STRUCTURE, decisions, 3 derniers SPECs, STATUS)
 2. Te pose 3 questions de cadrage
 3. Détecte si la feature est dans `## 4. Hors scope` ou pas
-4. Écrit atomiquement : SPEC daté + déplacement checkbox + append phase + append ADR si choix archi
-5. Gate `/validate` (tests existants passent encore) AVANT handoff
-6. Handoff `/plan docs/specs/SPEC-{date}-{slug}.md` → `/execute`
+4. **Détecte les capacités techniques nouvelles** (n8n, Google Drive, Stripe, ...) absentes du projet et lance leur installation si tu confirmes (Étape 4bis)
+5. Écrit atomiquement : SPEC daté + déplacement checkbox + append phase + append ADR si choix archi
+6. Gate `/validate` (tests existants passent encore) AVANT handoff
+7. Handoff `/plan docs/specs/SPEC-{date}-{slug}.md` → `/execute`
 
 ## Détection format PRD (4 branches déterministes)
 
@@ -80,6 +81,58 @@ next_v = max_v + 1
 ```
 
 Si aucun `**V_N` matché : `next_v = 2` (le PRD initial = V1 implicite).
+
+## Étape 4bis — Détection capacités techniques nouvelles (MCP / setup)
+
+Avant toute écriture, vérifier si la feature introduit une **capacité technique qui n'est pas encore installée** sur le projet. Sans cette détection, le SPEC + le plan suivant vont référencer des outils absents → `/execute` plante.
+
+### Heuristiques de détection (analyse LLM sur Q1+Q2+Q3)
+
+Mots-clés / patterns qui doivent **déclencher une question explicite** :
+
+| Capacité | Signaux dans la description feature | Procédure si absente |
+|----------|-------------------------------------|----------------------|
+| **n8n** | "workflow", "automatisation async", "webhook + traitement long", "PDF + email + storage chaîné", "intégrations multiples" (Drive + Resend + Slack + ...), "retry / monitoring externe" | `.claude/rules/n8n-setup.md` |
+| **Google Drive** | "archive perso", "dossier client", "stockage docs personnels freelance" | Ajout MCP `@modelcontextprotocol/server-gdrive` dans `.mcp.json` + OAuth credential |
+| **Stripe** | "paiement", "abonnement", "facture en ligne" | Doc upstream Stripe MCP (s'il existe) ou SDK direct |
+| **Email transactionnel** | "envoi email", "notification client" | Resend / SendGrid — clé API dans `.env` |
+
+### Procédure de détection (séquence)
+
+1. **LLM analyse Q1+Q2+Q3** vs la Stack courante (`CLAUDE.md ## Stack` + `.mcp.json` actuel) → liste les capacités potentiellement nécessaires.
+2. **Pour chaque capacité détectée**, vérifier déterministiquement si déjà installée :
+   - n8n : `grep -q "n8n-mcp" .mcp.json && grep -q "## n8n" CLAUDE.md`
+   - Google Drive MCP : `grep -q "server-gdrive\|google-drive" .mcp.json`
+   - Stripe / Resend / autre : `grep -q "{var}" .env.example` (clé API attendue)
+3. **Si une capacité est requise ET absente**, poser à l'utilisateur :
+
+   > "Cette feature semble nécessiter `{capacité}`. Je n'ai pas trouvé l'install correspondante (`.mcp.json` / `.env.example` / `CLAUDE.md`). Confirmes-tu qu'il faut l'installer maintenant ?
+   > - **oui, installer** → je lance la procédure {référence procédure}
+   > - **non, déjà installé ailleurs** → je continue, à toi de garantir l'accès au moment de `/execute`
+   > - **non, finalement pas besoin** → reformule la feature, je relance l'Étape 2"
+
+4. **Si "oui, installer" + capacité n8n** → lire et exécuter `.claude/rules/n8n-setup.md` (5 étapes : install MCP + copie 7 skills czlonkowski + crée `.claude/rules/n8n.md` + active `## n8n` dans `CLAUDE.md` + vérification health_check). À la fin, **noter dans le SPEC (section Documentation)** la commit SHA des skills copiés + version du MCP installée.
+
+5. **Si "oui, installer" + autre capacité** (Drive / Stripe / Resend) → ajout `.mcp.json` ou `.env.example` selon le pattern documenté (syntaxe `${VAR}`, jamais de secret en clair), puis demander à l'utilisateur de remplir le `.env` local (commande imprimée à l'écran).
+
+6. **Si "non, déjà installé ailleurs"** → continuer sans installation, mais **flag dans le SPEC** (section Considerations) : *"Prérequis externe non installé par /evoluer : {capacité}. À garantir avant /execute."*
+
+7. **Commit intermédiaire** après installation réussie (avant Étape 5b) :
+
+   ```
+   git add .mcp.json .env.example CLAUDE.md .claude/rules/ .claude/skills/n8n/
+   git commit -m "chore(/evoluer): install {capacité} prérequis pour feature {nom}"
+   ```
+
+   Sépare logiquement l'install des changes feature → rollback granulaire si besoin.
+
+### Idempotence
+
+L'Étape 4bis est idempotente : si la capacité est déjà installée, **skip silencieux** (juste log "{capacité} déjà installée, OK"). Pas de re-confirmation, pas de doublon `.mcp.json`.
+
+### Pourquoi cette étape existe
+
+Le scénario typique : projet `site` ou `webapp` démarré sans n8n (`/start` Q4 = non). Plus tard, le membre veut greffer un workflow async (envoi propale PDF + archive Drive + email). Sans cette étape, `/evoluer` écrit le SPEC, `/plan` planifie l'appel n8n, `/execute` crash dès la 1re commande `mcp__n8n-mcp__*` parce que le MCP n'est pas dans `.mcp.json`. L'Étape 4bis ramène le projet dans un état cohérent **avant** que le SPEC ne référence ces capacités.
 
 ## Étape 5 — écriture atomique (séquence 5a-5h)
 

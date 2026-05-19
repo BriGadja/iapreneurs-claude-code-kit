@@ -3,6 +3,32 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.6.0 — 2026-05-19
+
+### Ajouté
+
+- `/evoluer` **Étape 4bis — Détection capacités techniques nouvelles (MCP / setup)** ajoutée entre l'Étape 4 (calcul `V_{n+1}`) et l'Étape 5 (écriture atomique) :
+  - Analyse LLM des 3 questions de cadrage (nom + description + critère de succès) vs Stack courante (`CLAUDE.md ## Stack`) et `.mcp.json` actuel
+  - Table d'heuristiques mots-clés → capacités : **n8n** (workflow async, webhook + traitement long, intégrations multiples), **Google Drive** (archive perso, dossier client freelance), **Stripe** (paiement, abonnement), **Email transactionnel** (Resend/SendGrid)
+  - Vérification déterministe d'absence via `grep` sur `.mcp.json`, `.env.example`, `CLAUDE.md ## n8n`
+  - 3 options posées à l'utilisateur en cas de capacité absente : **installer maintenant** (lance la procédure) / **déjà installé ailleurs** (flag dans SPEC Considerations) / **pas besoin, reformule** (boucle Étape 2)
+  - Pour n8n : exécute `.claude/rules/n8n-setup.md` (5 étapes existantes : install MCP + copie 7 skills czlonkowski + crée `.claude/rules/n8n.md` + active `## n8n` dans `CLAUDE.md` + health_check), note commit SHA + version MCP dans le SPEC
+  - Pour autres MCP : ajout `.mcp.json` + `.env.example` selon pattern `${VAR}` (jamais de secret en clair)
+  - **Commit intermédiaire séparé** `chore(/evoluer): install {capacité} prérequis pour feature {nom}` avant le commit feature → rollback granulaire possible
+  - Idempotent : skip silencieux si déjà installée
+- `.claude/rules/n8n-setup.md` : première ligne élargie pour autoriser deux cas d'invocation — (1) `/start` Q4 sur projet neuf, (2) `/evoluer` Étape 4bis sur projet existant
+
+### Pourquoi
+
+Scénario typique débloqué : projet `site` ou `webapp` démarré sans n8n (`/start` Q4 = non). Plus tard, le membre veut greffer un workflow async (envoi PDF + archive Drive + email). Avant v2.6.0 : `/evoluer` écrivait le SPEC, `/plan` planifiait, `/execute` crashait à la 1re commande `mcp__n8n-mcp__*` parce que le MCP n'était pas dans `.mcp.json`. v2.6.0 ramène le projet dans un état cohérent **avant** que le SPEC ne référence ces capacités, et matérialise la mise en pratique du cycle de vie kit mode "maintenance" dans la 5.2 du module.
+
+### Inchangé
+
+- Comportement standard (Branche 1 PRD v2.2) hors Étape 4bis : strictement inchangé
+- Mode legacy (Branche 2 PRD v2.1.x) : strictement inchangé (pas d'Étape 4bis appliquée)
+- Procédure `n8n-setup.md` elle-même : 5 étapes inchangées, juste élargissement des cas d'invocation
+- `validate-kit-v2.sh` : 148/148 PASS préservé
+
 ## v2.5.2 — 2026-05-18
 
 ### Ajouté

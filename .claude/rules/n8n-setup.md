@@ -4,7 +4,11 @@ paths: []
 
 # n8n MCP — Procédure d'installation à la demande
 
-> **Lis ce fichier uniquement si `project_uses_n8n: true`** (variable posée par `/start` Q4). Le kit n'embarque pas la collection n8n par défaut — opt-in via cette procédure pour rester slim.
+> **Lis ce fichier dans deux cas** :
+> 1. `project_uses_n8n: true` posé par `/start` Q4 sur projet neuf (installation initiale, avant les premières features).
+> 2. `/evoluer` Étape 4bis détecte que la nouvelle feature requiert n8n et que le MCP est absent du `.mcp.json` (installation à chaud sur projet existant).
+>
+> Le kit n'embarque pas la collection n8n par défaut — opt-in via cette procédure pour rester slim.
 >
 > Source upstream officielle (à vérifier au moment de l'install) : <https://github.com/czlonkowski/n8n-mcp>
 
