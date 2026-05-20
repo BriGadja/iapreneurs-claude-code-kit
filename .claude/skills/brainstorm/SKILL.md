@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Utiliser quand l'utilisateur a une idée vague ou floue, soit pour un nouveau projet ("j'aimerais une app pour..."), soit pour une nouvelle feature sur un projet existant ("j'ai envie d'ajouter un dashboard à mon app..."). Le skill détecte le contexte (PRD.md présent ou non) et adapte ses questions + son handoff. Ne PAS utiliser si l'idée est déjà précise — passer direct à /architect (greenfield) ou /evoluer (feature). Sortie — fichier `docs/brainstorms/{date}-{sujet}.md` (greenfield) ou `docs/brainstorms/{date}-feature-{slug}.md` (feature).
+description: Utiliser quand l'utilisateur a une idée vague ou floue, soit pour un nouveau projet ("j'aimerais une app pour..."), soit pour une nouvelle feature sur un projet existant ("j'ai envie d'ajouter un dashboard à mon app..."). Le skill détecte le contexte (PRD.md présent ou non) et adapte ses questions + son handoff. Défaut quasi-automatique : si un PRD existe, mode feature → handoff /evoluer ; /architect est un opt-in explicite via le mot-clé `refonte` (réécriture destructive du PRD). Ne PAS utiliser si l'idée est déjà précise — passer direct à /architect (greenfield) ou /evoluer (feature). Sortie — fichier `docs/brainstorms/{date}-{sujet}.md` (greenfield) ou `docs/brainstorms/{date}-feature-{slug}.md` (feature).
 ---
 
 # Skill /brainstorm — clarifier une idée vague (greenfield OU feature)
@@ -28,20 +28,22 @@ grep -A2 "<!-- ship:url -->" CLAUDE.md | grep -qE "https?://" && echo "is_shippe
 
 **Branches** :
 
-| has_prd | Comportement |
-|---------|--------------|
-| ❌ | Mode **greenfield** silencieux — passer directement à l'Étape 1 standard |
-| ✅ | Lire `PRD.md` (Vision + Section 3 Scope actuel + Section 4 Hors scope) puis **confirmer le mode** auprès de l'user (voir ci-dessous) |
+| has_prd | is_shipped | Comportement |
+|---------|------------|--------------|
+| ❌ | — | Mode **greenfield** silencieux — passer directement à l'Étape 1 standard |
+| ✅ | ✅ | Mode **feature** **par défaut** — confirmation binaire ultra-courte (voir ci-dessous), pas un menu équilibré |
+| ✅ | ❌ | PRD existant mais pas encore livré → mode **feature** par défaut aussi (le PRD est vivant, on ne le réécrit pas sur une simple idée d'ajout) |
 
-**Confirmation user (si has_prd)** :
+**Confirmation binaire (si has_prd, peu importe `is_shipped`)** :
 
-> "Je détecte le projet **{Vision en 1 phrase, extraite du PRD}** (livré le {date depuis `## Production`} | en cours). Tu brainstormes :
-> - **(a) une nouvelle feature** à greffer sur ce projet → je passerai la main à `/evoluer`
-> - **(b) un projet totalement nouveau / refonte** → je passerai la main à `/architect` (le PRD existant ne sera pas touché tant que tu ne lances pas `/architect` explicitement)
+> "Je détecte le projet **{Vision en 1 phrase, extraite du PRD}**{ — livré sur {url depuis `## Production`} si is_shipped}. Je pars du principe que tu veux **ajouter une feature** (→ handoff `/evoluer`).
 >
-> Tu choisis ?"
+> ⚠️ Réponds **uniquement** `refonte` si tu veux **réécrire le PRD from scratch** (changement de Vision, de Personas, ou du Scope structurel). Sinon, n'importe quelle autre réponse = on continue en mode feature."
 
-Si choix (a) → mode **feature**. Si (b) → mode **greenfield**.
+**Règle d'or** : ne PAS présenter `(a)` et `(b)` comme deux options équilibrées. Le défaut est `/evoluer`. `/architect` est un opt-in explicite via le mot-clé `refonte`.
+
+Si l'user répond `refonte` → mode **greenfield** (warning : `/architect` écrasera `PRD.md`, backup auto en `PRD.{date}.backup.md`).
+Sinon → mode **feature**.
 
 Si `PRD.md` est malformé (pas de section Vision lisible) → traiter comme greenfield, mais signaler à l'user.
 
@@ -195,19 +197,22 @@ Slug = kebab-case du nom de la feature (3-5 mots max).
 
 #### Mode feature, ampleur L (multi-aspect)
 
-Présenter **deux chemins** à l'user, **il choisit** :
+**Défaut fortement recommandé** : découper en N sous-features et enchaîner `/evoluer` x N. `/architect` n'est PAS un chemin parallèle équivalent — c'est une refonte destructive du PRD, à n'envisager que si l'user a déjà dit explicitement vouloir changer la Vision/Personas/Scope structurel.
 
-> "Ampleur L détectée. Deux chemins propres :
+> "Ampleur L détectée. Découpage recommandé en {2-4} sous-features :
+> - {sous-feature 1}
+> - {sous-feature 2}
+> - {sous-feature 3}
 >
-> **(a) Découper en N sous-features** (recommandé si la feature touche plusieurs écrans/domaines indépendants)
->   → tu enchaînes N fois `/evoluer docs/brainstorms/{date}-feature-{slug}.md`, 1 SPEC par sous-feature, PRD reste vivant et discipliné (cap 100L).
->   → Sous-features proposées d'après le brief : {liste 2-4 sous-features}
+> Handoff = `/evoluer docs/brainstorms/{date}-feature-{slug}.md` puis tu enchaînes 1 SPEC par sous-feature. PRD reste vivant et discipliné (cap 100L).
 >
-> **(b) Refonte explicite via `/architect`** (si la feature implique de revoir la Vision, les Personas, ou le Scope structurel du PRD)
->   → ⚠️ `/architect` réécrit `PRD.md` from scratch. Le PRD actuel sera sauvegardé en `PRD.{date}.backup.md` avant écrasement.
->   → À choisir uniquement si tu veux changer le cœur du projet, pas pour ajouter une grosse feature."
+> ⚠️ Réponds **uniquement** `refonte` si cette feature implique de réécrire la Vision/Personas/Scope structurel du PRD (alors `/architect` écrasera `PRD.md`, backup auto). Sinon on part sur le découpage `/evoluer`."
 
-Selon la réponse, écrire le handoff approprié dans la section "Prochaine étape" du brief avant `/close`.
+Selon la réponse :
+- Mot-clé `refonte` reçu → handoff `/architect` (avec warning backup).
+- Toute autre réponse (ou pas de réponse) → handoff `/evoluer` avec le brief découpé.
+
+**Interdit** : écrire dans la section "Prochaine étape" du brief une phrase du type "compatible avec les deux, à arbitrer plus tard" ou "/architect ou /evoluer — voir note". Un brief sort avec **UN seul** handoff explicite. L'ambiguïté se résout MAINTENANT, pas dans la prochaine session.
 
 ## Risque #1 — partir sans clarification
 
@@ -216,6 +221,12 @@ Si tu sautes les 3 questions et tu écris direct le brief avec tes hypothèses, 
 ## Risque #2 — confondre les modes
 
 Si tu pars en greenfield alors qu'un PRD existe, tu vas proposer `/architect` qui va écraser le PRD du projet. **Toujours faire l'Étape 0 de détection + confirmation user avant de poser les questions.** Pas de raccourci.
+
+**Défaut non-négociable** : si `has_prd=true`, le handoff par défaut est **`/evoluer`**. `/architect` n'est PAS un choix équivalent présenté au même niveau — c'est un opt-in explicite déclenché uniquement par le mot-clé `refonte` de l'user. Présenter un menu (a)/(b) équilibré est une régression du skill (voir incident 2026-05-20 Discoverly).
+
+## Risque #3 — handoff indécis
+
+Un brief qui sort avec "compatible avec `/architect` ou `/evoluer`, à arbitrer plus tard" est un brief raté. Le rôle de `/brainstorm` est précisément de **résoudre cette ambiguïté maintenant**. Si tu as un doute au moment d'écrire la section "Prochaine étape", redemande à l'user (mot-clé `refonte` ou pas), ne reporte jamais la décision.
 
 ## Quand ne PAS utiliser ce skill
 
