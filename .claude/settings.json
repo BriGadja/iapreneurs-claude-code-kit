@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f tmp/*)",
+      "Bash(rm -rf tmp/*)",
+      "Bash(rm tmp/*)",
+      "Bash(ls tmp/)",
+      "Bash(ls tmp/*)",
+      "Bash(mkdir -p tmp/*)",
+      "Bash(mkdir tmp/*)"
+    ]
+  }
+}
