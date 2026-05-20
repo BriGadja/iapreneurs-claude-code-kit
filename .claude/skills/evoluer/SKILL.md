@@ -1,6 +1,6 @@
 ---
 name: evoluer
-description: Utiliser quand un projet est livré (PRD format v2.2 avec sections Scope actuel/Hors scope/Implementation Phases, ou format v2.1.x legacy avec ## Phases) et que tu veux ajouter une nouvelle feature. Cérémonie distincte de /architect — ne mute jamais le PRD destructivement, déplace uniquement les checkboxes Hors scope → Scope actuel et crée un SPEC daté dans docs/specs/. Ne PAS utiliser sur un projet non-livré ni pour modifier une feature existante.
+description: Utiliser quand un projet est livré (PRD format v2.2 avec sections Scope actuel/Hors scope/Implementation Phases, ou format v2.1.x legacy avec ## Phases) et que tu veux ajouter une nouvelle feature. Argument optionnel — un chemin de brief brainstorm (`/evoluer docs/brainstorms/{date}-feature-{slug}.md`) pré-remplit le cadrage. Cérémonie distincte de /architect — ne mute jamais le PRD destructivement, déplace uniquement les checkboxes Hors scope → Scope actuel et crée un SPEC daté dans docs/specs/. Ne PAS utiliser sur un projet non-livré ni pour modifier une feature existante.
 ---
 
 # Skill /evoluer — ajouter une feature à un projet livré (cérémonie distincte)
@@ -46,15 +46,16 @@ Lis `CLAUDE.md` et cherche `<!-- ship:url -->`. Si URL réelle → continue. Sin
 
 ## Étape 1bis — lire le contexte existant (Read en parallèle)
 
-Lis en parallèle, sans relire brainstorm/research from-zero :
+Lis en parallèle :
 
 - `PRD.md` racine (vision + scope + hors scope)
 - `STRUCTURE.md` (état actuel)
 - `memory/decisions.md` (derniers ADR-NNN)
 - Les 3 SPECs les plus récents : `ls docs/specs/SPEC-*.md 2>/dev/null | sort -r | head -3` puis lire chacun
 - `STATUS.md` (active work)
+- **Brief brainstorm en argument** (si l'utilisateur a invoqué `/evoluer docs/brainstorms/{date}-feature-{slug}.md`) → lire ce fichier en entier. Il contient déjà le manque résolu, l'intégration UI, les dépendances techniques détectées, l'ampleur S/M/L. **Utilise-le pour pré-remplir les Q1+Q2+Q3 de l'Étape 2** au lieu de partir de zéro : tu proposes les réponses extraites du brief et l'utilisateur confirme ou amende.
 
-Ces 5 lectures constituent le contexte d'évolution. Pas de scan codebase complet ; on fait confiance aux artefacts.
+Si pas d'argument brief passé, c'est OK — comportement standard (Étape 2 pose les 3 questions à froid). On fait confiance aux artefacts, pas de scan codebase complet.
 
 ## Étape 2 — cadrage feature (3 questions + check Hors scope)
 

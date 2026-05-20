@@ -185,10 +185,12 @@ Slug = kebab-case du nom de la feature (3-5 mots max).
 ```
 ✅ Brief feature créé : docs/brainstorms/{YYYY-MM-DD}-feature-{slug}.md
 
-Étapes suivantes :
+Étapes suivantes (copier-coller le path du brief tel quel dans /evoluer) :
   1. /close    → commit + STATUS.md
   2. /clear    → contexte vide
-  3. /evoluer  → relira ce brief + PRD + posera ses 3 questions de cadrage, créera SPEC daté
+  3. /evoluer docs/brainstorms/{YYYY-MM-DD}-feature-{slug}.md
+     → /evoluer lira ce brief en plus du PRD, puis posera ses 3 questions de cadrage
+       et créera le SPEC daté dans docs/specs/.
 ```
 
 #### Mode feature, ampleur L (multi-aspect)
@@ -198,7 +200,7 @@ Présenter **deux chemins** à l'user, **il choisit** :
 > "Ampleur L détectée. Deux chemins propres :
 >
 > **(a) Découper en N sous-features** (recommandé si la feature touche plusieurs écrans/domaines indépendants)
->   → tu enchaînes N fois `/evoluer`, 1 SPEC par sous-feature, PRD reste vivant et discipliné (cap 100L).
+>   → tu enchaînes N fois `/evoluer docs/brainstorms/{date}-feature-{slug}.md`, 1 SPEC par sous-feature, PRD reste vivant et discipliné (cap 100L).
 >   → Sous-features proposées d'après le brief : {liste 2-4 sous-features}
 >
 > **(b) Refonte explicite via `/architect`** (si la feature implique de revoir la Vision, les Personas, ou le Scope structurel du PRD)
