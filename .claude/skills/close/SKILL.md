@@ -1,6 +1,6 @@
 ---
 name: close
-description: Utiliser à la fin d'une phase (après /validate ✅) pour clôturer proprement — marque la phase ✅ Terminée dans le PRD (source unique depuis v2.0), propose un commit conventionnel à partir du diff, fait le harvest learnings (auto-récap dans memory/learnings/ + topics opt-in via 3 questions ciblées dans memory/topics/ et memory/decisions.md, update MEMORY.md index), suggère /plan Phase N+1 ou /livrer si dernière phase. L'utilisateur ne touche jamais à la mémoire manuellement — c'est ce skill qui la maintient. Skill mandatory post /validate ✅ (plus optionnel depuis v2.0).
+description: Utiliser à la fin d'une phase (après /validate ✅) pour clôturer proprement — marque la phase ✅ Terminée dans le PRD (source unique depuis v2.0), propose un commit conventionnel à partir du diff, fait le harvest learnings conditionnel (auto-récap toujours dans memory/learnings/ + questions ciblées seulement si triggers détectés dans le diff : nouvelle dépendance, MCP, migration SQL, workaround, règle path-scoped, ADR), suggère /plan Phase N+1 ou /livrer si dernière phase. Détecte automatiquement le mode (planning rapide vs full fin-de-phase) — en mode planning skippe l'audit caps, l'amend SHA et le dialogue commit (auto-commit). L'utilisateur ne touche jamais à la mémoire manuellement — c'est ce skill qui la maintient. Skill mandatory post /validate ✅ (plus optionnel depuis v2.0).
 ---
 
 # Skill /close — clôturer proprement une phase
@@ -76,6 +76,13 @@ Cette étape tourne en mode **planning** et **full** (skippée en no-op).
 Pattern d'écriture : **read fresh + atomic** (écrire tmp puis `mv`).
 
 **0.5.5 — Ordre absolu** :
+
+**Mode planning** (gain ~30-60s) — pas d'amend SHA :
+1. **Update STATUS.md** sans le champ `Dernier commit reflété` (ou laisser la valeur précédente — sera rafraîchie lazily au prochain `/close` full ou `/prime`)
+2. `git add -A`
+3. `git commit -m "{message}"`
+
+**Mode full** — séquence complète avec amend SHA :
 1. **Update STATUS.md** (zone active, sans le SHA post-commit encore)
 2. `git add -A` (inclut STATUS.md modifié)
 3. `git commit -m "{message}"`
@@ -86,6 +93,8 @@ Cet ordre garantit que le commit inclut STATUS.md à jour. Si l'écriture STATUS
 **0.5.6 — Supprimer `tmp/skill-trace.jsonl`** (consommation). À faire **après** la réussite de l'écriture STATUS.md. Si l'écriture a échoué, NE PAS supprimer (recover possible).
 
 ### Étape 0.6 — Audit caps (CLAUDE.md, PRD.md)
+
+**Skip silencieux en mode planning** (les artefacts planning — brief, SPEC, plan — ne touchent jamais les limites de CLAUDE.md/PRD.md aux endroits scrutés ici). Cette étape ne tourne qu'en mode **full**.
 
 Entre Étape 0.5 (STATUS.md) et Étape 1 (détection phase). **Ne bloque jamais le commit — juste warn + propose**.
 
@@ -157,6 +166,23 @@ has_old = grep -q "^## Phases" PRD.md
 
 ### Étape 4 — composer le message de commit
 
+**Mode planning — auto-commit sans dialogue** (gain ~1-3 min) :
+
+Le message est dérivé déterministe-ment du dernier skill du trace.jsonl + l'artefact produit :
+
+| Dernier skill | Template message |
+|---------------|------------------|
+| `brainstorm` (greenfield) | `chore(plan): brief brainstorm {sujet}` |
+| `brainstorm` (feature mode) | `chore(plan): brief feature {slug} pour évaluation` |
+| `architect` | `chore(plan): PRD initial + stack définie` |
+| `evoluer` | `chore(plan): SPEC {slug} + V_{n+1} PRD checkbox` |
+| `plan` | `chore(plan): {artifact-basename} découpé en tâches` |
+| `challenge` | `chore(plan): challenge {target} — verdict {GO/NO-GO}` |
+
+Affiche le message dans le handoff (Étape 7) — pas de prompt de validation. Si l'user veut amender, il le fait au prochain `/close` ou via `git commit --amend` manuellement. Mode planning = confiance par défaut.
+
+**Mode full — dialogue de validation maintenu** :
+
 Lance `git status` et `git diff --stat` pour voir ce qui a changé. Propose un message conventionnel :
 
 ```
@@ -195,11 +221,31 @@ git commit -m "{message validé}"
 
 Annonce le SHA résultant. **Ne push pas automatiquement** — c'est à l'utilisateur de décider quand pousser (et où).
 
-### Étape 6 — Harvest learnings (mémoire persistante)
+### Étape 6 — Harvest learnings (mémoire persistante, conditionnel)
 
-Post-commit, **l'utilisateur ne touche pas à la mémoire manuellement** — c'est ce skill qui la maintient. Deux blocs : auto-récap (toujours) + topics opt-in (questions ciblées).
+Post-commit, **l'utilisateur ne touche pas à la mémoire manuellement** — c'est ce skill qui la maintient. Mais le harvest est **conditionnel** depuis v2.0.2 : on ne pose des questions à l'user que si la session contient des **signaux de notabilité** détectables sur le diff git. Sinon, on fait juste l'auto-récap silencieux et on passe.
 
 > **Boucle externe (vocabulaire kit v2.1.0)** : tu fais la **boucle externe** ici. La **boucle interne** (PIV : `/prime → /plan → /execute → /validate → /close`) résout la feature courante ; la **boucle externe** cristallise ce que la session t'a appris en mémoire persistante (`memory/topics/`, `memory/decisions.md`, `MEMORY.md`) pour que les futures sessions ne refassent pas les mêmes erreurs.
+
+**6.0 — Détection des triggers (décide si on engage l'user)**
+
+Sur le diff git de la phase (`git diff {commit-ouverture-phase}..HEAD`), exécuter en parallèle ces 6 checks :
+
+| Trigger | Détection | Question pertinente à poser |
+|---------|-----------|------------------------------|
+| **T1 — nouvelle dépendance** | `git diff` touche `package.json` ligne `+ "..."` dans `dependencies`/`devDependencies` | "Un gotcha pendant l'install ou le choix de cette dépendance ?" |
+| **T2 — nouveau MCP** | `git diff` touche `.mcp.json` ou `.mcp.json.example` avec ajout de bloc `mcpServers` | "Un piège lors de la config de ce MCP (auth, URL, mode docs-only) ?" |
+| **T3 — migration SQL / RLS** | Fichiers `supabase/migrations/*.sql` ajoutés OU diff contient `CREATE POLICY`, `ALTER TABLE`, `ENABLE ROW LEVEL SECURITY` | "Une décision RLS ou un schéma de données à mémoriser ?" |
+| **T4 — workaround / hack** | `git diff` contient `HACK`, `FIXME`, `XXX`, `workaround`, `temporary fix` (case-insensitive) dans les fichiers code (pas dans la doc) | "Un contournement à documenter pour ne pas l'oublier ?" |
+| **T5 — nouvelle règle path-scoped** | Nouveau fichier `.claude/rules/*.md` créé | "Un pattern réutilisable à formaliser ? (sinon je n'écris pas)" |
+| **T6 — choix arch significatif** | Diff `memory/decisions.md` (ADR ajouté par `/evoluer`) OU le commit message contient `feat(...)` + le ` — ` (rationale séparator) avec une raison non triviale | "Une décision d'arch à raconter en 2 lignes pour mémoire ?" |
+
+**Logique** :
+- **Aucun trigger** → skip 6.2 et 6.3 totalement. Annonce : *"Mémoire : auto-récap seul écrit (rien de notable détecté dans le diff)."*
+- **1 trigger** → poser **uniquement** la question associée (1 question, pas 3).
+- **2+ triggers** → poser les questions associées dans l'ordre T1→T6, max 3 questions au total.
+
+**Règle d'or** : si la question retourne "rien à signaler" / "skip" → ne pas insister, passer à la suivante ou clôturer 6.
 
 **6.1 — Auto-récap session (toujours écrit, low-friction)**
 
@@ -221,28 +267,26 @@ Crée ou complète `memory/learnings/{YYYY-MM-DD}.md` avec un récap automatique
 
 Pas de question, écriture directe. Si le fichier `memory/learnings/{date}.md` existe déjà (plusieurs phases clôturées le même jour), append en bas.
 
-**6.2 — Topics opt-in (questions ciblées)**
+**6.2 — Topics opt-in (questions ciblées par triggers détectés)**
 
-Demande à l'utilisateur **0 à 3 questions** parmi celles-ci, **dans l'ordre, et s'arrête dès qu'il dit "rien à signaler"** :
+Skippé totalement si l'Étape 6.0 n'a détecté aucun trigger. Sinon, pour chaque trigger détecté (max 3), pose la question associée du tableau 6.0. **Une seule question par trigger**, jamais l'arsenal complet à froid.
 
-> *"Une décision d'arch notable pendant cette phase ? (ex : choix entre 2 BDD, frontière SDK/n8n, abandon d'une feature)*"
+Selon la réponse :
 
-Si réponse → écris dans `memory/decisions.md` ancre `<!-- close:decisions -->` :
-```
-- **{YYYY-MM-DD}** — {décision} (Phase {N}). Rationale : {réponse utilisateur}
-```
+- **Trigger T6 (décision arch)** ou réponse type "décision" → écris dans `memory/decisions.md` ancre `<!-- close:decisions -->` :
+  ```
+  - **{YYYY-MM-DD}** — {décision} (Phase {N}). Rationale : {réponse utilisateur}
+  ```
 
-> *"Un gotcha ou un piège technique qu'on a rencontré ? (ex : webhook qui ne marche que si rawBody, CORS qui demande OPTIONS, RLS qui bloque une query)"*
+- **Trigger T1/T2/T3/T4 (gotcha, install, RLS, workaround)** → demande le **domaine** en 1 mot (ex : "n8n", "supabase", "deploy") et écris dans `memory/topics/{domaine}.md` (crée si absent) :
+  ```markdown
+  ## {YYYY-MM-DD} — {résumé 1-ligne}
+  {réponse utilisateur, 2-5 lignes}
+  ```
 
-Si réponse → demande le **domaine** ("c'est plutôt n8n, auth, deploy, autre ?") et écris dans `memory/topics/{domaine}.md` (crée si absent) :
-```markdown
-## {YYYY-MM-DD} — {résumé 1-ligne}
-{réponse utilisateur, 2-5 lignes}
-```
+- **Trigger T5 (pattern réutilisable)** → écris dans `memory/topics/{domaine}.md` (même format que T1-T4).
 
-> *"Un pattern réutilisable que tu veux mémoriser pour les prochaines features ?"*
-
-Même process : domaine + écriture dans `memory/topics/{domaine}.md`.
+Si l'user dit "rien à signaler" / "skip" sur une question, passe à la suivante. Si tous les triggers passent en "skip" → 6.2 produit 0 écriture (c'est OK, l'auto-récap 6.1 suffit).
 
 **6.3 — Update MEMORY.md index**
 
