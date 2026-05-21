@@ -2,6 +2,14 @@
 
 > **Framework guidé Claude Code pour débutants**, du démarrage au scaling. Supporte 3 cas d'usage : **site vitrine**, **web app SaaS**, **automatisation n8n**. Tape `/start` après le clone, suis le guide piloté, et tu attaques ton premier projet en 5 minutes.
 
+## Démarrer maintenant
+
+Lis [`QUICKSTART.md`](QUICKSTART.md) (30 secondes). Tu seras opérationnel.
+
+## Comprendre le kit en profondeur
+
+Lis [`docs/KIT.md`](docs/KIT.md). Méta-doc complète : tous les skills, parcours détaillés, installation MCP, conventions.
+
 ## 3 parcours typiques
 
 **Parcours 1 — Création (premier projet)** :

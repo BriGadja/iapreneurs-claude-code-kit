@@ -82,7 +82,7 @@ echo "═══ Check 1 — Ancres HTML appariées ═══"
 # Ne traite que les ancres qui contiennent ":" (skill:section), pas les ancres
 # de directive (ex: <!-- power-users-fallback: ... -->).
 # On scanne les fichiers qui contiennent typiquement des ancres écrites par les skills.
-ANCHOR_FILES="CLAUDE.md STATUS.md STRUCTURE.md MEMORY.md templates/PRD-template.md templates/SPEC-template.md"
+ANCHOR_FILES="CLAUDE.md.template STATUS.md STRUCTURE.md MEMORY.md templates/PRD-template.md templates/SPEC-template.md"
 anchor_issues=0
 for f in $ANCHOR_FILES; do
   [ -f "$f" ] || continue

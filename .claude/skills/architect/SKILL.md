@@ -30,8 +30,9 @@ Pas de PRD complet sans ces 8 sections, dans cet ordre. **Cap 100 lignes hard** 
 
 ### Étape 1 — lire la source
 
-Si le user a passé un fichier `brainstorm-{sujet}.md` en argument, le lire.
-Si pas de fichier, lire ce que dit le user dans le chat et lui poser **2-3 questions de clarification** sur les sections manquantes (utilisateurs, MVP, stack).
+Si l'utilisateur a passé un **brief de brainstorm en argument** (chemin `docs/brainstorms/{date}-{slug}.md` ou ancien format `brainstorm-{sujet}.md`), lis-le en entier. Le brief contient déjà l'idée en 1 phrase, le besoin clarifié (pour qui, pour quoi), les contraintes connues, la direction recommandée et les hypothèses à valider. **Utilise ces données pour pré-remplir tes questions Étape 2-3** au lieu de partir de zéro : tu proposes les réponses extraites du brief, l'utilisateur confirme ou amende.
+
+Si pas de fichier en argument, lire ce que dit l'utilisateur dans le chat et lui poser **2-3 questions de clarification** sur les sections manquantes (utilisateurs, MVP, stack).
 
 ### Étape 2 — déterminer la nature du projet, puis proposer la stack
 
@@ -215,40 +216,7 @@ Annonce finale à l'utilisateur : *"Repo scaffold + credentials provisionnées +
 
 ## Format du PRD
 
-```markdown
-# PRD : {Nom du projet}
-
-## Sommaire
-{2-3 phrases}
-
-## Utilisateurs cibles
-- {qui, dans quelle situation}
-
-## MVP — ce qu'on fait
-- {feature critique 1}
-- {feature critique 2}
-- {feature critique 3}
-
-## Hors-MVP — ce qu'on ne fait PAS
-- {feature explicitement écartée}
-- {nice-to-have repoussé}
-
-## Phases
-- **Phase 1** — {nom} : {1 phrase de description}
-- **Phase 2** — ...
-- **Phase 3** — ...
-
-## Stack technique
-- Frontend : {choix}
-- Backend : {choix}
-- BDD : {choix}
-- Hosting : {choix}
-
-## Critères de succès
-- [ ] {ex: un utilisateur peut faire X end-to-end sans bug}
-- [ ] {ex: l'app charge en moins de 2s}
-- [ ] {ex: 5 personnes peuvent utiliser en simultané sans crash}
-```
+Le format canonique est défini dans [`templates/PRD-template.md`](../../../templates/PRD-template.md) (66 lignes, 8 sections numérotées, cap 100 lignes). Lis ce template à l'Étape 4 pour générer le PRD du projet. Ne duplique jamais le format ici — la source unique évite la dérive entre skills.
 
 ## Risque #1 — sauvegarder sans validation humaine
 

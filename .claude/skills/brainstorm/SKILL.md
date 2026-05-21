@@ -1,250 +1,166 @@
 ---
 name: brainstorm
-description: Utiliser quand l'utilisateur a une idée vague ou floue, soit pour un nouveau projet ("j'aimerais une app pour..."), soit pour une nouvelle feature sur un projet existant ("j'ai envie d'ajouter un dashboard à mon app..."). Le skill détecte le contexte (PRD.md présent ou non) et adapte ses questions + son handoff. Défaut quasi-automatique : si un PRD existe, mode feature → handoff /evoluer ; /architect est un opt-in explicite via le mot-clé `refonte` (réécriture destructive du PRD). Ne PAS utiliser si l'idée est déjà précise — passer direct à /architect (greenfield) ou /evoluer (feature). Sortie — fichier `docs/brainstorms/{date}-{sujet}.md` (greenfield) ou `docs/brainstorms/{date}-feature-{slug}.md` (feature).
+description: Utiliser quand l'utilisateur a une idée vague ou floue à explorer, soit pour un nouveau projet ("j'aimerais une app pour…"), soit pour une feature à ajouter ("j'ai envie d'ajouter du SMS à mon Hub Documents"). Produit un brief de cadrage écrit dans docs/brainstorms/{date}-{slug}.md. Ne PAS utiliser si l'idée est déjà claire — passer direct à /architect (greenfield) ou /evoluer (feature). N'opère aucun routing automatique — c'est l'utilisateur qui choisit la suite (/architect, /plan, ou /evoluer) avec le brief en argument.
 ---
 
-# Skill /brainstorm — clarifier une idée vague (greenfield OU feature)
+# Skill /brainstorm — clarifier une idée vague (réflexion pure, sans routing auto)
 
 ## Pour quoi faire
 
-L'utilisateur a une idée mais elle n'est pas claire. Tu poses **3 questions max** pour clarifier, puis tu produis un brief en bullet points actionnables. Deux modes :
+L'utilisateur a une idée mais elle n'est pas claire. Ton rôle :
 
-- **Mode greenfield** : pas de PRD encore, idée de projet neuf → brief alimente `/architect`.
-- **Mode feature** : PRD existant, idée de feature à greffer sur l'app → brief alimente `/evoluer` (ou plusieurs `/evoluer` si feature trop large).
+1. **Dialoguer** pour clarifier le besoin (3-5 questions ciblées).
+2. **Rechercher** si nécessaire (sous-agent, optionnel).
+3. **Synthétiser** un brief écrit dans `docs/brainstorms/{date}-{slug}.md`.
+4. **Proposer** un handoff explicite à l'utilisateur (3 options) — JAMAIS de routing automatique.
 
-Le mode est détecté à l'Étape 0 (auto + confirmation user) — pas une question à poser à froid.
+Ce skill ne décide pas à la place de l'utilisateur. Pas de détection PRD → /evoluer auto, pas de mot-clé "refonte" → /architect auto. L'utilisateur lit le brief et choisit lui-même.
 
 ## Comment procéder
 
-### Étape 0 — détecter le mode (auto + confirmation)
+### Phase A — Dialogue (3-5 questions)
 
-Vérifier en parallèle :
+#### A.1 — Reformuler le sujet (1 phrase)
 
-```bash
-test -f PRD.md && echo "has_prd"
-grep -q "^## Stack" CLAUDE.md && echo "has_stack"
-grep -A2 "<!-- ship:url -->" CLAUDE.md | grep -qE "https?://" && echo "is_shipped"
-```
+> "Si je comprends bien, tu veux **{reformulation}**. C'est ça ?"
 
-**Branches** :
+Si l'utilisateur corrige, intègre la correction.
 
-| has_prd | is_shipped | Comportement |
-|---------|------------|--------------|
-| ❌ | — | Mode **greenfield** silencieux — passer directement à l'Étape 1 standard |
-| ✅ | ✅ | Mode **feature** **par défaut** — confirmation binaire ultra-courte (voir ci-dessous), pas un menu équilibré |
-| ✅ | ❌ | PRD existant mais pas encore livré → mode **feature** par défaut aussi (le PRD est vivant, on ne le réécrit pas sur une simple idée d'ajout) |
+#### A.2 — Poser 3 à 5 questions ciblées (une par une, pas en bloc)
 
-**Confirmation binaire (si has_prd, peu importe `is_shipped`)** :
+**Règle stricte** : 5 questions max. Si tu as besoin de plus, le sujet est trop large pour `/brainstorm` — propose à l'utilisateur de découper.
 
-> "Je détecte le projet **{Vision en 1 phrase, extraite du PRD}**{ — livré sur {url depuis `## Production`} si is_shipped}. Je pars du principe que tu veux **ajouter une feature** (→ handoff `/evoluer`).
->
-> ⚠️ Réponds **uniquement** `refonte` si tu veux **réécrire le PRD from scratch** (changement de Vision, de Personas, ou du Scope structurel). Sinon, n'importe quelle autre réponse = on continue en mode feature."
+Pioche dans ces 5 axes selon ce qui manque le plus de clarté :
 
-**Règle d'or** : ne PAS présenter `(a)` et `(b)` comme deux options équilibrées. Le défaut est `/evoluer`. `/architect` est un opt-in explicite via le mot-clé `refonte`.
+1. **Pour qui ?** — "C'est pour toi tout seul, ton équipe, des clients, le grand public ?"
+2. **Pour quoi ?** — "Quel problème concret ça résout ? Donne-moi un exemple où ça t'aurait servi cette semaine."
+3. **Contexte existant ?** — "C'est un projet from-scratch, une feature à greffer sur une app existante, ou un cadrage d'une tâche d'un projet en cours ?"
+4. **Contraintes connues ?** — "Y a-t-il des contraintes que tu connais déjà (budget, deadline, stack imposée, intégrations obligatoires) ?"
+5. **Échecs précédents ?** — "Tu as déjà essayé une approche qui n'a pas marché ? Si oui, qu'est-ce qui a bloqué ?"
 
-Si l'user répond `refonte` → mode **greenfield** (warning : `/architect` écrasera `PRD.md`, backup auto en `PRD.{date}.backup.md`).
-Sinon → mode **feature**.
+Adapte l'ordre et les formulations. Si l'utilisateur a déjà répondu à une question dans sa demande initiale, ne la repose pas.
 
-Si `PRD.md` est malformé (pas de section Vision lisible) → traiter comme greenfield, mais signaler à l'user.
+### Phase B — Recherche (optionnelle)
 
-### Étape 1 — comprendre le sujet
+Si après les questions tu juges que des références externes manqueraient (concurrents, patterns établis, retours d'expérience documentés), propose :
 
-Reformule en 1 phrase ce que tu as compris. Demande confirmation :
+> "Tu veux que je creuse un peu ? Je peux déléguer à un sous-agent `research-delegate` qui va explorer le web, lire 5-10 sources, et me ramener une synthèse en 3-10 bullets. Ton contexte principal reste propre, je récupère juste l'essentiel. Tu préfères qu'on continue direct ou qu'on creuse ?"
 
-> "Si je comprends bien, tu veux **{ce que j'ai compris}**. C'est ça ?"
-
-Si l'utilisateur corrige, intègre la correction. Sinon, continue.
-
-### Étape 2 — poser 3 questions max (questions adaptées au mode)
-
-**Règle stricte** : 3 questions max. Pas 4. Pas 5.
-
-#### Mode greenfield — 3 questions parmi 5 axes
-
-Priorise selon le sujet :
-
-1. **Pour qui ?** → "C'est pour toi tout seul, ton équipe, des clients, des inconnus ?"
-2. **Pour quoi ?** → "Ça doit résoudre quel problème concret ? Tu peux me donner un exemple où ça t'aurait servi cette semaine ?"
-3. **Combien ?** → "Combien de personnes vont l'utiliser en même temps ? 1, 10, 100, 1000 ?"
-4. **Quoi d'abord ?** → "Si tu pouvais avoir UNE seule fonctionnalité à la fin de la journée, ce serait laquelle ?"
-5. **Hors scope ?** → "Qu'est-ce qui est hors sujet, à ne PAS faire dans ce projet ?"
-
-#### Mode feature — 3 questions adaptées
-
-1. **Manque résolu** → "Quel manque ou friction de l'app actuelle veux-tu résoudre ? Donne-moi un moment cette semaine où ça t'aurait servi."
-2. **Intégration UI/UX** → "Concrètement, où apparaît-elle dans l'app ? Nouvelle page, widget dans un écran existant, action sur l'écran X ?"
-3. **Dépendances techniques** → "Elle dépend d'une nouvelle techno absente de la stack (n8n, paiement, email transactionnel, Drive, ...) ou elle reste dans ce que tu as déjà ?"
-
-**Check supplémentaire en mode feature** : grep le sujet (case-insensitive, fuzzy) dans la section `## 4. Hors scope` du PRD. Si match → signaler à l'user : *"Cette feature semble déjà listée dans Hors scope du PRD — `/evoluer` saura la déplacer automatiquement."*
-
-Si tu as besoin de plus de 3 questions, c'est que le sujet est trop large pour `/brainstorm` :
-- En greenfield → propose `/architect` directement
-- En feature → propose de découper en plusieurs sous-features (voir Étape 5 cas L)
-
-### Étape 3 — proposer 2 routes (inchangé)
-
-Une fois les réponses obtenues, propose :
-
-> "OK, deux options :
-> 1. **Je te fais le brief direct** avec ce qu'on a.
-> 2. **On creuse encore** — je délègue à un sous-agent `research-delegate` qui va explorer le web, lire 5-10 sources (projets similaires, patterns établis, retours d'expérience), et me ramener une synthèse en 3-10 bullets. Ton contexte principal reste propre, je récupère juste l'essentiel.
->
-> Tu préfères quoi ?"
-
-Si route 2 :
+Si l'utilisateur veut creuser :
 
 ```
 Agent({
   subagent_type: "research-delegate",
-  description: "Recherche projets similaires {sujet}",
-  prompt: "Cherche sur le web 5-10 projets ou tutos qui font {résumé du brainstorm}. Pour chacun : (1) ce qu'ils font, (2) leur stack, (3) un piège ou retour d'expérience documenté. Sortie au format research-delegate standard."
+  description: "Recherche {sujet}",
+  prompt: "Cherche sur le web 5-10 projets/outils/articles qui font {résumé du brainstorm}. Pour chacun : (1) ce qu'ils font, (2) leur stack si pertinent, (3) un piège ou retour d'expérience documenté. Sortie au format research-delegate standard."
 })
 ```
 
-Reprends la main avec la synthèse, ajoute-la sous une sous-section "Inspirations" du brief.
+Tu peux aussi explorer la codebase actuelle (`Read`, `Grep`) si l'idée touche à du code existant — utile en mode feature pour repérer les points d'intégration.
 
-### Étape 4 — écrire le brief
+Si tu juges la recherche inutile (idée déjà bien cadrée), passe direct à Phase C.
+
+### Phase C — Synthèse du brief
 
 `mkdir -p docs/brainstorms` si absent.
 
-#### Mode greenfield → `docs/brainstorms/{YYYY-MM-DD}-{sujet}.md`
+Choisis un slug kebab-case court (3-5 mots) à partir du sujet. Format du fichier : `docs/brainstorms/{YYYY-MM-DD}-{slug}.md`.
+
+Structure du brief :
 
 ```markdown
 # Brainstorm : {sujet}
 
 ## Idée en 1 phrase
-{phrase claire}
+{phrase claire issue de la reformulation Phase A.1}
 
-## Pour qui
-- {réponse Q1}
+## Besoin clarifié
+- {réponse Q "pour qui"}
+- {réponse Q "pour quoi" — avec l'exemple concret}
+- {réponse Q "contexte" — projet neuf / feature / tâche d'un projet en cours}
 
-## Problème résolu
-- {réponse Q2}
+## Contraintes connues
+- {réponse Q "contraintes" ou "aucune connue"}
 
-## Échelle attendue
-- {réponse Q3 ou estimation}
+## Alternatives explorées
+- {alternative 1 envisagée + pourquoi écartée ou retenue}
+- {alternative 2 si pertinent}
+- {ou "aucune alternative pertinente identifiée"}
 
-## Première fonctionnalité (si une seule)
-- {réponse Q4}
+## Direction recommandée
+- {1-3 bullets : ce qui semble la voie la plus solide selon les réponses}
 
-## Hors scope
-- {réponse Q5 ou liste explicite}
+## Hypothèses encore à valider
+- [ ] {hypothèse 1 à confirmer en plan/architect/evoluer}
+- [ ] {hypothèse 2}
 
-## Prochaine étape
-- [ ] /architect docs/brainstorms/{YYYY-MM-DD}-{sujet}.md
+## Inspirations (si Phase B faite)
+{bullets research-delegate ou exploration codebase}
+
+## Prochaine étape suggérée
+{Voir Phase D du skill — handoff explicite à l'utilisateur, JAMAIS de routing auto.}
 ```
 
-#### Mode feature → `docs/brainstorms/{YYYY-MM-DD}-feature-{slug}.md`
+Écris le fichier. Affiche son chemin.
 
-Slug = kebab-case du nom de la feature (3-5 mots max).
+### Phase D — Handoff explicite (l'utilisateur choisit)
 
-```markdown
-# Brainstorm feature : {nom feature}
-
-## Projet cible
-{Vision extraite du PRD, 1 phrase} — voir `PRD.md`
-
-## Manque résolu
-- {réponse Q1, avec l'exemple concret de la semaine}
-
-## Intégration dans l'app existante
-- **Où elle apparaît** : {réponse Q2}
-- **Touche au PRD existant** : {section(s) ## 3. Scope actuel concernée(s)}
-- **Déjà listée dans Hors scope ?** : {oui (à flip via /evoluer) | non (ajout V_{n+1})}
-
-## Dépendances techniques nouvelles
-- {liste : n8n / Google Drive / Stripe / ... ou "aucune, stack actuelle suffit"}
-- ⚠️ Si dépendance nouvelle : `/evoluer` Étape 4bis fera la gate live (install + validation MCP).
-
-## Ampleur estimée
-- {S | M | L}
-  - **S** : 1 SPEC, 1 phase de plan, <1 journée — `/evoluer` direct
-  - **M** : 1 SPEC, 2-3 phases de plan, 2-3 jours — `/evoluer` direct
-  - **L** : multi-aspect, refonte d'un écran majeur, ou impact transverse stack — voir Prochaine étape
-
-## Inspirations (si Étape 3 route 2)
-{bullets research-delegate}
-
-## Prochaine étape
-{Voir Étape 5 du skill — selon ampleur S/M ou L}
-```
-
-### Étape 5 — handoff différencié
-
-#### Mode greenfield
+Annonce :
 
 ```
-✅ Brief créé : docs/brainstorms/{YYYY-MM-DD}-{sujet}.md
+✅ Brief créé : docs/brainstorms/{YYYY-MM-DD}-{slug}.md
 
 Étapes suivantes pour repartir propre :
-  1. /close    → commit + mise à jour STATUS.md
+  1. /close    → commit du brief + STATUS.md
   2. /clear    → contexte vide
-  3. /architect docs/brainstorms/{YYYY-MM-DD}-{sujet}.md
+  3. /{architect|plan|evoluer} docs/brainstorms/{YYYY-MM-DD}-{slug}.md (au choix, voir ci-dessous)
+
+Selon ce qu'on a dégagé, voici la suite logique. **C'est toi qui choisis** :
+
+1. **Nouveau projet from-scratch** (pas de PRD encore)
+   → `/architect docs/brainstorms/{YYYY-MM-DD}-{slug}.md`
+   /architect lira le brief, pré-remplira ses 3 questions de cadrage, et produira PRD.md.
+
+2. **Feature à ajouter à un projet existant livré** (PRD présent, phases ✅ Terminées)
+   → `/evoluer docs/brainstorms/{YYYY-MM-DD}-{slug}.md`
+   /evoluer lira le brief, fera son Étape 1bis (lecture PRD + 3 derniers SPECs), et créera le SPEC daté.
+
+3. **Tâche à cadrer dans un projet en cours** (PRD présent, phase actuelle non terminée)
+   → `/plan docs/brainstorms/{YYYY-MM-DD}-{slug}.md`
+   /plan lira le brief et l'utilisera comme contexte pour découper la prochaine phase.
+
+Quelle direction ?
 ```
 
-#### Mode feature, ampleur S ou M
+Attends la réponse de l'utilisateur. Ne route PAS automatiquement vers l'une des trois options — c'est l'utilisateur qui tape la commande.
 
-```
-✅ Brief feature créé : docs/brainstorms/{YYYY-MM-DD}-feature-{slug}.md
-
-Étapes suivantes (copier-coller le path du brief tel quel dans /evoluer) :
-  1. /close    → commit + STATUS.md
-  2. /clear    → contexte vide
-  3. /evoluer docs/brainstorms/{YYYY-MM-DD}-feature-{slug}.md
-     → /evoluer lira ce brief en plus du PRD, puis posera ses 3 questions de cadrage
-       et créera le SPEC daté dans docs/specs/.
-```
-
-#### Mode feature, ampleur L (multi-aspect)
-
-**Défaut fortement recommandé** : découper en N sous-features et enchaîner `/evoluer` x N. `/architect` n'est PAS un chemin parallèle équivalent — c'est une refonte destructive du PRD, à n'envisager que si l'user a déjà dit explicitement vouloir changer la Vision/Personas/Scope structurel.
-
-> "Ampleur L détectée. Découpage recommandé en {2-4} sous-features :
-> - {sous-feature 1}
-> - {sous-feature 2}
-> - {sous-feature 3}
->
-> Handoff = `/evoluer docs/brainstorms/{date}-feature-{slug}.md` puis tu enchaînes 1 SPEC par sous-feature. PRD reste vivant et discipliné (cap 100L).
->
-> ⚠️ Réponds **uniquement** `refonte` si cette feature implique de réécrire la Vision/Personas/Scope structurel du PRD (alors `/architect` écrasera `PRD.md`, backup auto). Sinon on part sur le découpage `/evoluer`."
-
-Selon la réponse :
-- Mot-clé `refonte` reçu → handoff `/architect` (avec warning backup).
-- Toute autre réponse (ou pas de réponse) → handoff `/evoluer` avec le brief découpé.
-
-**Interdit** : écrire dans la section "Prochaine étape" du brief une phrase du type "compatible avec les deux, à arbitrer plus tard" ou "/architect ou /evoluer — voir note". Un brief sort avec **UN seul** handoff explicite. L'ambiguïté se résout MAINTENANT, pas dans la prochaine session.
+**Règle d'or** : ce skill n'a aucune branche conditionnelle qui décide à la place de l'utilisateur. Pas de détection PRD → /evoluer auto. Pas de mot-clé "refonte" → /architect auto. La décision appartient à l'utilisateur.
 
 ## Risque #1 — partir sans clarification
 
-Si tu sautes les 3 questions et tu écris direct le brief avec tes hypothèses, tu vas générer un PRD/SPEC qui ne correspond à rien et l'utilisateur va devoir tout refaire. **Toujours poser les 3 questions, même si tu crois "avoir compris"**. Mieux vaut 5 minutes de questions que 2h de travail à jeter.
+Si tu sautes les questions Phase A et tu écris direct le brief avec tes hypothèses, tu vas générer un brief qui ne correspond à rien et l'utilisateur va devoir tout refaire. **Toujours poser au moins 3 questions, même si tu crois "avoir compris"**.
 
-## Risque #2 — confondre les modes
+## Risque #2 — re-introduire du routing automatique
 
-Si tu pars en greenfield alors qu'un PRD existe, tu vas proposer `/architect` qui va écraser le PRD du projet. **Toujours faire l'Étape 0 de détection + confirmation user avant de poser les questions.** Pas de raccourci.
-
-**Défaut non-négociable** : si `has_prd=true`, le handoff par défaut est **`/evoluer`**. `/architect` n'est PAS un choix équivalent présenté au même niveau — c'est un opt-in explicite déclenché uniquement par le mot-clé `refonte` de l'user. Présenter un menu (a)/(b) équilibré est une régression du skill (voir incident 2026-05-20 Discoverly).
-
-## Risque #3 — handoff indécis
-
-Un brief qui sort avec "compatible avec `/architect` ou `/evoluer`, à arbitrer plus tard" est un brief raté. Le rôle de `/brainstorm` est précisément de **résoudre cette ambiguïté maintenant**. Si tu as un doute au moment d'écrire la section "Prochaine étape", redemande à l'user (mot-clé `refonte` ou pas), ne reporte jamais la décision.
+Si tu ajoutes une branche "si PRD.md existe alors handoff /evoluer" ou "si l'utilisateur dit 'refonte' alors handoff /architect", tu reproduis le bug v2.7.0 que cette refonte v2.8.0 corrige précisément. L'utilisateur lit le brief et choisit — c'est tout.
 
 ## Quand ne PAS utiliser ce skill
 
-- L'utilisateur a déjà une idée claire ET pas de PRD → `/architect` direct
+- L'utilisateur a déjà une idée claire ET pas de PRD → `/architect` direct (avec ou sans brief)
 - L'utilisateur a déjà une idée claire ET un PRD existant → `/evoluer` direct
 - L'utilisateur veut juste discuter/explorer sans rien produire → conversation libre, pas de skill
-- Le sujet est énorme (refonte complète d'un produit non livré) → trop large, découper en sous-sujets
+- Le sujet est énorme (refonte complète d'un produit non livré) → trop large, propose de le découper
 
 ## Trace de fin
 
-Avant d'afficher le handoff, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
+Avant d'afficher le handoff Phase D, append une ligne JSON à `tmp/skill-trace.jsonl` (créer le fichier et le dossier `tmp/` si absent) :
 
 ```json
-{"skill": "brainstorm", "mode": "{greenfield|feature}", "artifact": "{chemin produit}", "next": "{commande suggérée}", "ts": "<ISO8601 UTC>"}
+{"skill": "brainstorm", "artifact": "docs/brainstorms/{YYYY-MM-DD}-{slug}.md", "next": "user-choice", "ts": "<ISO8601 UTC>"}
 ```
 
 ## Handoff
 
-Voir Étape 5 — le handoff dépend du mode et de l'ampleur. Toujours respecter le rituel `/close → /clear → /{architect|evoluer}` (voir `docs/KIT.md § STATUS.md & rituel`).
+Voir Phase D — le handoff est explicite : l'utilisateur choisit `/architect`, `/plan` ou `/evoluer` avec le brief path en argument. Rituel : `/close → /clear → /{architect|plan|evoluer} docs/brainstorms/...`.
 
-**Prochaine étape** : selon mode détecté à l'Étape 0 — `/architect` (greenfield) ou `/evoluer` (feature S/M) ou choix user (feature L).
+**Prochaine étape** : choix utilisateur entre `/architect`, `/plan` ou `/evoluer` (Phase D).

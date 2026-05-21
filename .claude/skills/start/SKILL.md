@@ -1,6 +1,6 @@
 ---
 name: start
-description: Utiliser à l'ouverture d'une nouvelle session sur un projet basé sur ce kit. Bootstrap automatique si clone direct du kit détecté (reinit git + remote upstream + commit initial), configuration de l'identité git locale du projet (sans toucher au global), visite guidée du kit (skippable), 3 questions de cadrage qui remplissent la section Identité du CLAUDE.md, vérification de l'outillage (Playwright + n8n MCP + plugin frontend-design), puis routage vers /brainstorm (idée floue) ou /architect (idée claire). Ne PAS utiliser au milieu d'une session de travail — c'est un skill d'onboarding.
+description: Utiliser à l'ouverture d'une session sur un projet basé sur ce kit, pour cadrer ou recadrer le contexte. Pose 4 questions de cadrage (nom, public, project_type, n8n) et route vers /brainstorm ou /architect. Ne PAS utiliser au milieu d'une session de travail — c'est un skill d'onboarding. Pour reprendre un projet existant après pause, utiliser /prime à la place.
 ---
 
 # Skill /start — démarrage piloté
@@ -19,6 +19,18 @@ Sortie : un `CLAUDE.md` avec l'Identité remplie + un MCP/plugin stack fonctionn
 **Tu ne modifies que les zones marquées par des ancres HTML** dans le `CLAUDE.md` (`<!-- start:identité -->` ... `<!-- /start:identité -->`). Tout le reste du fichier reste intact, même s'il est encore en mode template — ce sont les autres skills (`/architect`, etc.) ou l'utilisateur qui rempliront le reste plus tard.
 
 ## Comment procéder
+
+### Étape 0a — Initialiser CLAUDE.md depuis le template (3s)
+
+**Détection** : si `CLAUDE.md` est absent à la racine ET que `CLAUDE.md.template` existe, copie-le :
+
+```bash
+[ ! -f CLAUDE.md ] && [ -f CLAUDE.md.template ] && cp CLAUDE.md.template CLAUDE.md
+```
+
+Le template contient les placeholders `{Nom de ton projet}`, `{site | webapp | automation}`, etc. — c'est ce fichier que les étapes suivantes (3, 5+) vont remplir. Le `CLAUDE.md` projet est gitignored par défaut (chaque fork génère le sien). Si tu veux quand même le ship : `git add -f CLAUDE.md`.
+
+**Si `CLAUDE.md` existe déjà** : ne touche à rien, passe à l'Étape 0.
 
 ### Étape 0 — Détecter un clone direct du kit (5s)
 

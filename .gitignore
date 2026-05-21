@@ -6,6 +6,10 @@
 # .mcp.json contient les valeurs en clair des MCP (pattern canonique : .claude/rules/n8n-setup.md § 1.b)
 .mcp.json
 
+# CLAUDE.md = rempli par /start à partir de CLAUDE.md.template. Pas committé par défaut
+# (chaque fork le génère). Si tu veux ship le tien comme exemple : git add -f CLAUDE.md
+CLAUDE.md
+
 # Node / build
 node_modules/
 .next/
