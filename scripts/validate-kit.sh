@@ -195,6 +195,91 @@ check ".mcp.json NON tracké par git" "[ -z \"\$(git ls-files .mcp.json)\" ]"
 check ".mcp.json.example tracké (template)" "[ -n \"\$(git ls-files .mcp.json.example)\" ]"
 
 # ─────────────────────────────────────────────────────────────────────────
+# Check 7 — VERSION cohérent entre fichier racine, README et CHANGELOG
+# ─────────────────────────────────────────────────────────────────────────
+echo ""
+echo "═══ Check 7 — VERSION cohérent (fichier racine ↔ CHANGELOG) ═══"
+ROOT_VERSION=$(cat VERSION 2>/dev/null | tr -d ' \n')
+if [ -z "$ROOT_VERSION" ]; then
+  check "fichier VERSION lisible et non-vide" "false"
+else
+  check "fichier VERSION = $ROOT_VERSION" "true"
+  # CHANGELOG doit contenir une section pour cette version au top
+  check "docs/CHANGELOG.md contient une section '## $ROOT_VERSION'" "grep -qE '^## '\"$ROOT_VERSION\"'( |$)' docs/CHANGELOG.md"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────
+# Check 8 — Soft cap 200 lignes par SKILL.md (warning, pas fail)
+# ─────────────────────────────────────────────────────────────────────────
+# Au-dessus de 200L, la densité comportementale dégrade le respect des
+# instructions LLM. C'est un signal de discipline, pas un blocage — il
+# faut pouvoir refactor sans subir d'urgence CI.
+echo ""
+echo "═══ Check 8 — Soft cap 200L par SKILL.md (warn only) ═══"
+soft_warn=0
+for skill in .claude/skills/*/SKILL.md; do
+  lines=$(wc -l < "$skill" | tr -d ' ')
+  if [ "$lines" -gt 200 ]; then
+    echo "  ⚠️  $skill = $lines lignes (>200 — candidat refacto references/)"
+    soft_warn=$((soft_warn + 1))
+  fi
+done
+TOTAL=$((TOTAL + 1))
+PASS=$((PASS + 1))
+if [ "$soft_warn" -eq 0 ]; then
+  echo "  ✅ Tous les SKILL.md ≤ 200L"
+else
+  echo "  → $soft_warn SKILL.md > 200L (warning, ne bloque pas la CI)"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────
+# Check 9 — Liens markdown internes cassés (README, docs/, CLAUDE.md.template)
+# ─────────────────────────────────────────────────────────────────────────
+# On scanne les liens markdown relatifs [text](path) dans les fichiers doc
+# racine et vérifie que la cible existe. URLs externes (http/https) skip.
+echo ""
+echo "═══ Check 9 — Liens markdown internes (README + docs/ + CLAUDE.md.template) ═══"
+LINK_FILES="README.md QUICKSTART.md CLAUDE.md.template"
+[ -d docs ] && LINK_FILES="$LINK_FILES $(find docs -maxdepth 2 -name '*.md' 2>/dev/null | tr '\n' ' ')"
+broken_links=0
+for f in $LINK_FILES; do
+  [ -f "$f" ] || continue
+  # extract [text](target) where target doesn't start with http or #
+  while IFS= read -r target; do
+    [ -z "$target" ] && continue
+    # strip anchor fragment
+    file_part="${target%%#*}"
+    [ -z "$file_part" ] && continue
+    # resolve relative to the file's directory
+    dir=$(dirname "$f")
+    if [ "$dir" = "." ]; then
+      resolved="$file_part"
+    else
+      resolved="$dir/$file_part"
+    fi
+    if [ ! -e "$resolved" ]; then
+      echo "  ❌ $f → lien cassé : $target"
+      broken_links=$((broken_links + 1))
+      ERRORS+=("$f : lien cassé $target")
+    fi
+  done < <(
+    # strip inline code spans `...` to avoid matching backticked text like `](path)`
+    # then extract real markdown links [text](target) where target doesn't start with http/mailto/#
+    sed -E 's/`[^`]*`//g' "$f" 2>/dev/null \
+      | grep -oE '\]\([^)]+\)' \
+      | sed -E 's/^\]\(([^)]+)\)$/\1/' \
+      | grep -vE '^(https?://|mailto:|#)'
+  )
+done
+TOTAL=$((TOTAL + 1))
+if [ "$broken_links" -eq 0 ]; then
+  echo "  ✅ Aucun lien markdown interne cassé"
+  PASS=$((PASS + 1))
+else
+  FAIL=$((FAIL + 1))
+fi
+
+# ─────────────────────────────────────────────────────────────────────────
 # Verdict global
 # ─────────────────────────────────────────────────────────────────────────
 echo ""

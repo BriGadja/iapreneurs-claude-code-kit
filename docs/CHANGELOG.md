@@ -3,6 +3,31 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.8.2 — 2026-05-21
+
+### Ajouté
+
+- **`validate-kit.sh` Check 7 — VERSION cohérent** : vérifie que le fichier `VERSION` racine, et la section `## {version}` la plus récente dans `docs/CHANGELOG.md`, sont alignés. Bloque le merge si désynchronisé.
+- **`validate-kit.sh` Check 8 — Soft cap 200L par SKILL.md** : warning informatif (pas bloquant) sur les SKILL.md > 200 lignes. Signal de discipline : invite à extraire le détail vers `references/` lors des prochaines refactos, sans casser la CI en urgence.
+- **`validate-kit.sh` Check 9 — Liens markdown internes** : grep tous les liens `](path)` non-HTTP dans `README.md`, `QUICKSTART.md`, `CLAUDE.md.template` et `docs/**/*.md`, vérifie que la cible existe. Détecte les renames non-propagés.
+
+### Modifié
+
+- **Header `validate-kit-v2.sh`** : suppression du marker "v2.1.0" obsolète en commentaire de tête. La version réelle du kit est lue dynamiquement depuis le fichier `VERSION` (ligne 29) — le `-v2` du nom de script réfère à la **génération 2** de la suite de validation (post-refacto Phase 1 v2.7.0), pas au numéro de release. Clarification documentée dans l'en-tête.
+- **`README.md` ligne 201** : lien `[CLAUDE.md](CLAUDE.md)` corrigé en `[CLAUDE.md.template](CLAUDE.md.template)`. Le fichier `CLAUDE.md` est gitignored par design (chaque fork génère le sien à partir du template). Désormais détecté par le Check 9.
+
+### Pourquoi
+
+Audit externe 2026-05-21 relevé : header désynchronisé sur `validate-kit-v2.sh` ("on ne triche pas avec sa propre CI"), 6 SKILL.md > 200L sans plafond, 1 lien interne cassé non détecté. Patch hygiène pur tooling, zéro impact UX.
+
+### Non-breaking
+
+- Aucune signature de skill modifiée. Aucune commande retirée.
+- Soft cap = warning seulement (ne bloque pas la CI sur les 6 dépassements actuels — ils seront résorbés progressivement).
+- Vidéos pédagogiques v2.8.0 restent valides.
+
+---
+
 ## v2.8.1 — 2026-05-21
 
 ### Modifié

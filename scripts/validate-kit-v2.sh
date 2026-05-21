@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# validate-kit-v2.sh — script déterministe de validation du kit v2.1.0
+# validate-kit-v2.sh — script déterministe de validation du **contenu** des skills.
 # Vérifie par grep/test la présence des skills, ancres, examples, et l'absence
 # des régressions Round 1 (Dipler, collision /init, RLS hardcoded).
+#
+# Note version : la version du kit est lue dynamiquement depuis le fichier `VERSION`
+# (ligne 29) — le nom `-v2` réfère à la **génération 2** de la suite de validation
+# (post-refacto Phase 1 v2.7.0), pas au numéro de release. Voir `validate-kit.sh`
+# pour le lint **structurel** complémentaire (ancres, handoffs, caps).
 #
 # Usage : bash scripts/validate-kit-v2.sh
 # Sortie : verdict /N PASS par scénario + verdict global
