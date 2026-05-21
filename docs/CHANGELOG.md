@@ -3,6 +3,63 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.8.0 — 2026-05-21
+
+### Ajouté
+
+- **Fichier `VERSION` racine** : source de vérité unique pour la version du kit. Lu par `scripts/validate-kit-v2.sh` (interpolé dans l'en-tête + verdict final) et référencé par `docs/KIT.md`. Plus de divergence possible entre script et doc.
+- **CI GitHub Actions** (`.github/workflows/validate.yml`) : lance `validate-kit.sh` (structure) + `validate-kit-v2.sh` (contenu) à chaque push et PR sur `main`. Régression bloquante désormais détectée automatiquement.
+- **`CLAUDE.md.template`** : le template à la racine est désormais nommé `.template` pour distinguer clairement "template du kit" vs "CLAUDE.md rempli pour un projet réel". `/start` copie le template vers `CLAUDE.md` au boot si absent. Le `CLAUDE.md` projet est gitignored par défaut (Brice et auteurs du kit peuvent forcer avec `git add -f` s'ils veulent ship le leur).
+- **`QUICKSTART.md` racine** (~30 lignes) : onboarding 60 secondes — 4 étapes pour démarrer + cycle de vie en 6 commandes. Pointe vers `docs/KIT.md` pour approfondir.
+- **README route débutant** : section QUICKSTART en première position après le titre, redirection vers `QUICKSTART.md` + `docs/KIT.md`.
+- **ADR-001 exemple pédagogique** dans `memory/decisions.md` : un ADR complet avec les 5 sections (Status / Date / Context / Decision / Consequences) montre à quoi un ADR de production ressemble. Marqué "exemple à remplacer".
+- **`/brainstorm` refondu — réflexion pure, plus de routing automatique** : Phase A dialogue (3-5 questions) → Phase B recherche (optionnelle) → Phase C synthèse brief `docs/brainstorms/{date}-{slug}.md` → Phase D handoff explicite (utilisateur choisit `/architect`, `/plan`, ou `/evoluer` avec le brief en argument). Plus de détection PRD existe → /evoluer automatique, plus de mot-clé "refonte" → /architect automatique. L'utilisateur garde le contrôle.
+- **`/architect` et `/plan` acceptent un brief path en argument** : si un chemin `docs/brainstorms/*.md` est passé, le skill lit le brief et pré-remplit les questions de cadrage au lieu de partir de zéro (pattern déjà éprouvé sur `/evoluer`).
+
+### Modifié
+
+- `scripts/validate-kit-v2.sh` : 17 fails post-refacto Phase 1 v2.7.0 fixés. Les greps suivent désormais la nouvelle structure SKILL.md + references/ (file-list variables `CLOSE_FILES`, `START_FILES`, `LIVRER_FILES`). Verdict 148/148 PASS restauré.
+- `docs/KIT.md` ligne 3 : version pointe vers fichier `VERSION` racine au lieu d'une string hardcodée.
+- `.claude/skills/architect/SKILL.md` : suppression du bloc legacy `## Format du PRD` v2.1.x (Sommaire / MVP / Hors-MVP / Phases) qui contredisait silencieusement le format v2.2 (8 sections). Redirige vers `templates/PRD-template.md` comme source unique.
+- Descriptions frontmatter slim :
+  - `/start` : 90 mots → < 50 mots (énonce uniquement *quand utiliser*, jamais *comment* — règle CSO)
+  - `/close` : 118 mots → < 50 mots (idem)
+
+### Pourquoi
+
+Audit externe livré 2026-05-21 a relevé :
+1. CI rouge (validate-kit-v2.sh 131/148 sur main) — régression introduite par refacto Phase 1 v2.7.0 qui externalisait du contenu en `references/` sans router les greps.
+2. Divergence versions (KIT.md v2.6.0, script v2.5.2, tag v2.7.0) — pas de source unique.
+3. `architect/SKILL.md` contenait le format PRD v2.1.x en doublon avec v2.2.
+4. Descriptions `/start` et `/close` dépassaient le cap Anthropic 50 mots et leak des steps de workflow.
+5. `/brainstorm` auto-routait via mot-clé "refonte" non-documenté.
+6. Onboarding initial : un débutant qui clone le repo ne savait pas par où commencer.
+
+v2.8.0 résout ces 6 points en une release cohérente, sans toucher à l'UX des skills filmés (`/start`, `/architect`, `/plan`, `/execute`, `/validate`, `/close`, `/livrer`, `/evoluer`).
+
+### Inchangé
+
+- Toutes les questions utilisateur des skills `/start /architect /plan /execute /validate /close /livrer /evoluer` (Vidéos tournées : zéro régression UX).
+- Format PRD (templates/PRD-template.md), format SPEC, format ADR, format plan.
+- Cycle de vie documenté et tous les invariants structurels.
+
+## v2.7.0 — 2026-05-20
+
+### Ajouté
+
+- **Refacto Phase 1 — externalisation références skills longs** (`ef42200`, `c17d33e`, `91d8013`) : `/start`, `/close`, `/livrer` chacun gardent un SKILL.md slim (workflow) et déportent les procédures détaillées en `references/*.md` (Vercel, Cloudflare, Netlify, OVH/Gandi/Cloudflare/Hostinger, bootstrap fresh clone, audit-caps, harvest-questions, etc.). Économie de contexte : Claude ne charge les references qu'à la demande.
+- **Browser-verifier agent** (`7686ed8`) : sous-agent dédié à la vérification visuelle webapp via Playwright MCP. Délégué proactivement.
+- **Délégation browser-verifier dans `/execute /validate /livrer`** (`f1b85a8`) : ces 3 skills appellent le sous-agent au lieu de manipuler Playwright directement, économise du contexte sur la session principale.
+- **`scripts/validate-kit.sh`** (`5f12553`) : lint structurel complémentaire à validate-kit-v2.sh — vérifie ancres HTML appariées, handoff `**Prochaine étape**:` terminal, cap descriptions frontmatter (soft 100 / hard 120 mots), `.mcp.json` gitignored, cross-refs `/skill Étape N` cohérentes.
+
+### Corrigé
+
+- **Incohérence install n8n** (`38501cf`) : `.claude/rules/n8n-setup.md` clarifié — installation API-connected par défaut, `.mcp.json` gitignored avec valeurs en clair (Claude Code ne source pas `.env` automatiquement). Stop aux pièges récurrents shell parent / `${VAR}`.
+
+### Pourquoi
+
+Les SKILL.md grossissaient. Browser-verifier capitalise sur la vérification visuelle. validate-kit.sh complète validate-kit-v2.sh (structure vs contenu). L'install n8n laissait passer trop de pièges.
+
 ## v2.6.0 — 2026-05-19
 
 ### Ajouté
