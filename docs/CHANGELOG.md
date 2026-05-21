@@ -3,6 +3,24 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.8.3 — 2026-05-21
+
+### Ajouté
+
+- **Tuto narratif "session réelle de A à Z"** : nouveau fichier `examples/webapp-saas-freelance-devis/SESSION.md` qui raconte une session complète, du `claude` initial à la prod, avec les 9 commandes tapées et les sorties LLM abrégées aux essentiels. Durée référence : 3h20 sur 2 jours. Lien depuis le README racine et `examples/README.md`.
+- **README — section "Pourquoi ce kit existe" + "Pour qui"** : intro non-débutant-Claude-Code en deuxième position après le titre. Répond à la critique "10 min pour comprendre pourquoi le kit existe". Liste explicitement la cible (freelance solo, entrepreneur no-code, dev junior) et l'anti-cible (équipes 5+, missions courtes).
+- **`CONTRIBUTING.md`** : guide de contribution explicite (signature de skills = contrat, non-breaking par défaut, CI verte mandatory, format de commit, domaines où l'aide serait utile). Mitige le bus factor = 1 en ouvrant la porte aux contributeurs externes.
+
+### Pourquoi
+
+Audit externe 2026-05-21 a relevé trois points actionnables : (1) "pas de tuto déroulé complet 'session réelle de A à Z'", (2) README pas grand public, (3) bus factor = 1 sans CONTRIBUTING. Patch documentation pur, zéro impact UX.
+
+### Non-breaking
+
+Aucune signature modifiée, aucun skill touché. Ajout pur de fichiers de doc + intro README + lien depuis examples/README.
+
+---
+
 ## v2.8.2 — 2026-05-21
 
 ### Ajouté

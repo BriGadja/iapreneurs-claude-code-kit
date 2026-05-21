@@ -2,6 +2,26 @@
 
 > **Framework guidé Claude Code pour débutants**, du démarrage au scaling. Supporte 3 cas d'usage : **site vitrine**, **web app SaaS**, **automatisation n8n**. Tape `/start` après le clone, suis le guide piloté, et tu attaques ton premier projet en 5 minutes.
 
+## Pourquoi ce kit existe
+
+Claude Code seul, c'est un assistant qui répond à ta dernière question. Avec ce kit, c'est un **chef de projet** qui :
+
+- Te pose les bonnes questions au bon moment (`/start`, `/architect`)
+- Découpe le travail en phases livrables (`/plan`)
+- Refuse de dire "ça devrait marcher" — vérifie pour de vrai (`/validate`, `/livrer`)
+- Tient à jour un journal de bord entre sessions (`STATUS.md`, `MEMORY.md`, maintenus par `/close`)
+- Te dit où tu en étais quand tu reprends le lendemain (`/prime`)
+
+Concrètement : tu passes de "je code une feature au feeling pendant 4h" à "je ship une phase en 1h30 avec un PRD, un plan challengé, un test Playwright qui passe, et un commit propre".
+
+## Pour qui
+
+- **Freelance ou consultant solo** qui code régulièrement et veut sortir de l'improvisation session-par-session
+- **Entrepreneur no-code/low-code** qui veut shipper des webapps ou des automatisations n8n sans demander à un dev à chaque feature
+- **Dev junior** qui veut apprendre la discipline du PRD → plan → exécution → validation sans passer 6 mois en équipe
+
+Pas pour : équipes de 5+ devs (le kit assume un single-author flow), projets greenfield à 0 contexte technique (tu dois savoir cliquer dans Vercel/Supabase/n8n), missions ultra-courtes (< 2h, le kit a un overhead de cadrage qui ne se rembourse pas).
+
 ## Démarrer maintenant
 
 Lis [`QUICKSTART.md`](QUICKSTART.md) (30 secondes). Tu seras opérationnel.
@@ -162,6 +182,8 @@ Trois exemples, un par `project_type` :
 
 Détails et critères de choix dans [`examples/README.md`](examples/README.md). Ouvre ces fichiers en parallèle de tes propres essais — le format est plus parlant qu'une longue doc.
 
+📖 **Tuto narratif "session réelle de A à Z"** : [`examples/webapp-saas-freelance-devis/SESSION.md`](examples/webapp-saas-freelance-devis/SESSION.md). Tu lis les commandes que je tape, les réponses Claude tronquées aux essentiels, du clone initial à la prod en 3h20. Utile si tu veux comprendre **comment les skills s'enchaînent réellement** avant de te lancer.
+
 ## Scaffolding outillage
 
 - `.mcp.json` vide prêt à recevoir Playwright, n8n MCP, plugin frontend-design (commandes documentées dans `CLAUDE.md`)
@@ -206,6 +228,10 @@ Et au-delà de RLS : valide les inputs côté serveur (jamais juste côté clien
 ## Crédits
 
 - **Skills n8n** : [czlonkowski/n8n-skills](https://github.com/czlonkowski/n8n-skills) (MIT, attribution dans `.claude/skills/n8n/LICENSE-czlonkowski`)
+
+## Contribuer
+
+Tu utilises le kit et tu vois un truc à améliorer ? Voir [`CONTRIBUTING.md`](CONTRIBUTING.md). Issues bienvenues, PRs encouragées (le kit a un bus factor = 1 aujourd'hui — toute contribution externe le rend plus solide).
 
 ## License
 
