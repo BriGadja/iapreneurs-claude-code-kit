@@ -1,24 +1,23 @@
 ---
 name: evoluer
-description: Utiliser quand un projet est livré (PRD format v2.2 avec sections Scope actuel/Hors scope/Implementation Phases, ou format v2.1.x legacy avec ## Phases) et que tu veux ajouter une nouvelle feature. Argument optionnel — un chemin de brief brainstorm (`/evoluer docs/brainstorms/{date}-feature-{slug}.md`) pré-remplit le cadrage. Cérémonie distincte de /architect — ne mute jamais le PRD destructivement, déplace uniquement les checkboxes Hors scope → Scope actuel et crée un SPEC daté dans docs/specs/. Ne PAS utiliser sur un projet non-livré ni pour modifier une feature existante.
+description: Utiliser sur un projet livré pour ajouter une nouvelle feature (ex : SMS de rappel, dashboard analytics, export PDF). Argument optionnel — un chemin de brief brainstorm (`/evoluer docs/brainstorms/{date}-feature-{slug}.md`) pré-remplit le cadrage. Ne PAS utiliser sur un projet non-livré (utilise `/plan` directement) ni pour modifier une feature existante (édition manuelle).
 ---
 
-# Skill /evoluer — ajouter une feature à un projet livré (cérémonie distincte)
+# Skill /evoluer — ajouter une feature à un projet livré
 
-**Cérémonie distincte de `/architect`.** `/architect` construit le PRD fondateur ; `/evoluer` étend un PRD existant sans le réécrire. Le PRD est vivant discipliné (cap 100L) : `/evoluer` ne mute QUE les checkboxes (`[ ]` → `[x]`) et append une ligne dans Implementation Phases — jamais d'écrasement de section, jamais de réécriture destructive.
+**Cérémonie distincte de `/architect`.** `/architect` construit le PRD fondateur ; `/evoluer` étend un PRD existant sans le réécrire. Le PRD est vivant discipliné (cap 100L) : `/evoluer` ne mute QUE les checkboxes (`[ ]` → `[x]`) et append une ligne dans Implementation Phases. Jamais d'écrasement de section.
 
 ## Pour quoi faire
 
-Ton projet est livré (`/livrer` passé, `<!-- ship:url -->` rempli). Tu veux ajouter une feature : SMS de rappel, dashboard analytics, export PDF.
+Ton projet est livré (`/livrer` passé, `<!-- ship:url -->` rempli). Tu veux ajouter une feature. `/evoluer` fait ça proprement :
 
-`/evoluer` fait ça proprement :
-1. Lit le contexte existant (PRD, STRUCTURE, decisions, 3 derniers SPECs, STATUS)
+1. Lit le contexte existant (PRD, STRUCTURE, decisions, dernier SPEC, STATUS, brief si fourni)
 2. Te pose 3 questions de cadrage
 3. Détecte si la feature est dans `## 4. Hors scope` ou pas
-4. **Détecte les capacités techniques nouvelles** (n8n, Google Drive, Stripe, ...) absentes du projet et lance leur installation si tu confirmes (Étape 4bis)
+4. Détecte les capacités techniques nouvelles (n8n, Google Drive, Stripe, etc.) absentes et lance leur install + validation live (Étape 4bis)
 5. Écrit atomiquement : SPEC daté + déplacement checkbox + append phase + append ADR si choix archi
 6. Gate `/validate` (tests existants passent encore) AVANT handoff
-7. Handoff `/plan docs/specs/SPEC-{date}-{slug}.md` → `/execute`
+7. Handoff `/plan docs/specs/SPEC-{date}-{slug}.md` puis `/execute`
 
 ## Détection format PRD (4 branches déterministes)
 
@@ -31,8 +30,8 @@ has_old = grep -q "^## Phases" PRD.md
 
 | Branche | has_new | has_old | Action |
 |---------|---------|---------|--------|
-| 1 | ✅ | ❌ | Nouveau format v2.2 → comportement standard (Étapes 1bis-7 ci-dessous) |
-| 2 | ❌ | ✅ | Ancien format v2.1.x → mode legacy (voir § Mode legacy) |
+| 1 | ✅ | ❌ | Format v2.2 → comportement standard (Étapes 1-7 ci-dessous) |
+| 2 | ❌ | ✅ | Format v2.1.x legacy → **lis `references/legacy-v2.1.md` et applique sa procédure** (flow simplifié, pas de SPEC) |
 | 3 | ✅ | ✅ | État mixte (mid-migration) → **SAFE ABORT** |
 | 4 | ❌ | ❌ | PRD malformé ou absent → **SAFE ABORT** |
 
@@ -40,22 +39,29 @@ has_old = grep -q "^## Phases" PRD.md
 - Branche 3 : *"PRD en état mixte (ancien `## Phases` + nouveau `## 7. Implementation Phases`). /evoluer ne peut pas opérer sans risque de corruption. Termine la migration via `docs/MIGRATION-v2.1-to-v2.2.md` puis relance /evoluer."*
 - Branche 4 : *"PRD ne contient ni `## Phases` ni `## 7. Implementation Phases`. Vérifier le PRD avant /evoluer."*
 
-## Étape 1 — vérifier que le projet est livré
+## Étape 1 — vérifier que le projet est livré + prérequis fichiers
 
-Lis `CLAUDE.md` et cherche `<!-- ship:url -->`. Si URL réelle → continue. Sinon : prompt utilisateur ("/evoluer est conçu pour un projet en prod. Confirmer ?"). Sinon stoppe.
+1. Lis `CLAUDE.md` et cherche `<!-- ship:url -->`. Si URL réelle → continue. Sinon : prompt utilisateur (*"/evoluer est conçu pour un projet en prod. Confirmer ?"*). Sinon stoppe.
+2. Vérifie l'existence de `templates/SPEC-template.md`. Si absent → **STOP** avec message *"Template SPEC manquant à `templates/SPEC-template.md`. /evoluer ne peut pas créer le SPEC sans son template. Restaure-le depuis le kit avant de continuer."* (early fail, évite de planter à l'Étape 5b après les 3 questions).
 
 ## Étape 1bis — lire le contexte existant (Read en parallèle)
 
-Lis en parallèle :
+Lis en parallèle, selon ce qui est passé en argument :
 
+**Toujours** :
 - `PRD.md` racine (vision + scope + hors scope)
 - `STRUCTURE.md` (état actuel)
 - `memory/decisions.md` (derniers ADR-NNN)
-- Les 3 SPECs les plus récents : `ls docs/specs/SPEC-*.md 2>/dev/null | sort -r | head -3` puis lire chacun
 - `STATUS.md` (active work)
-- **Brief brainstorm en argument** (si l'utilisateur a invoqué `/evoluer docs/brainstorms/{date}-feature-{slug}.md`) → lire ce fichier en entier. Il contient déjà le manque résolu, l'intégration UI, les dépendances techniques détectées, l'ampleur S/M/L. **Utilise-le pour pré-remplir les Q1+Q2+Q3 de l'Étape 2** au lieu de partir de zéro : tu proposes les réponses extraites du brief et l'utilisateur confirme ou amende.
+- Le SPEC le plus récent : `ls docs/specs/SPEC-*.md 2>/dev/null | sort -r | head -1` puis le lire (1 fichier, pas 3 — économie de contexte sur projet mature 10+ SPECs)
 
-Si pas d'argument brief passé, c'est OK — comportement standard (Étape 2 pose les 3 questions à froid). On fait confiance aux artefacts, pas de scan codebase complet.
+**Si l'utilisateur a invoqué `/evoluer docs/brainstorms/{date}-feature-{slug}.md`** :
+- Lis ce fichier en entier — il contient déjà le manque résolu, l'intégration UI, les dépendances techniques détectées, l'ampleur S/M/L. Utilise-le pour pré-remplir Q1+Q2+Q3 de l'Étape 2 (tu proposes les réponses extraites du brief, l'utilisateur confirme ou amende).
+
+**Si pas de brief en argument** :
+- Lis aussi les 2 SPECs précédents (total 3 derniers SPECs) pour avoir plus de contexte historique sur le projet.
+
+Pas de scan codebase complet : on fait confiance aux artefacts.
 
 ## Étape 2 — cadrage feature (3 questions + check Hors scope)
 
@@ -72,7 +78,7 @@ Pose **exactement 3 questions** séquentielles :
 
 ## Étape 3 — idempotence
 
-Grep le nom feature dans `## 7. Implementation Phases` ET dans les SPECs existants (`docs/specs/SPEC-*.md` filenames). Si match exact ou très proche → STOP, propose autre nom ou édition manuelle.
+Grep le nom feature dans `## 7. Implementation Phases` ET dans les SPECs existants (filenames `docs/specs/SPEC-*.md`). Si match exact ou très proche → STOP, propose autre nom ou édition manuelle.
 
 ## Étape 4 — calculer V_{n+1}
 
@@ -81,96 +87,24 @@ max_v = grep -oE "^\*\*V[0-9]+" PRD.md | grep -oE "[0-9]+" | sort -n | tail -1
 next_v = max_v + 1
 ```
 
-Si aucun `**V_N` matché : `next_v = 2` (le PRD initial = V1 implicite).
+Si aucun `**V_N` matché : **warn explicite à l'utilisateur** (*"Aucun marker `**V_N` trouvé dans `## 7. Implementation Phases`. PRD probablement malformé ou jamais évolué. Je continue avec `V_2` (V1 implicite). Vérifie ton PRD si ça te paraît bizarre."*) puis `next_v = 2`.
 
-## Étape 4bis — Détection + installation + **gate de validation live** des capacités techniques
+## Étape 4bis — gate capacités techniques (conditionnelle)
 
-Avant toute écriture, vérifier si la feature introduit une **capacité technique qui n'est pas encore installée** sur le projet. Sans cette détection ET sa validation live, le SPEC + le plan suivant référenceront des outils absents → `/execute` plante au premier appel MCP.
+Analyse Q1+Q2+Q3 contre la stack courante (`CLAUDE.md ## Stack` + `.mcp.json`). Cherche les signaux de capacités nouvelles :
 
-> **Règle non-négociable** : `/evoluer` ne sort PAS de cette étape tant que chaque MCP requis n'a pas été validé par un appel live (health check + au moins un read réel). On ne fait pas confiance au `grep .mcp.json` pour conclure "c'est installé" — on confirme avec l'outil. Si la validation échoue, on boucle (reconfig + relance) jusqu'à PASS ou abandon explicite de l'utilisateur.
+| Capacité | Signaux dans la description |
+|----------|-----------------------------|
+| **n8n** | "workflow", "async", "webhook + traitement long", "PDF + email + storage chaîné", "intégrations multiples", "retry / monitoring externe" |
+| **Google Drive / Sheets / Docs / Gmail** | "archive perso", "dossier client", "stockage docs", "spreadsheet", "Google Sheet", "Google Doc", "envoi email perso depuis Gmail" |
+| **Stripe** | "paiement", "abonnement", "facture en ligne" |
+| **Email transactionnel** (Resend / SendGrid) | "envoi email client à grande échelle", "notification automatisée" |
 
-### Heuristiques de détection (analyse LLM sur Q1+Q2+Q3)
+**Si une capacité est détectée et absente du projet** → **lis `references/mcp-live-gate.md` et applique sa procédure** (install + validation live MCP, bloquant, capé à 3 tentatives). Cette gate empêche `/execute` de planter au premier appel MCP sur un outil pas vraiment installé.
 
-Mots-clés / patterns qui doivent **déclencher une question explicite** :
+**Si aucune capacité nouvelle détectée** → skip cette étape, passe directement à l'Étape 5.
 
-| Capacité | Signaux dans la description feature | Procédure d'install si absente |
-|----------|-------------------------------------|--------------------------------|
-| **n8n** | "workflow", "automatisation async", "webhook + traitement long", "PDF + email + storage chaîné", "intégrations multiples" (Drive + Resend + Slack + ...), "retry / monitoring externe" | `.claude/rules/n8n-setup.md` |
-| **Google Drive / Sheets / Docs** | "archive perso", "dossier client", "stockage docs personnels freelance", "spreadsheet", "Google Sheet", "Google Doc" | Ajout MCP Google Workspace officiel (`@google/workspace-mcp` ou équivalent courant — vérifier upstream au moment de l'install) dans `.mcp.json` + OAuth credential |
-| **Gmail** | "envoi email perso depuis Gmail", "lecture inbox", "filtre mail" | Même MCP Google Workspace que ci-dessus (scope Gmail à activer) |
-| **Stripe** | "paiement", "abonnement", "facture en ligne" | Doc upstream Stripe MCP (s'il existe) ou SDK direct |
-| **Email transactionnel** | "envoi email client à grande échelle", "notification automatisée" | Resend / SendGrid — clé API dans `.mcp.json` ou `.env` du provider |
-
-### Procédure de détection (séquence)
-
-1. **LLM analyse Q1+Q2+Q3** vs la Stack courante (`CLAUDE.md ## Stack` + `.mcp.json` actuel) → liste les capacités potentiellement nécessaires.
-
-2. **Pour chaque capacité détectée**, vérifier en deux passes :
-
-   **Passe statique** (fichier seul, n'est PAS une preuve d'install fonctionnelle) :
-   - n8n : `grep -q "n8n-mcp" .mcp.json`
-   - Google Workspace : `grep -qE "google-workspace|workspace-mcp|server-gdrive" .mcp.json`
-   - Stripe / Resend / autre : `grep -q "{var}" .mcp.json` ou `.env.example`
-
-   **Passe live (la vraie vérité)** : voir § 4bis-validation ci-dessous. C'est ce check qui décide.
-
-3. **Si la passe statique est négative**, poser à l'utilisateur :
-
-   > "Cette feature semble nécessiter `{capacité}`. Je ne vois pas l'install correspondante dans `.mcp.json`. Confirmes-tu qu'il faut l'installer maintenant ?
-   > - **oui, installer** → je lance la procédure {référence}, puis je valide l'install live avant de continuer
-   > - **non, déjà installé ailleurs / global** → je tente quand même la validation live (le MCP peut être chargé via `~/.claude/mcp.json` global)
-   > - **non, finalement pas besoin** → reformule la feature, je relance l'Étape 2"
-
-4. **Si "oui, installer" + capacité n8n** → lire et exécuter `.claude/rules/n8n-setup.md` (1.a→1.c + Étapes 2-5). À la fin, **noter dans le SPEC (section Documentation)** la version du MCP installée + l'URL n8n cible (sans la clé).
-
-5. **Si "oui, installer" + capacité Google Workspace** → ajout dans `.mcp.json` avec valeurs réelles (gitignoré, voir pattern `n8n-setup.md` § 1.b). Imprimer à l'utilisateur la commande OAuth à lancer (depuis le README upstream du MCP Google choisi). Attendre sa confirmation "OAuth fait" avant de passer à la validation live.
-
-6. **Si "oui, installer" + autre capacité** (Stripe / Resend / ...) → même pattern (valeurs en clair dans `.mcp.json` gitignoré, ou clé dans le `.env` du provider selon ce que demande le MCP).
-
-7. **Commit intermédiaire** après installation réussie ET validation live PASS (voir § 4bis-validation) :
-
-   ```bash
-   git add .mcp.json.example .gitignore CLAUDE.md .claude/rules/
-   git commit -m "chore(/evoluer): install {capacité} prérequis pour feature {nom}"
-   ```
-
-   On ne commit JAMAIS `.mcp.json` lui-même (gitignoré car il contient des clés).
-
-### § 4bis-validation — Gate live (BLOQUANTE)
-
-**Cette gate empêche `/evoluer` de sortir tant que les MCPs annoncés ne répondent pas.** C'est la version Étape 4bis du principe Karpathy "le test EST la métrique".
-
-Pour CHAQUE capacité MCP requise (n8n + Google le cas échéant + autres), exécuter le check correspondant **dans la session Claude Code courante**. Si Claude Code vient d'être redémarré, ces tools sont disponibles immédiatement après la relance.
-
-| Capacité | Check 1 — health | Check 2 — read réel | PASS si |
-|----------|------------------|---------------------|---------|
-| **n8n MCP** | `mcp__n8n-mcp__n8n_health_check` | `mcp__n8n-mcp__n8n_list_workflows` | Health renvoie `apiConfigured: true` ET list_workflows retourne `[]` ou liste réelle sans 401/404 |
-| **Google Workspace MCP** | Lister les tools `mcp__google-workspace__*` (vérif présence) | `mcp__google-workspace__list_calendars` ou `list_drive_items` (root) | Au moins un read renvoie une réponse non vide / non-erreur |
-| **Stripe MCP** | Lister `mcp__stripe__*` | `mcp__stripe__list_customers` (limit 1) | Réponse sans erreur d'auth |
-| **Resend (HTTP, pas MCP)** | `curl -s -H "Authorization: Bearer ${RESEND_API_KEY}" https://api.resend.com/domains` | Idem | HTTP 200 ou 401 explicite (pas timeout) |
-
-**Si un check échoue** :
-1. Imprimer le message d'erreur exact à l'utilisateur.
-2. Diagnostiquer : 401/403 → clé invalide. 404 → URL malformée (oublié `/api/v1` ?). `command not found` côté MCP → Claude Code pas redémarré après edit `.mcp.json`. Tool absent → MCP pas dans `.mcp.json`.
-3. Proposer la correction concrète, attendre que l'utilisateur la fasse + relance Claude Code si nécessaire.
-4. **Relancer la gate**. Pas de bypass possible.
-
-**Si l'utilisateur veut abandonner** : seul moyen de sortir sans PASS est l'abandon explicite (`"non, finalement pas besoin"`) → on retourne à l'Étape 2 pour reformuler la feature sans cette capacité. Sinon on boucle.
-
-### Idempotence
-
-L'Étape 4bis est idempotente : si la passe statique ET la passe live passent du premier coup pour une capacité, **skip silencieux** (log "{capacité} déjà opérationnelle, validation live OK"). Pas de re-confirmation, pas de doublon `.mcp.json`.
-
-### Pourquoi cette gate existe
-
-Scénario typique du tournage IAPreneurs : projet `site` ou `webapp` démarré sans n8n. Plus tard, le membre veut greffer un workflow async. Sans cette gate, `/evoluer` écrit le SPEC, `/plan` planifie l'appel n8n, `/execute` crash dès la 1re commande `mcp__n8n-mcp__*` parce que :
-- soit le MCP n'est pas dans `.mcp.json`,
-- soit `.mcp.json` est bien là mais Claude Code n'a pas été redémarré (silently docs-only mode),
-- soit la clé `N8N_API_KEY` est mauvaise et le MCP démarre en mode docs-only sans le dire (les 7 tools docs-only sont disponibles, le membre croit que ça marche jusqu'au premier `n8n_create_workflow` qui n'existe pas).
-
-La gate live attrape les trois cas avant que le SPEC ne s'écrive.
-
-## Étape 5 — écriture atomique (séquence 5a-5h)
+## Étape 5 — écriture atomique (séquence 5a-5i)
 
 Affiche d'abord la diff complète proposée pour validation utilisateur.
 
@@ -182,35 +116,35 @@ mkdir -p docs/specs/
 
 Idempotent.
 
-### Étape 5b — Créer le SPEC
-**Atomicité : checkpoint git commit immédiatement après création SPEC** (voir 5h pour la commande). Le SPEC créé est le point de retour stable du checkpoint.
+### 5b — Créer le SPEC
 
 Slug = kebab-case du nom feature (Q1). Path : `docs/specs/SPEC-{YYYY-MM-DD}-{slug}.md`.
 
-**Collision** : si le path existe déjà (2 évolutions le même jour avec slug identique), suffixer `-02`, `-03`... (incrémenter jusqu'à trouver un libre). Convention documentée dans `docs/KIT.md § Cycle de vie`.
+**Collision** : si le path existe déjà (deux évolutions le même jour avec slug identique), suffixer `-02`, `-03`... (incrémenter jusqu'à un path libre).
 
 Copier `templates/SPEC-template.md` vers le path et remplir les 4 sections (Feature / Examples / Documentation / Considerations) en utilisant Q1+Q2+Q3 + les éléments du PRD lus à l'Étape 1bis.
 
-### 5h — Checkpoint git (atomicité)
+### 5c — Checkpoint git (point de retour stable)
 
 ```
-cd <project-root> && git add docs/specs/SPEC-{date}-{slug}.md && git commit -m "checkpoint(/evoluer): SPEC créé pour {feature}"
+git add docs/specs/SPEC-{date}-{slug}.md
+git commit -m "checkpoint(/evoluer): SPEC créé pour {feature}"
 ```
 
-Point de retour stable. Si 5c-5g échouent partiellement, `git reset --hard HEAD` ramène ici sans perdre le SPEC.
+Si les étapes 5d-5h échouent partiellement, `git reset --hard HEAD` ramène ici sans perdre le SPEC.
 
-### 5c — Déplacer checkbox Hors scope → Scope actuel (si applicable)
+### 5d — Déplacer checkbox Hors scope → Scope actuel (si applicable)
 
 Si `move_from_hors_scope = true` :
 - Dans `## 4. Hors scope` : remplacer `- [ ] {feature}` par `- [x] {feature}`
 - Déplacer la ligne entière vers `## 3. Scope actuel (V_n)` → sous-section `### Core` (par défaut) ou `### Technique` selon nature (demander si ambigu)
 
 Si `move_from_hors_scope = false` :
-- Append `- [ ] {feature}` dans `## 3. Scope actuel (V_n)` → `### Core` (par défaut).
+- Append `- [ ] {feature}` dans `## 3. Scope actuel (V_n)` → `### Core` (par défaut)
 
 Opération ligne-à-ligne, idempotente (skip si checkbox déjà cochée).
 
-### 5d — Append Implementation Phases
+### 5e — Append Implementation Phases
 
 Dans `## 7. Implementation Phases`, append la ligne :
 
@@ -218,9 +152,9 @@ Dans `## 7. Implementation Phases`, append la ligne :
 **V_{n+1} (en cours)** — {nom feature} (cf docs/specs/SPEC-{date}-{slug}.md)
 ```
 
-### 5e — Append ADR si choix architectural significatif
+### 5f — Append ADR si choix architectural significatif
 
-Demande à l'utilisateur (LLM jugement) : *"Cette feature implique-t-elle un choix architectural significatif (nouveau provider, nouveau pattern, changement de stack) qui mérite un ADR dans `memory/decisions.md` ?"*
+Demande à l'utilisateur : *"Cette feature implique-t-elle un choix architectural significatif (nouveau provider, nouveau pattern, changement de stack) qui mérite un ADR dans `memory/decisions.md` ?"*
 
 Si oui : auto-incrément depuis le dernier `ADR-NNN` du fichier. Append :
 
@@ -233,7 +167,7 @@ Si oui : auto-incrément depuis le dernier `ADR-NNN` du fichier. Append :
 **Consequences**: {1 ligne impact futur}
 ```
 
-### 5f — MAJ STRUCTURE.md si intégrations / key-files changent
+### 5g — MAJ STRUCTURE.md si intégrations / key-files changent
 
 Demande : *"Cette feature ajoute des intégrations externes (nouveaux services, APIs) ou des fichiers structurants ? Si oui, lesquelles ?"*
 
@@ -243,30 +177,31 @@ Si oui : update `<!-- structure:integrations -->` et/ou `<!-- structure:key-file
 - V_{n+1} ({date}) — {nom feature} : {1-ligne résumé impact structurel}
 ```
 
-### 5g — Scaffold optionnel `.claude/rules/{domain}.md`
+### 5h — Scaffold optionnel `.claude/rules/{domain}.md`
 
 Si la feature introduit un domaine technique nouveau (webhook handling, payment, OAuth, etc.) : propose à l'utilisateur (pas auto) de créer un fichier path-scoped court. Skip par défaut.
 
-### Commit final
+### 5i — Commit final (amend du checkpoint)
 
 ```
+git add -A
 git commit --amend -m "feat(/evoluer): {feature} — SPEC + decisions + STRUCTURE + PRD checkbox"
 ```
 
-(amend du checkpoint 5h pour grouper les changes 5c-5g dans le même commit logique).
+Amend du checkpoint 5c pour grouper les changes 5d-5h dans un seul commit logique.
 
-## Étape 6 — Gate /validate (avant merge)
+## Étape 6 — Gate /validate (avant handoff)
 
-**OBLIGATOIRE avant handoff.** Appeler `/validate` (slash invocation) sur l'état actuel du projet. Métrique = "tests existants passent encore" (Karpathy regression check).
+**OBLIGATOIRE avant handoff.** Appelle `/validate` sur l'état actuel du projet. Métrique = "tests existants passent encore" (Karpathy regression check).
 
 - Si `/validate` PASS → continue Étape 7.
-- Si `/validate` FAIL → bloquer. Présenter les failures à l'utilisateur. Options : (a) fix puis re-/validate, (b) abandonner l'évolution (`git reset --hard HEAD~1` pour défaire le commit /evoluer).
+- Si `/validate` FAIL → bloque. Présente les failures à l'utilisateur. Options : (a) fix puis re-/validate, (b) abandonner l'évolution (`git reset --hard HEAD~1` pour défaire le commit /evoluer).
 
-Ne JAMAIS faire handoff vers `/plan` si /validate échoue — c'est une régression introduite par l'état pré-évolution qu'il faut résoudre avant d'ajouter du nouveau code.
+Ne JAMAIS faire handoff vers `/plan` si /validate échoue : c'est une régression introduite par l'état pré-évolution qu'il faut résoudre avant d'ajouter du nouveau code.
 
 ## Étape 7 — Handoff
 
-Passer le SPEC (pas le PRD entier) comme input du /plan suivant. Le /plan suivant écrira son output dans `docs/plans/phase-V_{n+1}-plan.md` (convention v2.1.0+).
+Passe le SPEC (pas le PRD entier) comme input du /plan suivant. Le /plan suivant écrira son output dans `docs/plans/phase-V_{n+1}-plan.md`.
 
 ```
 ✅ Évolution préparée :
@@ -282,28 +217,13 @@ Passer le SPEC (pas le PRD entier) comme input du /plan suivant. Le /plan suivan
   4. /execute → implémenter
 ```
 
-## Mode legacy (Branche 2 — format v2.1.x avec `## Phases`)
-
-Si détecté à l'init : **warn explicite** :
-
-> *"PRD ancien format v2.1.x détecté (`## Phases` au lieu de `## 7. Implementation Phases`). /evoluer va opérer en mode legacy : pas de SPEC, juste insertion d'une nouvelle Phase dans `## Phases`. Pour migrer vers le format v2.2 (SPECs + cap 100L + checkboxes), suivre `docs/MIGRATION-v2.1-to-v2.2.md`."*
-
-Fallback complet à l'ancien comportement :
-1. Parser `## Phases` pour trouver le dernier `**Phase N**` (regex `^[\-\*]\s+\*\*Phase\s+(\d+)\*\*`)
-2. 3 questions cadrage (Étape 2 simplifiée)
-3. Idempotence (Étape 3)
-4. Insérer la ligne `- **Phase N+1** — {nom} : {description}` après la dernière Phase
-5. Append `- [ ] {critère}` dans `## Critères de succès`
-6. Pas de SPEC, pas d'ADR, pas de Gate /validate forcé (mode legacy = pas de garanties v2.2)
-7. Handoff : `/plan Phase N+1` (pas SPEC path)
-
 ## Règles strictes
 
-- **Jamais d'écrasement** de section Implementation Phases ou Scope actuel — uniquement append ou checkbox flip
-- **SPEC frozen post-/execute** — header `<!-- frozen: {date} -->` ajouté par /close Étape 6.4
-- **Cap 100L PRD** — si après ajout V_{n+1} le PRD dépasse 100L, /close Étape 0.6 va warn (pas bloquer)
-- **Gate /validate obligatoire** mode v2.2 ; skip seulement en mode legacy
-- **Atomicité git** : checkpoint après 5b, amend après 5g — un seul commit logique au final
+- **Jamais d'écrasement** de section Implementation Phases ou Scope actuel : uniquement append ou checkbox flip
+- **SPEC frozen post-/execute** : header `<!-- frozen: {date} -->` ajouté par /close Étape 6.4
+- **Cap 100L PRD** : si après ajout V_{n+1} le PRD dépasse 100L, /close Étape 0.6 va warn (pas bloquer)
+- **Gate /validate obligatoire** en mode v2.2 ; skip seulement en mode legacy (voir `references/legacy-v2.1.md`)
+- **Atomicité git** : checkpoint après 5c, amend en 5i — un seul commit logique au final
 
 ## Quand ne PAS utiliser
 
@@ -314,7 +234,7 @@ Fallback complet à l'ancien comportement :
 
 ## Trace de fin
 
-Append `tmp/skill-trace.jsonl` :
+Append `tmp/skill-trace.jsonl` (lue puis supprimée par /close Étape 0.1+0.5.6) :
 
 ```json
 {"skill": "evoluer", "artifact": "docs/specs/SPEC-{date}-{slug}.md", "next": "/plan docs/specs/SPEC-{date}-{slug}.md", "ts": "<ISO8601>"}
