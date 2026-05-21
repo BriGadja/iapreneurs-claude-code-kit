@@ -3,6 +3,25 @@
 > Toutes les versions notables du kit IAPreneurs Claude Code.
 > Format inspiré de [Keep a Changelog](https://keepachangelog.com/). Versions [SemVer](https://semver.org/lang/fr/).
 
+## v2.8.1 — 2026-05-21
+
+### Modifié
+
+- **`/close` — harvest silencieux par défaut** : suppression des questions ciblées par trigger (ancien 6.2 dans `references/harvest-questions.md`) et de l'annonce "Mémoire mise à jour" (ancien 6.4). Le harvest écrit uniquement l'auto-récap session dans `memory/learnings/{date}.md`, sans interaction. Si l'utilisateur veut explicitement capturer une décision, il le dit en cours de session ("remember X") — `/close` ne le redemande plus à la clôture.
+- **`/close` — handoff condensé (3-5 lignes max)** : les trois variantes du bloc final (no-op / planning / full) sont raccourcies. Plus de paragraphe d'explication, plus de récap admin — juste `✅ {état} · {SHA} · {STATUS}` puis la prochaine étape.
+
+### Pourquoi
+
+L'expérience utilisateur du cycle se dégradait à cause du temps passé en clôture (questions admin, récap mémoire long). Le kit doit donner une route claire pour shipper, pas faire passer 5 minutes en boucle externe à chaque feature. Le commit + STATUS.md + gate déploiement Vercel restent intacts (ça produit du résultat) ; seul le harvest interactif est silencé.
+
+### Non-breaking
+
+- Aucune signature de skill modifiée. Aucune commande retirée. Aucune ancre déplacée.
+- `/close` reste mandatory après `/validate ✅`. Les vidéos pédagogiques v2.8.0 du kit restent valides — seul le ressenti "rapide" change.
+- Forks v2.8.0 peuvent merger v2.8.1 sans casse.
+
+---
+
 ## v2.8.0 — 2026-05-21
 
 ### Ajouté
