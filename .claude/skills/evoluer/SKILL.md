@@ -234,7 +234,7 @@ Passe le SPEC (pas le PRD entier) comme input du /plan suivant. Le /plan suivant
 
 ## Trace de fin
 
-Append `tmp/skill-trace.jsonl` (lue puis supprimée par /close Étape 0.1+0.5.6) :
+Append `tmp/skill-trace.jsonl` (lue puis supprimée par /close Étape 0 + Étape 0.5.6) :
 
 ```json
 {"skill": "evoluer", "artifact": "docs/specs/SPEC-{date}-{slug}.md", "next": "/plan docs/specs/SPEC-{date}-{slug}.md", "ts": "<ISO8601>"}
