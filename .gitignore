@@ -42,3 +42,6 @@ Thumbs.db
 .idea/
 .vscode/
 !.vscode/extensions.json
+
+# Worktrees créés par les agents Claude Code (isolation des sessions parallèles)
+.claude/worktrees/
