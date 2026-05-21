@@ -133,11 +133,11 @@ git commit -m "{message validé}"
 
 Annonce le SHA résultant. **Ne push pas automatiquement** — c'est à l'utilisateur de décider quand pousser (et où).
 
-### Étape 6 — Harvest learnings (mémoire persistante, conditionnel)
+### Étape 6 — Harvest learnings (silencieux par défaut)
 
-Post-commit, **l'utilisateur ne touche pas à la mémoire manuellement** — c'est ce skill qui la maintient. Mais le harvest est **conditionnel** depuis v2.0.2 : on ne pose des questions à l'user que si la session contient des **signaux de notabilité** détectables sur le diff git. Sinon, on fait juste l'auto-récap silencieux et on passe.
+Post-commit, écris **uniquement l'auto-récap session** dans `memory/learnings/{date}.md` — pas de question à l'utilisateur, pas d'annonce.
 
-**Lis `references/harvest-questions.md` et applique** sa procédure complète (6.0 détection triggers + 6.1 auto-récap session + 6.2 topics opt-in + 6.3 update MEMORY.md index + 6.4 annonce courte).
+**Lis `references/harvest-questions.md` et applique** : 6.1 auto-récap silencieux + 6.3 index conditionnel. Les questions ciblées par trigger (ancienne 6.2) et l'annonce (ancienne 6.4) sont supprimées depuis v2.8.1 — les gens veulent ship, pas répondre à des questions admin.
 
 ### Étape 6.4 — SPEC frozen header (post-/evoluer + /execute)
 
@@ -248,26 +248,22 @@ Si `/validate` n'a pas dit `✅ OK`, la phase n'est pas finie. Marquer ✅ Termi
 
 Trois variantes selon le mode détecté en Étape 0 :
 
+Trois variantes, **3-5 lignes max**. Pas de paragraphe d'explication, pas de récap admin.
+
 **Mode no-op** :
-> "Rien à clôturer. Tu peux `/clear` directement, ou continuer si tu veux."
+> "Rien à clôturer. `/clear` quand tu veux."
 
 **Mode planning** :
-> "Commit fait ({SHA}), STATUS.md à jour. Marker `[plan-mining-done:{artifact-slug}]` écrit dans `memory/daily/{today}.md`.
->
-> Étapes suivantes pour repartir propre :
->   1. /clear
->   2. /{next-skill du trace}"
+> "✅ Commit {SHA} · STATUS à jour
+> → /clear puis /{next-skill}"
 
 **Mode full (fin de phase)** :
-> "Phase {N} ✅, commit {SHA} fait, STATUS.md à jour.
+> "✅ Phase {N} clôturée · commit {SHA} · STATUS à jour
+> → /clear puis /{next-skill}"
 >
-> Étapes suivantes pour repartir propre :
->   1. /clear
->   2. /{next-skill}"
->
-> Suggestion `next-skill` selon l'état du PRD :
+> `next-skill` selon l'état du PRD :
 > - Phase suivante existe → `/plan Phase {N+1}`
 > - Dernière phase + pas shipped → `/livrer`
-> - Dernière phase + déjà shipped → fin de cycle (proposer `/evoluer` pour future feature)
+> - Dernière phase + déjà shipped → fin de cycle (`/evoluer` quand tu auras une nouvelle feature)
 
 **Prochaine étape** : `/clear` puis `/{next-skill}` (voir variante du mode ci-dessus).
