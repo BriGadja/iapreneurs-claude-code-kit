@@ -3,6 +3,8 @@
 .env.local
 .env.*.local
 .envrc
+# .mcp.json contient les valeurs en clair des MCP (pattern canonique : .claude/rules/n8n-setup.md § 1.b)
+.mcp.json
 
 # Node / build
 node_modules/

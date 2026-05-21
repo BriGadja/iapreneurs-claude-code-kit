@@ -241,17 +241,15 @@ claude mcp add n8n-mcp \
   -- npx -y n8n-mcp@latest
 
 # n8n MCP — mode API-connected (20 tools)
-# Les single-quotes (') sont OBLIGATOIRES autour de ${N8N_API_*}. Avec des double-quotes ("),
-# ton shell développerait ${N8N_API_URL} immédiatement au moment du `claude mcp add` (souvent
-# à vide si .env pas encore sourcé) → la valeur en dur serait stockée dans .mcp.json. Avec
-# single-quotes, la chaîne ${N8N_API_URL} est stockée littéralement et résolue plus tard par
-# Claude au lancement du MCP.
+# Pattern canonique du kit : valeurs en clair dans .mcp.json (gitignored).
+# Remplace les <...> par tes vraies valeurs avant de lancer la commande.
+# Cf. .claude/rules/n8n-setup.md § 1.b pour le rationale (le pattern ${VAR}+.env est piégeux côté Claude Code).
 claude mcp add n8n-mcp \
   -e MCP_MODE=stdio \
   -e LOG_LEVEL=error \
   -e DISABLE_CONSOLE_OUTPUT=true \
-  -e 'N8N_API_URL=${N8N_API_URL}' \
-  -e 'N8N_API_KEY=${N8N_API_KEY}' \
+  -e 'N8N_API_URL=<URL réelle, ex: https://n8n.tondomaine.com/api/v1>' \
+  -e 'N8N_API_KEY=<JWT réel>' \
   -- npx -y n8n-mcp@latest
 
 # Plugin frontend-design
@@ -262,36 +260,43 @@ Puis : `claude mcp list` et `claude plugin list` pour vérifier.
 
 > **Pin de version recommandé** — `n8n-mcp@latest` te donne le dernier release (czlonkowski ship souvent : `2.51.x` actuellement). Pour la reproductibilité, pinne une version explicite dans `.mcp.json` (ex : `n8n-mcp@2.51.3`) et bump volontairement après avoir lu le CHANGELOG.
 
-### Pattern Anthropic-officiel pour les credentials
+### Pattern canonique du kit pour les credentials MCP
 
-1. **`.env`** à la racine — vraies valeurs, **gitignored** (vérifié par `/start`)
-2. **`.env.example`** committé — placeholders pour les futurs forkers/collègues
-3. **`.mcp.json`** committé avec syntaxe `${VAR}` (env var expansion) — pas de valeur en dur :
-   ```json
-   {
-     "mcpServers": {
-       "n8n-mcp": {
-         "command": "npx",
-         "args": ["-y", "n8n-mcp@latest"],
-         "env": {
-           "MCP_MODE": "stdio",
-           "LOG_LEVEL": "error",
-           "DISABLE_CONSOLE_OUTPUT": "true",
-           "N8N_API_URL": "${N8N_API_URL}",
-           "N8N_API_KEY": "${N8N_API_KEY}"
-         }
-       }
-     }
-   }
-   ```
-   Le `-y` dans `args` évite que npx te bloque sur un prompt "install ?" au premier lancement du MCP. Si tu veux le mode docs-only, retire les 2 dernières lignes `N8N_API_*`.
-4. **Charger `.env` dans le shell** avant `claude` : `set -a && source .env && set +a` (ou installer `direnv` pour le faire automatiquement)
+Le kit applique un seul pattern d'install MCP, prescrit par [`.claude/rules/n8n-setup.md`](../.claude/rules/n8n-setup.md) § 1.b :
+
+1. **`.mcp.json`** à la racine — **valeurs réelles en clair**, **gitignored**. Pourquoi pas `${VAR}` + `.env` ? Parce que Claude Code ne source pas `.env` automatiquement : il lit `${VAR}` depuis l'environnement du **shell parent** qui a lancé `claude`. Friction systématique sur Code Server. On évite le problème en mettant les valeurs directement dans `.mcp.json` (gitignored).
+2. **`.mcp.json.example`** committé — copie de `.mcp.json` avec `REPLACE_ME` à la place des secrets, sert de doc pour les futurs forkers/collègues.
+3. **`.env`** — réservé aux **secrets applicatifs** (Stripe, OpenAI, Resend, etc. lus par l'app au runtime), gitignored. Pas pour les MCP du kit.
+4. **`.env.example`** committé — placeholders pour les secrets applicatifs.
+
+Exemple `.mcp.json` (gitignored) :
+```json
+{
+  "mcpServers": {
+    "n8n-mcp": {
+      "command": "npx",
+      "args": ["-y", "n8n-mcp@latest"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "https://n8n.tondomaine.com/api/v1",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIs..."
+      }
+    }
+  }
+}
+```
+
+Le `-y` dans `args` évite que npx te bloque sur un prompt "install ?" au premier lancement du MCP. Si tu veux le mode docs-only, retire les 2 dernières lignes `N8N_API_*`.
+
+Aucune commande shell magique n'est nécessaire ensuite : **redémarrer Claude Code** suffit (`exit` puis `claude`), il relit `.mcp.json`.
 
 ### Directives système (Silent Execution, Templates-First, Validate Before Deploy)
 
 Le créateur du MCP prescrit 4 directives pour utiliser l'outil correctement. Elles sont consignées dans **`.claude/rules/n8n.md`** (auto-chargées sur `.workflow.json`, `.mcp.json`, et tout fichier du dossier `.claude/skills/n8n/`). En résumé : `search_templates` avant de coder, `validate_workflow` avant de déployer, jamais d'édition AI directe sur `[PROD]`, exécution silencieuse des outils.
 
-Si tu vois un secret en clair quelque part dans le repo, **stop immédiatement** et déplace-le dans `.env`. Re-write l'historique git si nécessaire (`git filter-repo` ou re-création du repo si récent).
+Si tu vois un secret en clair dans un fichier **committé**, **stop immédiatement** et déplace-le dans le bon endroit (`.mcp.json` gitignored pour les creds MCP, `.env` gitignored pour les creds applicatifs). Re-write l'historique git si nécessaire (`git filter-repo` ou re-création du repo si récent).
 
 ---
 
