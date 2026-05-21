@@ -2,6 +2,8 @@
 
 Trois exemples remplis, un par `project_type`. Le kit s'adapte à ton cas — ces exemples sont là pour te montrer **le format attendu**, pas pour t'imposer une stack.
 
+> 📖 **Tu veux voir une session réelle de A à Z ?** Lis [`webapp-saas-freelance-devis/SESSION.md`](webapp-saas-freelance-devis/SESSION.md) — tuto narratif avec les commandes tapées + sorties LLM abrégées, du `claude` initial à la mise en prod en 3h20 cumulées sur 2 jours. Le format est plus parlant qu'une doc abstraite.
+
 ## Comparaison rapide
 
 | Exemple | `project_type` | Niveau Request Classification | Stack | Complexité | Skills utilisés |
