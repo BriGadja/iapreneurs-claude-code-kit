@@ -1,6 +1,6 @@
 ---
 name: close
-description: Utiliser à la fin d'une phase (après /validate ✅) pour clôturer proprement — marque la phase ✅ Terminée dans le PRD (source unique depuis v2.0), propose un commit conventionnel à partir du diff, fait le harvest learnings conditionnel (auto-récap toujours dans memory/learnings/ + questions ciblées seulement si triggers détectés dans le diff : nouvelle dépendance, MCP, migration SQL, workaround, règle path-scoped, ADR), suggère /plan Phase N+1 ou /livrer si dernière phase. Détecte automatiquement le mode (planning rapide vs full fin-de-phase) — en mode planning skippe l'audit caps, l'amend SHA et le dialogue commit (auto-commit). L'utilisateur ne touche jamais à la mémoire manuellement — c'est ce skill qui la maintient. Skill mandatory post /validate ✅ (plus optionnel depuis v2.0).
+description: Utiliser à la fin d'une phase (après /validate ✅) pour clôturer proprement. Marque la phase ✅ Terminée dans le PRD, propose un commit conventionnel, fait le harvest mémoire si triggers détectés. Skill mandatory post /validate ✅. Ne PAS utiliser sans /validate ✅ préalable, ni au milieu d'une phase en cours.
 ---
 
 # Skill /close — clôturer proprement une phase

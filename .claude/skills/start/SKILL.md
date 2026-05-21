@@ -1,6 +1,6 @@
 ---
 name: start
-description: Utiliser à l'ouverture d'une nouvelle session sur un projet basé sur ce kit. Bootstrap automatique si clone direct du kit détecté (reinit git + remote upstream + commit initial), configuration de l'identité git locale du projet (sans toucher au global), visite guidée du kit (skippable), 3 questions de cadrage qui remplissent la section Identité du CLAUDE.md, vérification de l'outillage (Playwright + n8n MCP + plugin frontend-design), puis routage vers /brainstorm (idée floue) ou /architect (idée claire). Ne PAS utiliser au milieu d'une session de travail — c'est un skill d'onboarding.
+description: Utiliser à l'ouverture d'une session sur un projet basé sur ce kit, pour cadrer ou recadrer le contexte. Pose 4 questions de cadrage (nom, public, project_type, n8n) et route vers /brainstorm ou /architect. Ne PAS utiliser au milieu d'une session de travail — c'est un skill d'onboarding. Pour reprendre un projet existant après pause, utiliser /prime à la place.
 ---
 
 # Skill /start — démarrage piloté
