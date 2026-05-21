@@ -21,7 +21,9 @@ Prendre **UNE phase** d'un PRD et la découper en tâches numérotées avec des 
 
 ### Étape 1 — lire le PRD (+ project_type + DESIGN.md si UI) + identifier la phase
 
-L'utilisateur passe en argument soit `PRD.md`, soit le numéro de phase ("phase 1"), soit les deux.
+L'utilisateur passe en argument soit `PRD.md`, soit le numéro de phase ("phase 1"), soit les deux, soit **un brief de brainstorm** (`docs/brainstorms/{date}-{slug}.md`).
+
+**1.0 — Si l'argument est un brief de brainstorm** : lis-le en entier avant tout. Le brief contient l'idée clarifiée, le besoin, les contraintes, la direction recommandée et les hypothèses à valider — utilise-le comme contexte pour pré-remplir les questions de l'Étape 2 (tu proposes les réponses extraites, l'utilisateur confirme ou amende). Le brief sert à cadrer la phase à planifier (souvent la prochaine phase du PRD existant, ou une tâche transverse).
 
 **1.1 — Lire `project_type` depuis `CLAUDE.md ## Identité`** (variable `project_type:` ∈ `{webapp, site, automation}`). Cette valeur **adapte les questions de l'Étape 2** (skip les questions web-app-centriques si `automation`, ajoute des questions credentials externes n8n, etc.). Si absent → suggère `/start` migration v1.x.
 

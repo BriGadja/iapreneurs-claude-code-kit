@@ -30,8 +30,9 @@ Pas de PRD complet sans ces 8 sections, dans cet ordre. **Cap 100 lignes hard** 
 
 ### Étape 1 — lire la source
 
-Si le user a passé un fichier `brainstorm-{sujet}.md` en argument, le lire.
-Si pas de fichier, lire ce que dit le user dans le chat et lui poser **2-3 questions de clarification** sur les sections manquantes (utilisateurs, MVP, stack).
+Si l'utilisateur a passé un **brief de brainstorm en argument** (chemin `docs/brainstorms/{date}-{slug}.md` ou ancien format `brainstorm-{sujet}.md`), lis-le en entier. Le brief contient déjà l'idée en 1 phrase, le besoin clarifié (pour qui, pour quoi), les contraintes connues, la direction recommandée et les hypothèses à valider. **Utilise ces données pour pré-remplir tes questions Étape 2-3** au lieu de partir de zéro : tu proposes les réponses extraites du brief, l'utilisateur confirme ou amende.
+
+Si pas de fichier en argument, lire ce que dit l'utilisateur dans le chat et lui poser **2-3 questions de clarification** sur les sections manquantes (utilisateurs, MVP, stack).
 
 ### Étape 2 — déterminer la nature du projet, puis proposer la stack
 

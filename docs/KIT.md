@@ -11,7 +11,7 @@
 | Skill | Pour quoi | Quand | Statut |
 |-------|-----------|-------|--------|
 | `/start` | Cadrage projet + sécurisation credentials + vérif outillage + routage. Détecte aussi projet existant et bifurque vers `/prime`. Écrit `project_type` ∈ `{webapp, site, automation}` dans CLAUDE.md `## Identité`. | 1x à l'ouverture d'une nouvelle session | ✅ |
-| `/brainstorm` | Clarifier une idée vague en 3 questions. Route 2 délègue à `research-delegate` pour explorer projets similaires. | Si l'idée n'est pas claire après `/start` | ✅ |
+| `/brainstorm` | Clarifier une idée vague (3-5 questions + recherche optionnelle) et produire un brief écrit dans `docs/brainstorms/{date}-{slug}.md`. Aucun routing automatique — l'utilisateur choisit ensuite `/architect`, `/plan` ou `/evoluer` avec le brief en argument. | Si l'idée n'est pas claire après `/start` ou en cours de projet | ✅ |
 | `/architect` | Produire un `PRD.md` structuré (mini-3-sections en LITE, 7 sections en STANDARD/FULL) + **Étape 2b providers favoris** (hosting/BDD/email) + **Étape 6 Provisioning & Scaffold** (scaffold le repo selon `project_type` + retenus + écriture `.env`). Écrit `## Stack` dans CLAUDE.md. | Une fois l'idée claire | ✅ |
 | `/design` *(webapp uniquement)* | Définit le design system au format **DESIGN.md officiel Google** (open-source, spec alpha). Template fourni. **Complémentaire** au plugin Anthropic `frontend-design`. | Après `/architect`, **uniquement si project_type = webapp** | ✅ |
 | `/plan` | Découper UNE phase du PRD en tâches numérotées avec critères "Fait quand". Adapte ses questions selon `project_type`. | Avant d'exécuter une phase | ✅ |
