@@ -19,7 +19,7 @@ Pas de PRD complet sans ces 8 sections, dans cet ordre. **Cap 100 lignes hard** 
 4. **Hors scope (différé)** — checkboxes des features volontairement reportées
 5. **Constraints non-négociables** — contraintes métier/légales/perf qui ne bougent pas
 6. **Success Criteria** — critères mesurables au niveau projet entier
-7. **Implementation Phases** — historique chronologique V1, V_n en cours, V_n+1 envisagé. Append-only par `/evoluer` Étape 5d
+7. **Implementation Phases** — historique chronologique V1, V_n en cours, V_n+1 envisagé. Append-only par `/evoluer` Étape 5e
 8. **Risks & Mitigations** — risques identifiés + mitigations prévues
 
 **Référence template** : `templates/PRD-template.md` à la racine du kit. `/architect` Étape 4 lit ce template puis génère un PRD personnalisé en respectant la structure et le cap 100 lignes.
@@ -207,7 +207,7 @@ Lis `memory/decisions.md`. Si la zone ADR (entre la section `## ADR — Architec
 - **Consequences** : {1 ligne — impact futur, ce que ça verrouille / débloque}
 ```
 
-**Idempotent** : si un `ADR-NNN` existe déjà dans la zone, **skip entièrement** (pas d'écrasement). C'est `/evoluer` Étape 5b qui appendera les ADR suivants (ADR-002, ADR-003...) au fil des évolutions arch.
+**Idempotent** : si un `ADR-NNN` existe déjà dans la zone, **skip entièrement** (pas d'écrasement). C'est `/evoluer` Étape 5f qui appendera les ADR suivants (ADR-002, ADR-003...) au fil des évolutions arch.
 
 Annonce : *"📋 ADR-001 fondateur écrit dans `memory/decisions.md`. Les choix arch initiaux sont tracés. Future Claude saura POURQUOI cette stack a été choisie sans relire le brainstorm."*
 

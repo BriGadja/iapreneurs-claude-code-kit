@@ -2,7 +2,7 @@
 
 > Ce fichier a deux usages :
 >
-> 1. **ADR fondateurs/architecturaux numérotés** (écrits par `/architect` Étape 6.6 ADR-001 + `/evoluer` Étape 5b si choix significatif). Format strict, idempotent (ne réécrit pas un ADR existant).
+> 1. **ADR fondateurs/architecturaux numérotés** (écrits par `/architect` Étape 6.6 ADR-001 + `/evoluer` Étape 5f si choix significatif). Format strict, idempotent (ne réécrit pas un ADR existant).
 > 2. **Harvest libre** (écrit par `/close` lors du harvest learnings, zone `<!-- close:decisions -->` ci-dessous, format bullet libre).
 >
 > Les deux coexistent : ADR numérotés en tête (rigueur), bullets en bas (rapidité).
@@ -11,7 +11,7 @@
 
 > Format : `ADR-NNN — {Titre court}` puis bloc `Status / Date / Context / Decision / Consequences`. Status ∈ {Accepted, Superseded, Deprecated}. Numérotation strictement incrémentale, jamais réutilisée.
 
-<!-- ADR-NNN entries appended here by /architect (Étape 6.6) and /evoluer (Étape 5b) -->
+<!-- ADR-NNN entries appended here by /architect (Étape 6.6) and /evoluer (Étape 5f) -->
 
 _(Vide à l'init. Premier ADR posé par `/architect` Étape 6.6 fondateur.)_
 

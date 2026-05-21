@@ -52,7 +52,7 @@ JAMAIS réécrit destructivement.
 
 ## 7. Implementation Phases
 
-> Historique chronologique des versions livrées + en cours + envisagées. Append-only par `/evoluer` Étape 5d.
+> Historique chronologique des versions livrées + en cours + envisagées. Append-only par `/evoluer` Étape 5e.
 
 - **V1 (livré le {YYYY-MM-DD})** — {résumé 1 ligne de ce qui a été livré en V1}
 - **V_n (en cours)** — {feature courante, cf docs/specs/SPEC-{date}-{slug}.md}

@@ -31,13 +31,13 @@
 ## Intégrations externes
 
 <!-- structure:integrations -->
-_(Maintenu par /architect Étape 6.5 + /evoluer Étape 5f. Liste des services tiers branchés : APIs, BDD, MCP, webhooks. Vide à l'init.)_
+_(Maintenu par /architect Étape 6.5 + /evoluer Étape 5g. Liste des services tiers branchés : APIs, BDD, MCP, webhooks. Vide à l'init.)_
 <!-- /structure:integrations -->
 
 ## Fichiers clés
 
 <!-- structure:key-files -->
-_(Maintenu par /architect Étape 6.5 + /evoluer Étape 5f. Pointeurs vers les fichiers critiques pour l'agent : entrées principales, configs, schémas BDD.)_
+_(Maintenu par /architect Étape 6.5 + /evoluer Étape 5g. Pointeurs vers les fichiers critiques pour l'agent : entrées principales, configs, schémas BDD.)_
 <!-- /structure:key-files -->
 
 ## Évolutions livrées (résumé)
