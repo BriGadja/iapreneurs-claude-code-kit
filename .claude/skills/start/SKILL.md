@@ -20,6 +20,18 @@ Sortie : un `CLAUDE.md` avec l'Identité remplie + un MCP/plugin stack fonctionn
 
 ## Comment procéder
 
+### Étape 0a — Initialiser CLAUDE.md depuis le template (3s)
+
+**Détection** : si `CLAUDE.md` est absent à la racine ET que `CLAUDE.md.template` existe, copie-le :
+
+```bash
+[ ! -f CLAUDE.md ] && [ -f CLAUDE.md.template ] && cp CLAUDE.md.template CLAUDE.md
+```
+
+Le template contient les placeholders `{Nom de ton projet}`, `{site | webapp | automation}`, etc. — c'est ce fichier que les étapes suivantes (3, 5+) vont remplir. Le `CLAUDE.md` projet est gitignored par défaut (chaque fork génère le sien). Si tu veux quand même le ship : `git add -f CLAUDE.md`.
+
+**Si `CLAUDE.md` existe déjà** : ne touche à rien, passe à l'Étape 0.
+
 ### Étape 0 — Détecter un clone direct du kit (5s)
 
 **Détection** : lance `git remote get-url origin 2>/dev/null` et grep `iapreneurs-claude-code-kit`. Si match ET que `<!-- start:identité -->` contient encore le placeholder par défaut (= projet jamais cadré), tu es dans le cas "fresh clone du kit".

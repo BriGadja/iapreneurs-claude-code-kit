@@ -215,40 +215,7 @@ Annonce finale à l'utilisateur : *"Repo scaffold + credentials provisionnées +
 
 ## Format du PRD
 
-```markdown
-# PRD : {Nom du projet}
-
-## Sommaire
-{2-3 phrases}
-
-## Utilisateurs cibles
-- {qui, dans quelle situation}
-
-## MVP — ce qu'on fait
-- {feature critique 1}
-- {feature critique 2}
-- {feature critique 3}
-
-## Hors-MVP — ce qu'on ne fait PAS
-- {feature explicitement écartée}
-- {nice-to-have repoussé}
-
-## Phases
-- **Phase 1** — {nom} : {1 phrase de description}
-- **Phase 2** — ...
-- **Phase 3** — ...
-
-## Stack technique
-- Frontend : {choix}
-- Backend : {choix}
-- BDD : {choix}
-- Hosting : {choix}
-
-## Critères de succès
-- [ ] {ex: un utilisateur peut faire X end-to-end sans bug}
-- [ ] {ex: l'app charge en moins de 2s}
-- [ ] {ex: 5 personnes peuvent utiliser en simultané sans crash}
-```
+Le format canonique est défini dans [`templates/PRD-template.md`](../../../templates/PRD-template.md) (66 lignes, 8 sections numérotées, cap 100 lignes). Lis ce template à l'Étape 4 pour générer le PRD du projet. Ne duplique jamais le format ici — la source unique évite la dérive entre skills.
 
 ## Risque #1 — sauvegarder sans validation humaine
 
