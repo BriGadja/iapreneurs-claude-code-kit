@@ -198,7 +198,7 @@ Et au-delà de RLS : valide les inputs côté serveur (jamais juste côté clien
 ## 📚 Pour en savoir plus
 
 - [`docs/KIT.md`](docs/KIT.md) — Doc de référence complète du kit (skills, parcours, MCP install, sous-agent)
-- [`CLAUDE.md`](CLAUDE.md) — Template projet (à adapter à ton cas)
+- [`CLAUDE.md.template`](CLAUDE.md.template) — Template projet (copié vers `CLAUDE.md` par `/start`, `CLAUDE.md` est gitignored)
 - [`memory/README.md`](memory/README.md) — Système mémoire persistante (maintenu par `/close`)
 - [`.claude/skills/`](.claude/skills/) — Détail de chaque skill (`/start` comme point d'entrée)
 - [`.claude/rules/README.md`](.claude/rules/README.md) — Règles path-scoped auto-chargées
