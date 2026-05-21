@@ -61,14 +61,14 @@ Boucle sur les tâches `[ ]` non cochées :
 
 | `project_type` | Modif a touché à... | Vérification obligatoire |
 |----------------|---------------------|--------------------------|
-| `webapp` / `site` | UI (`.tsx`, `.html`, `.css`, page, layout, composant) | (1) Lancer le dev server (`npm run dev` ou équivalent du framework — JAMAIS `file://`) en background ; (2) `browser_navigate` Playwright vers `http://localhost:{port}/{route concernée}` ; (3) `browser_snapshot` (DOM) **et** `browser_take_screenshot` (visuel) → snapshot/screenshot dans `tmp/` ; (4) lire ce que tu vois, raconter en 2-3 lignes ; (5) supprimer les fichiers de `tmp/` après lecture |
+| `webapp` / `site` | UI (`.tsx`, `.html`, `.css`, page, layout, composant) | (1) Lancer le dev server (`npm run dev` ou équivalent du framework — JAMAIS `file://`) en background ; (2) **Invoquer le sub-agent `browser-verifier`** avec `url = http://localhost:{port}/{route concernée}` + critères contextuels (status 2xx, console_errors == 0, non_blank, et selectors présents si la phase a ajouté des éléments identifiables). Affiche son verdict à l'utilisateur sous la forme `Vérification UI : OK ({raison})` / `Vérification UI : anomalie — {raison}` / `Vérification UI : KO — {raison}`. JAMAIS de mention du sub-agent côté UX. |
 | `webapp` | API / route serveur | `curl -i` sur l'endpoint → status + 5 premières lignes du payload affichés dans la réponse |
 | `webapp` / `site` | BDD (migration, RLS, table) | Query directe (`psql`, Supabase MCP, ou client équivalent) → vérifier structure + une row de test si applicable |
 | `automation` | Workflow n8n | `n8n_test_workflow` via MCP (si trigger webhook/form/chat) OU `curl` sur le webhook → vérifier output + status. Si schedule-only : ajouter temporairement un webhook trigger en parallèle pour smoke-test, ou attendre prochain run scheduled |
 | Tout type | Tests automatisés | `npm test` / `vitest run` → 0 failure, lire le résumé final |
 | Tout type | Build de prod (si livrable) | `npm run build` → 0 erreur (anticipe `/livrer`) |
 
-**Critère de passage** : tu dois pouvoir raconter à l'utilisateur, en 2-3 phrases concrètes, **exactement ce que tu as observé** (URL visitée, status code reçu, screenshot lu, output de test). Si tu te surprends à écrire "ça devrait marcher" ou "le fichier est créé", tu n'as pas auto-évalué — refais.
+**Critère de passage** : tu dois pouvoir raconter à l'utilisateur, en 2-3 phrases concrètes, **exactement ce que tu as observé** (URL visitée et verdict browser-verifier, status code reçu sur curl, output de test). Si tu te surprends à écrire "ça devrait marcher" ou "le fichier est créé", tu n'as pas auto-évalué — refais.
 
 Si une vérification **échoue** :
 1. Diagnostique la cause racine (pas un patch qui masque)

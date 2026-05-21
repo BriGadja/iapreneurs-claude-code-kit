@@ -194,8 +194,11 @@ Une fois le deploy passé (URL prod reçue) :
    - Si Étape 3.5 a configuré une URL custom MAIS `dns_propagated == false` (mode skip) → smoke test sur `https://{URL_DEFAUT}` (fallback hosting) + affiche warning : *"⏳ DNS pending sur {URL_CIBLE}. Smoke test fait sur fallback. Re-lance `/livrer` quand le DNS aura propagé."*
    - Si Étape 3.5 skip (utilisateur a dit "Non") → smoke test sur `https://{URL_DEFAUT}`
 2. **Si tu sors du flow Vercel (`references/vercel.md`, sous-routes `route_vercel_push` ou `route_vercel_onboarding`)** : attends 90s avant la 1ère tentative (build Vercel typique). Si la 1ère requête HTTP renvoie 502/504/404 (build pas encore terminé, OU DNS pas encore résolu pour URL custom), retry à 60s × 2 max avant de considérer le deploy en échec.
-3. Lance via Playwright MCP : `mcp__playwright__browser_navigate({ url: "https://..." })` + `mcp__playwright__browser_snapshot()`. Si tu prends un screenshot, enregistre-le dans `tmp/smoke-test-{date}.png` (le dossier `tmp/` est gitignored), supprime après vérification.
-4. Vérifie : (a) la page charge sans 5xx, (b) contenu principal visible (pas page blanche), (c) pas d'erreur console critique.
+3. **Invoque le sub-agent `browser-verifier`** avec :
+   - `url` : l'URL choisie en étape 1 ci-dessus (custom propagée, custom pending fallback hosting, ou par défaut)
+   - critères : status 2xx, console_errors == 0, non_blank, et `title_contains` si le projet a un nom de marque attendu
+   - Le sub-agent gère navigate + snapshot + screenshot dans `tmp/browser-verify/` + cleanup.
+4. Affiche le verdict à l'utilisateur sous la forme : *"Vérification UI : OK ({raison browser-verifier})"* / *"Vérification UI : anomalie — {raison}"* / *"Vérification UI : KO — {raison}"*. JAMAIS de mention du sub-agent côté UX. Le verdict couvre : (a) la page charge sans 5xx, (b) contenu principal visible (pas page blanche), (c) pas d'erreur console critique.
 
 **`project_type = automation`** :
 1. Récupère l'URL du webhook.

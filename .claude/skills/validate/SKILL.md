@@ -63,13 +63,12 @@ Chaque sous-agent te ramène son verdict, tu compiles le tien. Tu gagnes du temp
 
 Selon l'option choisie, **lance vraiment le test** :
 
-**Option A — Playwright** :
-- Lancer le serveur (`npm run dev` ou URL prod selon hosting détecté)
-- Naviguer vers la page (`mcp__playwright__browser_navigate`)
-- Snapshot DOM (`browser_snapshot`) ou screenshot (`browser_take_screenshot` → **filename: `tmp/{nom-test}.png`**)
-- Vérifier les éléments attendus (boutons, textes, couleurs)
-- Vérifier les actions (clic → état change)
-- **Nettoie le screenshot** une fois la vérification consignée (le `tmp/` est gitignored mais on ne laisse pas traîner)
+**Option A — Playwright (via sub-agent `browser-verifier`)** :
+- Lancer le serveur si besoin (`npm run dev` ou URL prod selon hosting détecté)
+- **Invoquer le sub-agent `browser-verifier`** avec `url = http://localhost:{port}/{route à tester}` (ou URL prod) + critères contextuels issus du plan de phase : status 2xx, console_errors == 0, non_blank, et `selectors_present` listant les éléments clés que la phase devait livrer (boutons, formulaires, textes attendus).
+- Affiche le verdict à l'utilisateur dans la section "Tests réalisés" du verdict (Étape 4) sous la forme `Vérification UI : OK ({raison browser-verifier})` / `Vérification UI : anomalie — {raison}` / `Vérification UI : KO — {raison}`. JAMAIS de mention du sub-agent côté UX.
+- Pour les actions (clic → état change), enchaîne plusieurs appels du sub-agent avec des URLs ou critères différents si nécessaire (le sub-agent navigue et snapshotte, le parent décide de l'enchaînement).
+- Le sub-agent gère son propre cleanup (`rm tmp/browser-verify/*.png` après lecture du screenshot).
 
 **Option B — n8n** :
 - Identifier le webhook ou trigger du workflow
